@@ -110,16 +110,20 @@ AI-facing product interfaces planned for TaskPilot:
 | Non-trivial behavior, contract, persistence, cross-layer, or architecture work | Specification and acceptance criteria |
 | Approved production change | Implementation against the accepted specification |
 | New or changed behavior | Test design and implementation at the lowest sufficient level |
-| User-facing WebUI work | Simple product UI design and browser-level verification where relevant |
+| User-facing WebUI work | UI-change pipeline, maintained design book, browser-level verification, and isolated design review |
 | Read-only assessment or independent regression pass | Findings-first code review |
 | Claimed completion of a non-trivial change | Evidence-based final validation and final diff inspection |
 | Changed behavior, commands, architecture, domain facts, or known failure modes | Documentation synchronization |
+| Runtime instruction-system creation or material change | Instruction maintenance, isolated instruction evaluation, scenario acceptance, and validation |
 | Isolated implementation or independent judgment is materially useful | Specialized project agent |
 
 All runtime AI capabilities are authoritative under `.claude/skills/`, `.claude/pipelines/`,
 `.claude/agents/`, and `.claude/conventions/`. `AGENTS.md` is the sole root contract outside
 `.claude/`. Tool-specific configuration must not create competing procedures. The responsibility
 boundaries in `AGENTS.md` remain authoritative.
+
+The routing manager is packaged as `.claude/skills/manager/SKILL.md` for Claude discovery and
+startup import. It remains a manager-equivalent routing artifact, not an execution skill.
 
 ## Domain Vocabulary
 

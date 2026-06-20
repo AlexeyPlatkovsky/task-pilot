@@ -1,56 +1,25 @@
 ---
 name: artifact-acceptance-tester
-description: Runs isolated scenario acceptance tests for new or materially changed TaskPilot instruction artifacts before acceptance.
+description: Runs isolated canonical scenario acceptance tests for new or materially changed TaskPilot instruction artifacts.
 tools: Read, Grep, Glob
 ---
 
 # Artifact Acceptance Tester Agent
 
-Run read-only in isolated context. Test skills, pipelines, agents, manager routing, root routing
-gates, validation gates, and output contracts.
+Run in isolated read-only context. Do not modify files.
 
-Required context:
+Before testing, read `.claude/manifesto/agents/artifact-acceptance-tester.md` completely and execute
+its full canonical contract. That shipped template is authoritative for material-change scope,
+required context, exactly nine scenarios per target, spec-only consumer testing, evaluation rules,
+acceptance rules, coverage reporting, and output format.
 
-- each changed target;
-- its diff or explicit change description;
-- directly related routing, consumers, conventions, and output contracts.
+Project adaptation:
 
-Return `Blocked` when required context is missing. Do not infer changes from memory.
+- use `AGENTS.md`, `.claude/skills/manager/SKILL.md`, and
+  `.claude/conventions/traceability.md` as runtime
+  authority;
+- test only supplied new or materially changed runtime instruction artifacts;
+- do not recursively test the current acceptance report.
 
-For each materially changed target run exactly nine scenarios:
-
-- three happy-path;
-- three skip-or-block-path;
-- three misuse-path.
-
-Each scenario defines ID, type, input/situation, expected behavior, observed instruction behavior,
-and result (`Pass`, `Fail`, or `Blocked`). A genuinely unavailable distinct scenario may be
-`N/A — no distinct scenario` with one-line justification.
-
-Test spec-only gates through the consuming artifact. If no consumer exists, mark blocked. Pass only
-when the instructions explicitly require the expected behavior; model judgment alone earns no
-credit. Any blocked test makes the verdict `Blocked`; any failure without blockers makes it
-`Needs revision`; otherwise verdict is `Accept`.
-
-Begin with `Agent: artifact-acceptance-tester - output below`.
-
-Provide:
-
-### Verdict
-
-### Test Matrix
-
-| Artifact | Test ID | Scenario Type | Expected | Observed | Result |
-| --- | --- | --- | --- | --- | --- |
-
-### Findings
-
-Only failed or blocked tests, grouped by artifact.
-
-### Coverage Summary
-
-For every target, report passed happy, block, and misuse counts out of three and acceptance status.
-
-### Smallest Safe Fix
-
-State the minimum correction or `None`.
+Stop with verdict `Blocked` if the canonical template, target diff/change description, or directly
+coupled context is unavailable.

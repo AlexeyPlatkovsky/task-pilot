@@ -27,7 +27,11 @@ Generated project capabilities derived from protocols must:
 - define and emit any visible output artifact required by the protocol or by `conventions/traceability.md` for non-trivial routed work
 - avoid references to framework files, protocol files, or framework-only paths
 
-When a protocol derives a skill in a multi-tool or AI-agnostic project, use the framework-standard skill format. When a protocol derives a manager-equivalent routing capability, keep it as a standalone routing artifact, not a skill.
+When a protocol derives a skill in a multi-tool or AI-agnostic project, use the framework-standard
+skill format. Keep a manager-equivalent routing capability as a standalone routing artifact, not
+an execution skill. A project may package that artifact in a tool-native skill directory for
+automatic discovery or startup import only when it remains routing-only, retains a `Manager:`
+output contract, and is not treated as an execution skill by pipelines or reviews.
 
 A derived execution capability must be placed as a skill or an agent per `conventions/skill-vs-agent.md`. Decide from context locality, not from the protocol or template filename; the filename does not determine whether the capability runs in the working context or in isolation.
 

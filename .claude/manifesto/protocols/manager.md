@@ -14,7 +14,9 @@ requires_when:
 This protocol defines canonical centralized routing behavior for projects that need a manager-equivalent routing capability.
 
 It is a framework input.
-Project manager-equivalent routing capabilities derived from it must be standalone project artifacts.
+Project manager-equivalent routing capabilities derived from it must be standalone project
+artifacts. Tool-native skill packaging is allowed for discovery or startup import when the
+artifact remains routing-only and uses the manager output contract.
 
 ---
 

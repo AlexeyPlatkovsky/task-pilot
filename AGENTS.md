@@ -35,8 +35,8 @@ architecture. Report the conflict and obtain a decision.
 Before creating, editing, moving, or deleting files, state the task classification.
 
 - Trivial and low risk: proceed directly and state why no pipeline is required.
-- Non-trivial, or uncertain: read `.claude/manager.md`, emit its required manager artifact, and do not
-  implement until the route is explicit.
+- Non-trivial, or uncertain: load `.claude/skills/manager/SKILL.md`, emit its required manager
+  artifact, and do not implement until the route is explicit.
 
 The required manager artifact is `Manager: taskpilot-manager - output below`.
 
@@ -83,9 +83,11 @@ canonical task files
 
 Routing:
 
-- Manager: `.claude/manager.md`
+- Manager: `.claude/skills/manager/SKILL.md`
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
+- UI change pipeline: `.claude/pipelines/ui-change.md`
 - Review pipeline: `.claude/pipelines/code-review.md`
+- Instruction change pipeline: `.claude/pipelines/instruction-change.md`
 
 Skills:
 
@@ -96,11 +98,13 @@ Skills:
 - UI design: `.claude/skills/design-ui/SKILL.md`
 - Validation: `.claude/skills/validate-change/SKILL.md`
 - Documentation maintenance: `.claude/skills/maintain-docs/SKILL.md`
+- Instruction maintenance: `.claude/skills/maintain-instruction-system/SKILL.md`
 - Completion: `.claude/skills/task-complete/SKILL.md`
 
 Agents:
 
 - Independent code review: `.claude/agents/code-reviewer.md`
+- Independent design review: `.claude/agents/design-reviewer.md`
 - Instruction review: `.claude/agents/instruction-evaluator.md`
 - Instruction scenario acceptance: `.claude/agents/artifact-acceptance-tester.md`
 

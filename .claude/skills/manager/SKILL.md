@@ -1,3 +1,9 @@
+---
+name: manager
+description: Classifies and routes every non-trivial TaskPilot task to the correct pipeline, skill, or agent before execution.
+user-invocable: false
+---
+
 # TaskPilot Work Manager
 
 ## Responsibility
@@ -18,11 +24,14 @@ production dependencies, or requires more than one coordinated capability.
 ## Route Selection
 
 - Feature, refactor, or non-trivial bug fix: `.claude/pipelines/feature-change.md`.
+- Product UI design or implementation: `.claude/pipelines/ui-change.md`.
 - Read-only review request: `.claude/pipelines/code-review.md`.
 - Open high-impact choice with materially different outcomes: `.claude/skills/brainstorm/SKILL.md`.
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.
-- Instruction-system creation or material change: instruction evaluator, artifact acceptance
-  tester, then task-complete.
+- Project instruction-system creation or material change: `.claude/pipelines/instruction-change.md`.
+
+Framework stages under `.claude/manifesto/`, including `02_review.md`, are invoked explicitly by
+the user. They are framework workflows, not project routing targets.
 
 For high-risk or system-level work, require independent review after validation. For medium-risk
 production work, require independent review unless the change is documentation-only.
