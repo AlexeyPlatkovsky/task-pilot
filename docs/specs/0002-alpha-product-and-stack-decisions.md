@@ -51,25 +51,73 @@ local preferences. It is not committed to project repositories and is not canoni
 The WebUI serves active registered projects from the local system registry. A registered project
 can be disabled locally without changing the project repository.
 
-## Project Registration
+Registry entries use unique project IDs. Alpha allows only one registered path per `project.id`.
+The registry stores absolute normalized paths only and caches project `name` and `key` for display.
 
-Registration is explicit and current-folder-only.
+Example registry entry:
+
+```yaml
+schema_version: 1
+projects:
+  - id: task-pilot
+    key: TP
+    name: TaskPilot
+    path: /Users/aleksei/Projects/task-pilot
+    active: true
+    registered_at: 2026-06-24T10:00:00Z
+```
+
+Registry paths are local-only and do not need to be portable across machines.
+
+## Project Initialization
+
+Alpha has no separate `register` command. `taskpilot init .` is the single onboarding command for
+new and existing TaskPilot projects.
 
 Expected commands:
 
 ```bash
 taskpilot init .
-taskpilot register .
 taskpilot serve
 ```
 
-`taskpilot init .` creates repository-local TaskPilot files for a new project and registers the
-current project root locally.
+`taskpilot init .` inspects only the current folder. It does not scan child or parent folders.
 
-`taskpilot register .` registers an existing TaskPilot project in the current folder. It inspects
-only the current folder and does not scan child or parent folders.
+For a new project, `init` creates missing repository-local TaskPilot structure and project metadata,
+then adds or enables the project in the local registry.
+
+For an existing or partially existing TaskPilot project, `init` creates only missing required
+folders/files, does not overwrite existing canonical files, adds or enables the project in the
+local registry when project identity is available, validates the project, and prints findings.
+
+If inconsistencies exist, `init` reports them and suggests manual correction or future Beta repair
+tooling. Alpha does not silently repair inconsistent data.
+
+If `project.yaml` exists, `init` must not overwrite immutable identity fields.
 
 `taskpilot serve` serves all active registered projects by default.
+
+## Project Metadata
+
+Alpha `project.yaml` is minimal:
+
+```yaml
+schema_version: 1
+id: task-pilot
+key: TP
+name: TaskPilot
+created_at: 2026-06-24T10:00:00Z
+```
+
+Project metadata is set during `taskpilot init .` and is not editable through Alpha CLI or WebUI.
+
+Fields:
+
+- `schema_version`: required, system-owned;
+- `id`: required, user-supplied on init, immutable after init;
+- `key`: required, used as the item ID prefix, immutable in Alpha;
+- `name`: required display name, immutable in Alpha;
+- `created_at`: required, system-created.
 
 ## Canonical File Formats
 
@@ -103,6 +151,37 @@ TP-10
 
 The next item ID is allocated by scanning existing item files and choosing the next numeric suffix.
 Gaps are allowed. Duplicate IDs are validation errors.
+
+TaskPilot writes item YAML deterministically:
+
+- fixed field order;
+- absent optional fields omitted;
+- UTC ISO 8601 timestamps with seconds, such as `2026-06-24T10:00:00Z`;
+- comments and unusual manual YAML formatting may be normalized;
+- unknown fields are preserved where practical when updating parseable item files.
+
+Alpha item field order:
+
+1. `schema_version`
+2. `id`
+3. `title`
+4. `priority`
+5. `type`
+6. `status`
+7. `created_at`
+8. `updated_at`
+9. `parent_id`
+10. `tags`
+11. `description`
+12. `attachments`
+13. `dor`
+14. `dod`
+15. `links`
+16. `created_by`
+17. `performed_by`
+18. `external_refs`
+
+Unknown fields, when preserved, are written after known fields in deterministic key order.
 
 ## Item Types and Hierarchy
 
@@ -281,9 +360,15 @@ created_by: Aleksei
 Investigated current parser behavior.
 ```
 
-The filename timestamp is the comment identity within the item. `created_at` should match the
-filename timestamp. If two comments collide at the same second, TaskPilot should add a deterministic
-suffix to the filename.
+The filename timestamp is the comment identity within the item. Timestamps use UTC seconds.
+`created_at` should match the filename timestamp. If two comments collide at the same second,
+TaskPilot adds a numeric suffix to the filename:
+
+```text
+2026-06-23T10-00-00Z.md
+2026-06-23T10-00-00Z-2.md
+2026-06-23T10-00-00Z-3.md
+```
 
 Adding a comment does not update the parent item `updated_at`. `updated_at` means the item YAML
 changed. A future `last_activity_at` value can be derived from item timestamps and comment
@@ -310,25 +395,143 @@ Expected behavior:
 
 - `taskpilot validate` reports all validation errors and exits non-zero when errors exist;
 - valid items can still be listed and displayed;
-- invalid item/comment files are shown in a validation/errors surface;
+- invalid item files are shown in item lists and on the Kanban board where possible;
+- invalid comments are shown through validation output, not as Kanban cards;
 - writes validate the target operation before changing files;
 - writes do not silently rewrite unrelated invalid files.
 
-## CLI and WebUI Write Surface
+Validation severities:
 
-Alpha supports editing through both CLI and WebUI. Both surfaces must use the same Python core
-services.
+- errors make `taskpilot validate` exit non-zero;
+- warnings do not make `taskpilot validate` exit non-zero;
+- missing attachment files are warnings;
+- attachment paths that are absolute or escape the repository root are errors;
+- links to missing item IDs are errors;
+- links to existing `status: deleted` items are warnings.
 
-Minimal shared write operations:
+Invalid item handling:
 
-- create item;
-- update item fields;
-- add comment;
-- set, change, or remove `parent_id`;
-- add or remove links;
-- delete item by setting `status: deleted`.
+- invalid items with recoverable non-deleted status appear in that Kanban column with a red `!`
+  indicator;
+- invalid items without recoverable status appear in the backlog column with a red `!` indicator;
+- invalid items with recoverable `status: deleted` are hidden from the normal Kanban board like
+  valid deleted items;
+- invalid item cards are not draggable;
+- clicking an invalid item card opens read-only validation details in Alpha.
 
-Read operations should support deterministic JSON output where relevant.
+`taskpilot item list` includes invalid item files with an invalid marker where possible. Deleted
+items, including invalid items with recoverable `status: deleted`, are excluded by default unless
+`--include-deleted` is used.
+
+`taskpilot item show <item-id>` works for invalid items when the item ID is recoverable and shows
+read-only validation details.
+
+`taskpilot item update <item-id>` can update invalid item files only when YAML parses as a mapping
+and `id` is recoverable. Completely unparseable YAML cannot be updated by Alpha item commands.
+
+`taskpilot validate --json` returns a summary plus a flat findings list:
+
+```json
+{
+  "ok": false,
+  "summary": {
+    "errors": 1,
+    "warnings": 2
+  },
+  "findings": [
+    {
+      "severity": "error",
+      "code": "missing_required_field",
+      "path": ".taskpilot/items/TP-1.yaml",
+      "field": "title",
+      "item_id": "TP-1",
+      "message": "Missing required field: title"
+    }
+  ]
+}
+```
+
+`ok` means no errors. Warnings may still be present when `ok` is `true`.
+
+## CLI Scope and Output
+
+Alpha commands:
+
+```bash
+taskpilot init .
+taskpilot validate
+taskpilot serve
+taskpilot project list
+
+taskpilot item list
+taskpilot item show <item-id>
+taskpilot item create
+taskpilot item update <item-id>
+taskpilot item comment <item-id>
+taskpilot item delete <item-id>
+
+taskpilot item parent <item-id> <parent-id>
+taskpilot item unparent <item-id>
+taskpilot item blocks <item-id> <target-id>
+taskpilot item unblocks <item-id> <target-id>
+taskpilot item relates <item-id> <target-id>
+taskpilot item unrelates <item-id> <target-id>
+```
+
+Alpha does not include generic `link` / `unlink` commands.
+
+All commands except `serve` and `project list` are local-only and work in the current project
+repository.
+
+Beta adds:
+
+```bash
+taskpilot project enable <project-id>
+taskpilot project disable <project-id>
+taskpilot repair
+```
+
+Alpha does not include `doctor`; `validate` is the single diagnosis/validation command.
+
+Read/list commands support `--json`:
+
+- `taskpilot project list --json`;
+- `taskpilot item list --json`;
+- `taskpilot item show <item-id> --json`;
+- `taskpilot validate --json`.
+
+Write commands also support `--json` and return deterministic operation results or changed
+resources.
+
+Default human output:
+
+- list commands use plain text tables;
+- `item show` uses readable sections and includes comments by default;
+- write commands use concise success summaries.
+
+`taskpilot item list` default columns:
+
+- ID;
+- Type;
+- Status;
+- Priority;
+- Title;
+- Valid marker.
+
+`taskpilot item list` sorts by numeric item ID in Alpha and excludes deleted items by default.
+It supports basic filters: `--status`, `--type`, and `--priority`.
+
+`taskpilot item list --json` returns item summaries only, including invalid summaries with
+findings. It does not include comments.
+
+`taskpilot item show <item-id>` and `taskpilot item show <item-id> --json` include comments by
+default.
+
+`taskpilot item delete <item-id>` is immediate, uses the same core update path as setting
+`status: deleted`, and does not prompt. Deleted items can be shown or updated by direct ID.
+
+`taskpilot project list` shows all registry entries, including disabled entries if they exist, and
+sorts by project name. It does not check filesystem health in Alpha.
 
 ## WebUI Direction
 
@@ -336,13 +539,24 @@ The WebUI is browser-based only. There is no desktop shell.
 
 Primary workspace page: Kanban board.
 
+The WebUI project selector is a simple dropdown of active registered projects sorted by project
+name. Projects are loaded lazily when selected/requested.
+
+If a selected project cannot load because the path is missing, `.taskpilot/` is missing,
+`project.yaml` is missing, or the project file is too invalid to load, the UI shows an empty
+Kanban board with a large centered error message. The registry is not automatically changed.
+
 Alpha Kanban board:
 
 - columns: backlog, ready, in_progress, done, cancelled;
 - hidden by default: deleted;
 - shows all item types;
 - sorts cards within each column by type order, then numeric item ID;
-- type order: epic, feature, task, bug.
+- type order: epic, feature, task, bug;
+- supports drag/drop status changes for valid item cards;
+- allows dragging valid cards into `cancelled` without confirmation;
+- shows invalid item cards with a red `!` indicator where possible;
+- does not allow dragging invalid item cards.
 
 Beta adds filters.
 
@@ -355,6 +569,19 @@ Release UI capabilities include:
 - edit or delete item from the modal.
 
 The item editor is a modal. Opening an item should not require leaving the current page.
+
+Alpha WebUI item modal:
+
+- edits only `title`, `status`, `priority`, and `description`;
+- deletes an item by setting `status: deleted` after confirmation;
+- shows comments read-only;
+- shows all other Alpha item fields read-only;
+- does not create items;
+- does not add, edit, or delete comments;
+- does not edit `parent_id` or non-parent links;
+- shows invalid items as read-only validation details.
+
+Comment add/edit/delete starts in Beta. WebUI item creation starts after Alpha.
 
 Recommended frontend libraries:
 
@@ -410,6 +637,43 @@ task-pilot/
 Business rules live in the Python core. The CLI calls the core directly. FastAPI calls the core
 directly. The WebUI calls FastAPI and must not reimplement canonical validation or write rules.
 
+## Server and API
+
+`taskpilot serve` behavior in Alpha:
+
+- binds to `127.0.0.1` only;
+- uses port `7152` by default;
+- supports `--port` override;
+- does not open a browser by default;
+- supports `--open` to open the browser;
+- requires built WebUI assets and fails at startup if they are missing;
+- checks WebUI assets only at startup;
+- serves FastAPI docs at `/docs`;
+- serves all active registered projects, loaded lazily.
+
+Development may use a separate Vite dev server. Alpha uses npm directly for WebUI builds and does
+not add a `taskpilot web build` command.
+
+REST API routes use `/api/...` and identify projects by `project.id`.
+
+Alpha API shape:
+
+```text
+GET /api/projects
+GET /api/projects/{project_id}/items
+GET /api/projects/{project_id}/items/{item_id}
+PATCH /api/projects/{project_id}/items/{item_id}
+```
+
+Item update uses `PATCH` with partial fields. Drag/drop status changes use the same `PATCH`
+endpoint. WebUI delete uses the same `PATCH` endpoint with `status: deleted`. Alpha does not need a
+REST `DELETE` endpoint for items.
+
+Item detail embeds comments. Alpha API does not expose a comment creation endpoint because WebUI
+comments are read-only and CLI comment creation calls the Python core directly.
+
+No SQLite or other index/cache is required in Alpha. Alpha reads canonical project files directly.
+
 ## Acceptance Criteria
 
 This decision capture is acceptable when:
@@ -417,19 +681,17 @@ This decision capture is acceptable when:
 - it records the current Alpha/Beta/Release terminology;
 - it records one repo as one project;
 - it records the local system registry and active-project serving model;
+- it records `taskpilot init .` as the single Alpha onboarding command;
 - it records pure YAML item files and separate Markdown comments;
 - it records item fields, statuses, priorities, hierarchy, links, comments, and deletion behavior;
 - it records the Kanban/modal WebUI direction;
+- it records Alpha CLI command scope and JSON output rules;
+- it records Alpha API route shape and serve behavior;
 - it records the Python/FastAPI/Typer/PyYAML/uv stack and React/Vite/TypeScript/npm WebUI stack;
 - `docs/specs/README.md` links to this specification.
 
 ## Open Questions
 
-- Should invalid files appear only in a validation panel/list or also as error cards on the
-  Kanban board?
-- What exact `project.yaml` fields are required?
-- What exact CLI command names, options, exit codes, and JSON schemas are accepted?
-- What exact REST API routes and response schemas are accepted?
-- What timestamp precision and collision suffix format should comments use?
 - What permanent-delete safeguards are required for Beta?
 - What cache/index format is required, and when is it introduced?
+- What exact JSON response schemas should each Alpha CLI/API operation return?

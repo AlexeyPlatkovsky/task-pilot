@@ -55,7 +55,7 @@ Secondary users:
 - SQLite, if introduced, is disposable index/cache data and never the source of truth.
 - Canonical files are written before any index refresh.
 - One file per item minimizes Git conflicts.
-- Comments are separate append-style files where possible.
+- Comments are separate append-style files.
 - Reverse links are derived, not stored independently.
 - Serialization and JSON contracts are deterministic.
 - Invalid files remain visible and actionable.
@@ -157,7 +157,7 @@ it must be rebuildable from canonical files and contain no unique source-of-trut
 
 The preferred delivery sequence is:
 
-1. Canonical registry/project/item files, deterministic parsing/writing, and validation.
+1. Canonical project, item, and comment files, deterministic parsing/writing, and validation.
 2. Shared domain/service operations for projects, items, comments, and links.
 3. Stable CLI commands with human-readable and JSON output.
 4. Local REST API and WebUI with project selection, Kanban board, item modal editing, and comments.
