@@ -43,11 +43,13 @@ jobs:
             --argjson total "$total" \
             '{name:"Tests",ok:$ok,passed:$passed,total:$total}' > result-tests.json
 
+      - name: Install ruff
+        run: uv pip install ruff -q
+
       - name: Lint
         id: lint
         continue-on-error: true
         run: |
-          pip install ruff -q
           ruff check . > lint.out 2>&1; rc=$?
           cat lint.out
 
