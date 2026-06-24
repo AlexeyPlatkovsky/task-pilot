@@ -9,7 +9,7 @@
 | F001-T5 | Implement comment Markdown parser with YAML frontmatter extraction | F001-R4 | done | F001-T1 |
 | F001-T6 | Implement comment file writer with timestamp-based naming and collision disambiguation | F001-R5 | done | F001-T5 |
 | F001-T7 | Implement item validation: required fields, valid enums, unique IDs, valid references | F001-R6 | done | F001-T3 |
-| F001-T8 | Implement project loader that separates valid items from validation errors | F001-R7 | todo | F001-T3, F001-T7 |
+| F001-T8 | Implement project loader that separates valid items from validation errors | F001-R7 | done | F001-T3, F001-T7 |
 
 ## Notes
 
