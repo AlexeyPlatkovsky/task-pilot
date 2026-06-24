@@ -1,0 +1,183 @@
+"""Item domain service: create, read, update, list (task F002-T2, requirement F002-R2).
+
+Stateless operations over canonical ``items/<id>.yaml`` files. IDs are allocated
+as ``<PROJECT_KEY>-<n>`` where ``n`` is one past the highest existing numeric
+suffix (gaps from deleted items are not reused). Model construction validates
+enums/timestamps, so invalid input is rejected before any file is written
+(F002-R8); richer pre-write validation is consolidated in F002-T8.
+
+Hierarchy rules for ``parent_id`` (F002-T3) and links (F002-T4/T5) are layered on
+in their own tasks; this service owns plain field create/read/update/list.
+"""
+
+from __future__ import annotations
+
+import re
+
+from pydantic import ValidationError
+
+from taskpilot.core.item_io import ItemParseError, parse_item_file, write_item
+from taskpilot.core.layout import WorkspacePaths
+from taskpilot.core.models import Item
+from taskpilot.core.timestamps import utc_now_iso
+from taskpilot.services.errors import NotFound, ValidationFailed
+from taskpilot.services.project_service import read_project
+
+__all__ = ["create_item", "read_item", "update_item", "list_items", "next_id"]
+
+
+def _numeric_suffix(item_id: str, key: str) -> int | None:
+    """Return the numeric suffix of ``item_id`` for project ``key``, else ``None``."""
+    prefix = f"{key}-"
+    if not item_id.startswith(prefix):
+        return None
+    rest = item_id[len(prefix) :]
+    return int(rest) if rest.isdigit() else None
+
+
+def next_id(paths: WorkspacePaths, key: str) -> str:
+    """Allocate the next item id for project ``key`` as ``<key>-<max+1>``.
+
+    Scans existing ``items/*.yaml`` filenames for the highest numeric suffix.
+    Gaps left by deleted items are not reused (see ``tasks.md`` notes).
+    """
+    highest = 0
+    if paths.items_dir.is_dir():
+        for file in paths.items_dir.glob("*.yaml"):
+            suffix = _numeric_suffix(file.stem, key)
+            if suffix is not None and suffix > highest:
+                highest = suffix
+    return f"{key}-{highest + 1}"
+
+
+def create_item(
+    paths: WorkspacePaths,
+    *,
+    title: str,
+    type: str,
+    priority: str = "normal",
+    status: str = "backlog",
+    description: str | None = None,
+    parent_id: str | None = None,
+    tags: list[str] | None = None,
+    created_by: str | None = None,
+    now: str | None = None,
+) -> Item:
+    """Create a new item with an allocated id and return it (F002-R2).
+
+    Requires an initialized project (its key prefixes the id). ``created_at`` and
+    ``updated_at`` are set to ``now`` (current UTC by default). Raises
+    :class:`NotFound` when no project exists and :class:`ValidationFailed` for
+    invalid field values — no file is written in the latter case.
+    """
+    project = read_project(paths)  # raises NotFound when absent
+    timestamp = now or utc_now_iso()
+    item_id = next_id(paths, project.key)
+    try:
+        item = Item(
+            id=item_id,
+            title=title,
+            type=type,
+            priority=priority,
+            status=status,
+            created_at=timestamp,
+            updated_at=timestamp,
+            description=description,
+            parent_id=parent_id,
+            tags=tags,
+            created_by=created_by,
+        )
+    except ValidationError as exc:
+        raise ValidationFailed(f"Cannot create item: {exc}") from exc
+    write_item(paths, item)
+    return item
+
+
+def read_item(paths: WorkspacePaths, item_id: str) -> Item:
+    """Read an item by id (F002-R2).
+
+    Raises :class:`NotFound` when the file is absent and :class:`ValidationFailed`
+    when it exists but cannot be parsed/validated.
+    """
+    target = paths.item_file(item_id)
+    if not target.is_file():
+        raise NotFound(f"No item found with id {item_id!r}")
+    try:
+        return parse_item_file(target)
+    except (ItemParseError, ValidationError, UnicodeDecodeError, OSError) as exc:
+        raise ValidationFailed(f"Invalid item file for {item_id!r}: {exc}") from exc
+
+
+def update_item(
+    paths: WorkspacePaths,
+    item_id: str,
+    *,
+    now: str | None = None,
+    **fields: object,
+) -> Item:
+    """Update ``item_id``'s fields and refresh ``updated_at`` (F002-R2).
+
+    Reads the current item, applies ``fields``, re-validates, and persists.
+    ``id`` and ``created_at`` cannot be changed. Raises :class:`NotFound` when the
+    item is absent and :class:`ValidationFailed` for invalid values (the file is
+    left unchanged in that case).
+    """
+    current = read_item(paths, item_id)
+
+    for immutable in ("id", "created_at"):
+        if immutable in fields:
+            raise ValidationFailed(f"Field {immutable!r} cannot be updated")
+
+    data = current.model_dump()
+    data.update(fields)
+    data["updated_at"] = now or utc_now_iso()
+    try:
+        updated = Item.model_validate(data)
+    except ValidationError as exc:
+        raise ValidationFailed(f"Cannot update item {item_id!r}: {exc}") from exc
+
+    write_item(paths, updated)
+    return updated
+
+
+def _numeric_id_key(item: Item) -> tuple[int, str]:
+    _, _, suffix = item.id.rpartition("-")
+    return (int(suffix), item.id) if suffix.isdigit() else (-1, item.id)
+
+
+def list_items(
+    paths: WorkspacePaths,
+    *,
+    project: str | None = None,
+    status: str | None = None,
+    type: str | None = None,
+    include_deleted: bool = False,
+) -> list[Item]:
+    """List items, filtered and sorted by numeric id (F002-R2).
+
+    Filters: ``project`` (item-id key prefix), ``status``, ``type``. ``deleted``
+    items are excluded unless ``include_deleted`` is true. Structurally invalid
+    files are skipped here; surfacing them is the validation layer's job (F001-T7).
+    """
+    items: list[Item] = []
+    if paths.items_dir.is_dir():
+        for file in paths.items_dir.glob("*.yaml"):
+            if not file.is_file():
+                continue
+            try:
+                items.append(parse_item_file(file))
+            except (ItemParseError, ValidationError, UnicodeDecodeError, OSError):
+                continue
+
+    if project is not None:
+        prefix = f"{project}-"
+        items = [i for i in items if i.id.startswith(prefix)]
+    if status is not None:
+        items = [i for i in items if i.status == status]
+    if type is not None:
+        items = [i for i in items if i.type == type]
+    if not include_deleted:
+        items = [i for i in items if i.status != "deleted"]
+
+    items.sort(key=_numeric_id_key)
+    return items
