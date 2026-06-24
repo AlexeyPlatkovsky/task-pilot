@@ -4,7 +4,10 @@ version = "0.0.0"
 description = "Local-first, file-based task management. Markdown/YAML files are the source of truth."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pydantic>=2",
+    "pyyaml>=6",
+]
 
 [dependency-groups]
 dev = [
