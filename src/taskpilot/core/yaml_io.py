@@ -15,6 +15,24 @@ import yaml
 __all__ = ["dump_yaml", "load_yaml"]
 
 
+class _CanonicalLoader(yaml.SafeLoader):
+    """SafeLoader that does not auto-convert ISO timestamps to ``datetime``.
+
+    TaskPilot owns canonical timestamp formatting and stores timestamps as
+    strings, so implicit timestamp resolution would corrupt round-trip fidelity.
+    """
+
+
+_CanonicalLoader.yaml_implicit_resolvers = {
+    first_char: [
+        (tag, regexp)
+        for tag, regexp in resolvers
+        if tag != "tag:yaml.org,2002:timestamp"
+    ]
+    for first_char, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+
+
 def dump_yaml(data: Any) -> str:
     """Serialize ``data`` to canonical YAML text.
 
@@ -32,5 +50,8 @@ def dump_yaml(data: Any) -> str:
 
 
 def load_yaml(text: str) -> Any:
-    """Parse YAML ``text`` into Python data using the safe loader."""
-    return yaml.safe_load(text)
+    """Parse YAML ``text`` into Python data using the canonical safe loader.
+
+    ISO timestamps are kept as strings (see :class:`_CanonicalLoader`).
+    """
+    return yaml.load(text, Loader=_CanonicalLoader)
