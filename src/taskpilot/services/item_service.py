@@ -21,6 +21,7 @@ from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.core.timestamps import utc_now_iso
 from taskpilot.services.errors import NotFound, ValidationFailed
+from taskpilot.services.hierarchy import validate_parent
 from taskpilot.services.project_service import read_project
 
 __all__ = ["create_item", "read_item", "update_item", "list_items", "next_id"]
@@ -89,6 +90,7 @@ def create_item(
         )
     except ValidationError as exc:
         raise ValidationFailed(f"Cannot create item: {exc}") from exc
+    validate_parent(paths, child_id=item.id, child_type=item.type, parent_id=item.parent_id)
     write_item(paths, item)
     return item
 
@@ -136,6 +138,7 @@ def update_item(
     except ValidationError as exc:
         raise ValidationFailed(f"Cannot update item {item_id!r}: {exc}") from exc
 
+    validate_parent(paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id)
     write_item(paths, updated)
     return updated
 
