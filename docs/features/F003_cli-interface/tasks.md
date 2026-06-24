@@ -2,7 +2,7 @@
 
 | ID | Task | Implements | Status | Depends on |
 | --- | --- | --- | --- | --- |
-| F003-T1 | Scaffold Typer CLI app with global --json flag and output formatter | F003-R8 | todo | — |
+| F003-T1 | Scaffold Typer CLI app with global --json flag and output formatter | F003-R8 | done | — |
 | F003-T2 | Implement `taskpilot init <path>` with workspace creation and project registration | F003-R1 | todo | F001-T2, F002-T1 |
 | F003-T3 | Implement `taskpilot project list` command | F003-R3 | todo | F002-T1, F003-T1 |
 | F003-T4 | Implement `taskpilot item list`, `show`, `create`, `update` commands | F003-R4 | todo | F002-T2, F003-T1 |
