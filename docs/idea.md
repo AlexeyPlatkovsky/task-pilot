@@ -39,7 +39,6 @@ the code and can be synchronized through GitHub without opaque databases or clou
 - validation of canonical task files with visible errors;
 - local WebUI with project selector, Kanban board, and item modal editing;
 - CLI commands with human-readable and JSON output for AI agents;
-- local SQLite index/cache when direct file access shows a measured need;
 - Git-friendly synchronization through text files, not binary databases.
 
 ### Out of scope
@@ -52,7 +51,7 @@ the code and can be synchronized through GitHub without opaque databases or clou
 - rich automation engine or plugin system;
 - complex notifications;
 - GitHub Issues sync as the core model;
-- SQLite as a committed synchronization mechanism;
+- committed binary databases as a synchronization mechanism;
 - desktop shell (WebUI is browser-based only).
 
 ## Non-Goals
@@ -65,8 +64,7 @@ services.
 
 - Works offline by default — no account, hosted service, or cloud dependency required.
 - YAML and Markdown files are canonical task data.
-- SQLite, when introduced, is disposable index/cache data and never the source of truth.
-- Canonical files are written before any index refresh.
+- Canonical files are the only persisted source of truth for task data.
 - One file per item minimizes Git conflicts.
 - Comments are separate append-style files.
 - Reverse links are derived, not stored independently.
@@ -77,10 +75,11 @@ services.
 ## Success Signals
 
 - A developer can initialize a TaskPilot workspace in an existing repository, create items
-  through CLI or WebUI, and see them persisted as Git-friendly YAML/Markdown files.
+  through CLI, inspect and edit supported fields through the WebUI, and see changes persisted as
+  Git-friendly YAML/Markdown files.
 - An AI coding agent can list, read, and update task state through deterministic CLI commands
   with JSON output.
 - Task files produce readable Git diffs when changed.
-- The WebUI shows a functional Kanban board with item create/edit/comment capabilities.
+- The WebUI shows a functional Kanban board with item detail editing and visible comments.
 - Deleted or corrupted task files remain visible through validation rather than silently
   disappearing.

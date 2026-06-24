@@ -2,22 +2,9 @@
 
 ## Scenarios
 
-### F006-S1: Drag card to change status
+### F006-S1: Sort list view by column
 
 Covers: F006-R1
-
-```gherkin
-Scenario: Drag card to change status
-  Given VP-1 is in the "backlog" column
-  When the user drags VP-1's card to the "in_progress" column
-  Then VP-1's status updates to "in_progress" via API
-    And the card appears in the "in_progress" column
-    And the "backlog" column no longer shows VP-1
-```
-
-### F006-S2: Sort list view by column
-
-Covers: F006-R2
 
 ```gherkin
 Scenario: Sort list view by column
@@ -28,9 +15,9 @@ Scenario: Sort list view by column
   Then rows are sorted in reverse order
 ```
 
-### F006-S3: Filter list view
+### F006-S2: Filter list view
 
-Covers: F006-R3
+Covers: F006-R2
 
 ```gherkin
 Scenario: Filter list view
@@ -41,9 +28,9 @@ Scenario: Filter list view
   Then VP-2 remains visible (both filters match)
 ```
 
-### F006-S4: Expand tree view hierarchy
+### F006-S3: Expand tree view hierarchy
 
-Covers: F006-R4
+Covers: F006-R3
 
 ```gherkin
 Scenario: Expand tree view hierarchy
@@ -57,9 +44,9 @@ Scenario: Expand tree view hierarchy
   Then VP-3 is shown as a child of VP-2
 ```
 
-### F006-S5: Validation panel shows errors
+### F006-S4: Validation panel shows errors
 
-Covers: F006-R5
+Covers: F006-R4
 
 ```gherkin
 Scenario: Validation panel shows errors
@@ -70,9 +57,9 @@ Scenario: Validation panel shows errors
     And clicking the entry opens VP-3 in the item modal (with partial data)
 ```
 
-### F006-S6: Switch between views
+### F006-S5: Switch between views
 
-Covers: F006-R6
+Covers: F006-R5
 
 ```gherkin
 Scenario: Switch between views
@@ -87,8 +74,6 @@ Scenario: Switch between views
 
 ## Manual Verification Checklist
 
-- [ ] (F006-R1) Dragging a card back to its original column is a no-op (no API call).
-- [ ] (F006-R1) Keyboard: focusing a card and pressing Right arrow moves it to the next status column.
-- [ ] (F006-R4) An item without parent_id appears at the root level of the tree.
-- [ ] (F006-R4) Circular parent_id relationships (detected by validation) do not cause infinite recursion in tree view.
-- [ ] (F006-R5) Validation panel with zero errors shows "All items valid" message.
+- [ ] (F006-R3) An item without parent_id appears at the root level of the tree.
+- [ ] (F006-R3) Circular parent_id relationships (detected by validation) do not cause infinite recursion in tree view.
+- [ ] (F006-R4) Validation panel with zero errors shows "All items valid" message.

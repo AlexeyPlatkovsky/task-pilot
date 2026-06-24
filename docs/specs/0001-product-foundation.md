@@ -2,7 +2,11 @@
 
 ## Status
 
-draft
+accepted
+
+This specification is production-ready as the accepted product foundation. Later specifications may
+refine unresolved details, but product work must preserve the invariants and boundaries defined
+here unless a newer accepted specification explicitly revises them.
 
 ## Outcome
 
@@ -30,7 +34,6 @@ Out of scope:
 - exact CLI commands, flags, exit codes, and JSON schemas;
 - exact REST API routes and response contracts;
 - UI layout, component system, and interaction details;
-- SQLite schema, indexing strategy, and file-watcher design;
 - packaging, release, and distribution mechanics.
 
 Those details require follow-up accepted specifications before implementation.
@@ -52,8 +55,7 @@ Secondary users:
 - TaskPilot works offline by default.
 - No account, hosted service, or cloud dependency is required for core use.
 - YAML and Markdown files are the canonical task data.
-- SQLite, if introduced, is disposable index/cache data and never the source of truth.
-- Canonical files are written before any index refresh.
+- Canonical files are the only persisted source of truth for task data.
 - One file per item minimizes Git conflicts.
 - Comments are separate append-style files.
 - Reverse links are derived, not stored independently.
@@ -66,7 +68,7 @@ Secondary users:
 ### System Registry
 
 The local system registry is machine-specific TaskPilot state. It stores known project roots,
-active/inactive project flags, cache/index state, and local preferences. It is not canonical product
+active/inactive project flags and local preferences. It is not canonical product
 data and must not be required for another user to understand a project's tasks after cloning that
 project repository.
 
@@ -150,8 +152,7 @@ canonical task files
 
 Adapters translate inputs and outputs. They must not own business rules.
 
-Filesystem and SQLite details must not leak into the domain model. If an index/cache is introduced,
-it must be rebuildable from canonical files and contain no unique source-of-truth data.
+Filesystem details must not leak into the domain model.
 
 ## Initial Product Sequence
 
@@ -161,10 +162,9 @@ The preferred delivery sequence is:
 2. Shared domain/service operations for projects, items, comments, and links.
 3. Stable CLI commands with human-readable and JSON output.
 4. Local REST API and WebUI with project selection, Kanban board, item modal editing, and comments.
-5. SQLite index/cache only when direct file access shows a measured need.
-6. Kanban, tree, advanced filters, and relation visualization.
-7. Transparent Git helpers.
-8. Optional MCP adapter after core contracts stabilize.
+5. Kanban, tree, advanced filters, and relation visualization.
+6. Transparent Git helpers.
+7. Optional MCP adapter after core contracts stabilize.
 
 ## Acceptance Criteria
 
@@ -173,7 +173,7 @@ This product foundation is acceptable when:
 - it preserves the local-first, file-canonical, Git-friendly product direction;
 - it defines the initial system registry, project root, project, item, comment, and link vocabulary;
 - it identifies which details remain unresolved and require follow-up specs;
-- it keeps SQLite, MCP, hosted sync, accounts, and enterprise workflow outside the first product
+- it keeps MCP, hosted sync, accounts, and enterprise workflow outside the first product
   contract;
 - it aligns with `docs/taskpilot_concept.md` without promoting provisional examples into final
   API or storage contracts;
@@ -196,7 +196,7 @@ Implementation validation for later feature specs should cover:
 - cross-platform path behavior;
 - CLI JSON determinism;
 - shared service behavior across adapters;
-- source-of-truth ordering, with canonical files written before index refresh.
+- canonical file writes and deterministic readback after writes.
 
 ## Risks
 
@@ -209,7 +209,7 @@ Implementation validation for later feature specs should cover:
 
 - The first useful release targets one local developer using AI coding agents.
 - Git is the expected synchronization and review mechanism for canonical task files.
-- Direct file access is acceptable until a measured need justifies SQLite indexing.
+- Direct file access is the current storage access model.
 - CLI is the primary stable AI-facing interface.
 - MCP is useful later, but not required for Alpha.
 

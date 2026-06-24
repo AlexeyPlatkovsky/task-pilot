@@ -10,16 +10,14 @@ TaskPilot needs a storage format for task data that is human-readable, AI-friend
 Git-compatible, and local-first. The format must produce clean diffs, avoid merge conflicts
 where possible, and not require a running server to inspect.
 
-A binary database (SQLite) as the source of truth would make Git diffs unreadable and
-merges painful. A single JSON or YAML file for all items would cause frequent merge conflicts
-when multiple agents work on different tasks. A cloud-hosted database contradicts the
-local-first principle.
+A binary database as the source of truth would make Git diffs unreadable and merges painful. A
+single JSON or YAML file for all items would cause frequent merge conflicts when multiple agents
+work on different tasks. A cloud-hosted database contradicts the local-first principle.
 
 ## Decision
 
 YAML and Markdown files are the canonical source of truth. One file per item minimizes Git
 conflicts. Comments are separate append-only Markdown files to further reduce merge pressure.
-SQLite, if introduced later, is a disposable local index/cache, never the source of truth.
 
 ## Consequences
 
@@ -27,12 +25,11 @@ SQLite, if introduced later, is a disposable local index/cache, never the source
 - Merge conflicts are limited to items actually edited by multiple parties.
 - Developers can inspect task state without TaskPilot running.
 - Validation becomes critical — manually edited files can introduce errors.
-- The system must handle file parsing, serialization, and an index layer on top of files.
-- Rebuilding the index from files must be fast and reliable.
+- The system must handle file parsing, serialization, and validation directly over files.
 
 ## Alternatives Considered
 
-- **SQLite as source of truth** — rejected because binary databases are opaque in Git,
+- **Binary database as source of truth** — rejected because binary databases are opaque in Git,
   merges are painful, and diffs are unreadable.
 - **Single items.json file** — rejected because multi-agent edits would produce frequent
   merge conflicts.

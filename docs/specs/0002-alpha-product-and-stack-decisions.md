@@ -2,7 +2,11 @@
 
 ## Status
 
-draft
+accepted
+
+This specification is production-ready as the accepted Alpha product and stack contract. Feature
+requirements, ADRs, and implementation work must align with it unless a newer accepted
+specification explicitly revises a decision.
 
 ## Outcome
 
@@ -45,8 +49,8 @@ macOS: ~/Library/Application Support/TaskPilot/
 Windows: %APPDATA%/TaskPilot/
 ```
 
-The system directory stores local registry, active/inactive project flags, cache/index data, and
-local preferences. It is not committed to project repositories and is not canonical product data.
+The system directory stores local registry, active/inactive project flags, and local preferences.
+It is not committed to project repositories and is not canonical product data.
 
 The WebUI serves active registered projects from the local system registry. A registered project
 can be disabled locally without changing the project repository.
@@ -672,7 +676,7 @@ REST `DELETE` endpoint for items.
 Item detail embeds comments. Alpha API does not expose a comment creation endpoint because WebUI
 comments are read-only and CLI comment creation calls the Python core directly.
 
-No SQLite or other index/cache is required in Alpha. Alpha reads canonical project files directly.
+Alpha reads canonical project files directly.
 
 ## Acceptance Criteria
 
@@ -693,5 +697,4 @@ This decision capture is acceptable when:
 ## Open Questions
 
 - What permanent-delete safeguards are required for Beta?
-- What cache/index format is required, and when is it introduced?
 - What exact JSON response schemas should each Alpha CLI/API operation return?

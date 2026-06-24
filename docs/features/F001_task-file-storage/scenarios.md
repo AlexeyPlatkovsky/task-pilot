@@ -14,8 +14,7 @@ Scenario: Initialize workspace in empty directory
     And it contains project.yaml with default schema_version
     And it contains items/ directory
     And it contains comments/ directory
-    And it contains cache/ directory
-    And project.yaml has a generated project key
+    And project.yaml has the configured project identity
 ```
 
 ### F001-S2: Parse valid item YAML file
@@ -67,7 +66,7 @@ Covers: F001-R5
 Scenario: Comment timestamp collision disambiguation
   Given .taskpilot/comments/TP-1/2026-06-23T10-00-00Z.md already exists
   When a new comment is created at the same second
-  Then the filename is 2026-06-23T10-00-00Z_2.md
+  Then the filename is 2026-06-23T10-00-00Z-2.md
     And created_at in the frontmatter is 2026-06-23T10:00:00Z
 ```
 

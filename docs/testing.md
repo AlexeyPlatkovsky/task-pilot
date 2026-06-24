@@ -15,7 +15,7 @@ treated as first-class test concerns alongside happy paths.
 | Level | Scope | Tooling |
 | --- | --- | --- |
 | Unit | Individual functions and classes in the Python core: parsers, validators, domain services, link derivation | pytest |
-| Integration | File read/write round-trips, CLI command execution with real filesystem, index rebuild from canonical files | pytest |
+| Integration | File read/write round-trips and CLI command execution with real filesystem | pytest |
 | API | FastAPI endpoints: request/response contracts, error handling, JSON determinism | pytest + FastAPI TestClient |
 | Component | React components: Kanban board, item modal, project selector, form validation | Vitest + React Testing Library |
 | End-to-end | Full workflow: init -> create items -> WebUI display -> CLI query -> git diff readability | Manual checklist (Alpha), automated later |

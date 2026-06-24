@@ -11,7 +11,7 @@ Scenario: No registered projects
   Given the system registry has no registered projects
   When the user opens the WebUI
   Then a message "No projects registered" is displayed
-    And the message includes "taskpilot register ." as a hint
+    And the message includes "taskpilot init ." as a hint
 ```
 
 ### F004-S2: Select project and see Kanban board
@@ -67,17 +67,16 @@ Scenario: Edit item in modal
     And the VP-1 card moves to the "in_progress" column on the Kanban board
 ```
 
-### F004-S6: Add comment in modal
+### F004-S6: Show read-only comments in modal
 
 Covers: F004-R6
 
 ```gherkin
-Scenario: Add comment in modal
+Scenario: Show read-only comments in modal
   Given the VP-1 detail modal is open
     And the comment thread shows existing comments
-  When the user types "Investigated the parser" in the comment input and submits
-  Then the new comment appears at the bottom of the thread
-    And the comment shows the current timestamp and author
+  Then no WebUI comment input is shown
+    And comments are ordered chronologically
 ```
 
 ### F004-S7: Delete item with confirmation
@@ -104,13 +103,28 @@ Scenario: Empty board with prompt
   Given project VP has zero items
   When the Kanban board loads
   Then each column is empty
-    And a message "Create your first item" is shown with a create button
+    And a message explains how to create the first item with the CLI
+```
+
+### F004-S9: Drag card to change status
+
+Covers: F004-R9
+
+```gherkin
+Scenario: Drag card to change status
+  Given VP-1 is a valid item in the "backlog" column
+  When the user drags VP-1's card to the "in_progress" column
+  Then VP-1's status updates to "in_progress" via API
+    And the card appears in the "in_progress" column
+    And the "backlog" column no longer shows VP-1
 ```
 
 ## Manual Verification Checklist
 
 - [ ] (F004-R5) Editing an item and canceling reverts all field changes.
 - [ ] (F004-R5) Saving with a blank title shows inline validation error near the title field.
-- [ ] (F004-R6) Submitting an empty comment is prevented with inline validation.
+- [ ] (F004-R6) The modal does not show comment add, edit, or delete controls.
 - [ ] (F004-R8) If the API returns an error, an error message with retry button is displayed.
 - [ ] (F004-R8) The modal shows a loading indicator while item data is being fetched.
+- [ ] (F004-R9) Invalid item cards cannot be dragged.
+- [ ] (F004-R9) Keyboard: focusing a card and pressing Right arrow moves it to the next status column.

@@ -140,7 +140,6 @@ startup import. It remains a manager-equivalent routing artifact, not an executi
 | Blocker | An item that prevents another item from progressing. |
 | Comment | A separate append-style Markdown file associated with an item. |
 | Canonical files | Human-readable Markdown/YAML task data that forms the source of truth. |
-| Index/cache | Disposable SQLite data rebuilt from canonical files; never authoritative. |
 | Adapter | CLI, REST API, WebUI-facing API handler, or future MCP surface translating to the shared service layer. |
 | Validation error | A visible, actionable problem in canonical project or item data; invalid files must not disappear silently. |
 
@@ -148,19 +147,18 @@ startup import. It remains a manager-equivalent routing artifact, not an executi
 
 - TaskPilot must work offline and remain local-first by default.
 - Markdown/YAML files are canonical task data.
-- SQLite, when introduced, is disposable index/cache data and contains no unique information.
-- Writers update canonical files first and refresh indexes afterward.
+- Canonical files are the only persisted source of truth for task data.
 - One file per item and separate append-style comment files reduce Git conflicts.
 - Reverse relationships are derived rather than stored twice.
 - Business rules live in the domain/service layer.
 - CLI, REST API, WebUI, and future MCP adapters use the same domain/service operations.
-- Filesystem and SQLite implementation details do not leak into the domain model.
+- Filesystem implementation details do not leak into the domain model.
 - Serialization and JSON contracts are deterministic and stable.
 - Invalid files and validation failures remain visible and actionable.
 - Important operations remain inspectable through files, CLI output, UI state, or logs.
 - The product avoids cloud dependencies, mandatory accounts, hidden synchronization, and
   speculative enterprise scope.
-- Direct file reading is preferred until measured needs justify SQLite indexing complexity.
+- Direct file reading is the current storage access model.
 
 ## Authoritative Local Sources
 
@@ -205,10 +203,9 @@ Current concept evidence supports this progression:
 2. Shared domain/service operations for projects, items, comments, and links.
 3. Stable CLI commands with human-readable and JSON output.
 4. Local REST API and WebUI with project selection, item list/detail, editing, and comments.
-5. SQLite index/cache only when direct file access shows a measured need.
-6. Kanban, tree, advanced filters, and relation visualization.
-7. Transparent Git helpers.
-8. Optional MCP adapter after core contracts stabilize.
+5. Kanban, tree, advanced filters, and relation visualization.
+6. Transparent Git helpers.
+7. Optional MCP adapter after core contracts stabilize.
 
 Each phase is directional, not an accepted implementation specification. Work begins from the
 smallest accepted vertical slice rather than implementing an entire phase at once.
@@ -231,7 +228,6 @@ smallest accepted vertical slice rather than implementing an entire phase at onc
 
 ## Rejected or Deferred Assumptions
 
-- SQLite is not assumed to be required for the first usable release.
 - MCP is not assumed to be required for v0.1.
 - The concept document's example file schema, commands, API shape, and library list are not treated
   as finalized contracts.
@@ -245,13 +241,12 @@ These details remain deliberately unresolved until a specification or architectu
 them:
 
 - the exact first vertical slice and v0.1 acceptance boundary;
-- final package manager, monorepo/package layout, backend framework, CLI library, UI component
-  system, and SQLite library;
+- final package manager, monorepo/package layout, backend framework, CLI library, and UI component
+  system;
 - exact canonical workspace, project, item, link, and comment schemas;
 - timestamp, identifier allocation, locking, concurrent write, and atomic update rules;
 - finalized CLI exit codes and JSON contracts;
 - finalized REST API contracts and UI interaction states;
-- indexing threshold and file-watching strategy;
 - packaging and release process;
 - supported Node.js versions and explicit browser support;
 - licensing and contribution workflow beyond the existing repository license.

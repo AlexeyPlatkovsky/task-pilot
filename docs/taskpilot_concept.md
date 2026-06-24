@@ -123,7 +123,7 @@ The first versions should avoid:
 - plugin system;
 - complex notifications;
 - GitHub Issues sync as the core model;
-- direct SQLite commits as the main synchronization mechanism.
+- committed binary databases as the main synchronization mechanism.
 
 These can be explored later if the project proves useful.
 
@@ -138,8 +138,6 @@ Parser / validator
         ↓
 Domain model / service layer
         ↓
-Local SQLite index/cache
-        ↓
 REST API
         ↓
 Local WebUI
@@ -151,8 +149,7 @@ MCP, if added later, also calls the same domain/service layer.
 The main idea:
 
 - files are canonical;
-- SQLite is disposable;
-- UI uses SQLite/indexing for speed;
+- UI reads through the REST API;
 - CLI and API never bypass domain rules;
 - MCP is optional and thin.
 
@@ -177,8 +174,6 @@ Example structure:
         TP-1/
           2026-06-19T18-20-00Z.md
       attachments/
-  cache/
-    index.db
 ```
 
 Committed to Git:
@@ -187,14 +182,6 @@ Committed to Git:
 .taskpilot/config.yaml
 .taskpilot/projects/**/*
 ```
-
-Ignored by Git:
-
-```text
-.taskpilot/cache/
-```
-
-The SQLite index should never be treated as canonical state.
 
 ### 6.2 Item files
 
@@ -293,51 +280,31 @@ Recommended initial link types:
 
 Internally, the system can define canonical link types and derived reverse names.
 
-## 7. SQLite Indexing Strategy
+## 7. Direct File Reading Strategy
 
-SQLite should be used as a local index/cache, not as the source of truth.
+TaskPilot reads canonical project files directly through the parser, validator, and domain/service
+layer.
 
-The local WebUI needs fast sorting, filtering, grouping, and searching.
-
-Reading hundreds or thousands of Markdown/YAML files on every UI request is possible at first, but eventually inefficient.
-
-The solution:
-
-- parse files from `.taskpilot/projects/**`;
-- validate them;
-- build an SQLite index under `.taskpilot/cache/index.db`;
-- use SQLite for fast UI queries;
-- rebuild the index whenever files change or on explicit command.
+The local WebUI should request data from the REST API. The REST API and CLI should share the same
+domain operations so sorting, filtering, grouping, searching, and validation behavior remain
+consistent across surfaces.
 
 Important properties:
 
-- SQLite cache can be deleted safely;
-- cache can be rebuilt from task files;
-- cache should be ignored by Git;
-- cache should not contain unique information unavailable in files;
-- all write operations should update source files first, then refresh/update the index.
-
-Possible commands:
-
-```bash
-taskpilot index rebuild
-taskpilot index validate
-taskpilot index status
-```
+- canonical files remain the only persisted task data;
+- all reads are derived from project files;
+- all write operations update source files through the validated write path;
+- performance work must preserve deterministic serialization and invalid-file visibility.
 
 ## 8. Synchronization via GitHub
 
-TaskPilot should not synchronize by committing SQLite databases.
-
-SQLite is a binary file. Git can version it, but merging is painful and diffs are unreadable.
-
-Instead, synchronization should happen through Git-friendly task files.
+TaskPilot should not synchronize by committing binary task databases. Synchronization should happen
+through Git-friendly task files.
 
 Basic manual flow:
 
 ```bash
 git pull --rebase
-taskpilot index rebuild
 # work with tasks
 git add .taskpilot/
 git commit -m "Update TaskPilot tasks"
@@ -599,7 +566,6 @@ taskpilot item update
 taskpilot item link
 taskpilot item unlink
 taskpilot item comment
-taskpilot index rebuild
 taskpilot validate
 ```
 
@@ -645,7 +611,6 @@ Recommended stack for fast MVP:
 - Fastify or Hono;
 - TypeScript;
 - local filesystem access;
-- SQLite index/cache;
 - REST API for WebUI.
 
 The backend should not own business rules alone.
@@ -663,7 +628,6 @@ The backend should provide endpoints for:
 - item links;
 - comments;
 - search/filtering;
-- index status;
 - validation results.
 
 No API contract needs to be finalized now, but the boundaries should remain clear.
@@ -763,7 +727,7 @@ TaskPilot should minimize them by design:
 - one file per item;
 - separate comment files;
 - no single giant JSON database;
-- no committed SQLite database;
+- no committed binary task database;
 - no duplicated reverse links;
 - stable formatting;
 - deterministic serialization.
@@ -797,7 +761,6 @@ User-facing commands later:
 taskpilot init
 taskpilot serve
 taskpilot validate
-taskpilot index rebuild
 ```
 
 Possible packaging options later:
@@ -825,11 +788,7 @@ The recommended v0.1 scope:
 - list view;
 - item detail view;
 - CLI read/write commands;
-- JSON output for CLI;
-- local SQLite index/cache if needed.
-
-If time is limited, SQLite index can be delayed.
-For the first hundred items, direct file reading may be enough.
+- JSON output for CLI.
 
 Recommended first usable slice:
 
@@ -840,7 +799,7 @@ Local WebUI + project selector + item list + item detail + comments + file stora
 Then add:
 
 ```text
-CLI + validation + links + SQLite index
+CLI + validation + links
 ```
 
 Then add:
@@ -886,14 +845,7 @@ Kanban + tree view + Git sync helpers
 - item detail;
 - comments.
 
-### Phase 5 — SQLite index/cache
-
-- build local index;
-- rebuild command;
-- file watcher or manual refresh;
-- use index for fast UI queries.
-
-### Phase 6 — Better views
+### Phase 5 — Better views
 
 - Kanban board;
 - tree view;
@@ -901,14 +853,14 @@ Kanban + tree view + Git sync helpers
 - sorting;
 - relation display.
 
-### Phase 7 — Git helpers
+### Phase 6 — Git helpers
 
 - sync status;
 - changed task files summary;
 - validation before commit;
 - optional pull/push wrappers.
 
-### Phase 8 — MCP adapter
+### Phase 7 — MCP adapter
 
 - only after CLI/API stabilizes;
 - expose core operations as MCP tools;
@@ -927,8 +879,6 @@ UI: shadcn/ui or simple custom components
 Tables: TanStack Table
 Kanban later: dnd-kit
 Storage source of truth: Markdown + YAML frontmatter
-Index/cache: SQLite
-SQLite library: better-sqlite3
 CLI: commander, yargs, or cac
 Validation: zod
 Markdown/frontmatter: gray-matter or equivalent
@@ -955,20 +905,20 @@ Best short positioning:
 
 Longer positioning:
 
-> TaskPilot stores project tasks as Git-friendly Markdown/YAML files, builds a local SQLite index for fast UI queries, and exposes the same task graph to humans through a WebUI and to AI agents through CLI commands.
+> TaskPilot stores project tasks as Git-friendly Markdown/YAML files and exposes the same task
+> graph to humans through a WebUI and to AI agents through CLI commands.
 
 ## 24. Key Architectural Decisions
 
 1. Markdown/YAML files are the canonical source of truth.
-2. SQLite is only a local disposable index/cache.
-3. One file per item to reduce Git merge conflicts.
-4. Comments are separate append-style Markdown files.
-5. Reverse links are derived, not stored manually.
-6. CLI is the primary AI-facing interface.
-7. MCP is optional and should be added later as an adapter.
-8. WebUI is local-first and should start simple.
-9. The first useful view is list + item detail, not Kanban.
-10. GitHub synchronization should happen through normal Git over text files, not SQLite commits.
+2. One file per item to reduce Git merge conflicts.
+3. Comments are separate append-style Markdown files.
+4. Reverse links are derived, not stored manually.
+5. CLI is the primary AI-facing interface.
+6. MCP is optional and should be added later as an adapter.
+7. WebUI is local-first and should start simple.
+8. The first useful view is list + item detail, not Kanban.
+9. GitHub synchronization should happen through normal Git over text files, not binary task data.
 
 ## 25. Final Summary
 
@@ -978,8 +928,6 @@ The strongest architecture is:
 
 ```text
 Git-friendly Markdown/YAML files as source of truth
-+
-local SQLite index/cache for fast UI
 +
 local WebUI for humans
 +

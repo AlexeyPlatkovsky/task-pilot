@@ -21,7 +21,6 @@ The system does not integrate with hosted services, issue trackers, or authentic
 | CLI adapter | Translates command-line input to domain operations. Supports human-readable and JSON output. | `src/taskpilot/cli/`, uses Typer |
 | REST API server | Exposes domain operations over HTTP for the WebUI. FastAPI. | `src/taskpilot/server/` |
 | WebUI | React browser application. Calls REST API. Kanban board, item modal, project selector. | `web/`, Vite + TypeScript |
-| SQLite index/cache | Disposable local index for fast WebUI queries. Rebuildable from canonical files. | `better-sqlite3` via Python, under `.taskpilot/cache/` |
 | Local system registry | Machine-specific state: active/inactive project roots, preferences, cache paths. Not committed to Git. | OS app data directory |
 | MCP adapter (future) | Thin adapter exposing domain operations as MCP tools. | Same domain layer, no separate logic |
 
@@ -35,8 +34,8 @@ canonical task files
   -> WebUI through REST API
 ```
 
-Adapters translate inputs and outputs; they do not own domain rules. Filesystem and SQLite details
-do not leak into the domain model.
+Adapters translate inputs and outputs; they do not own domain rules. Filesystem details do not leak
+into the domain model.
 
 ## Data Model
 
@@ -45,15 +44,13 @@ do not leak into the domain model.
 Canonical task data is stored as text files under `.taskpilot/` in the project repository root:
 
 ```text
-.taskspilot/
+.taskpilot/
   project.yaml
   items/
     TP-1.yaml
   comments/
     TP-1/
       2026-06-23T10-00-00Z.md
-  cache/
-    index.db          (Git-ignored, disposable)
 ```
 
 ### Project
@@ -98,12 +95,6 @@ not update the parent item's `updated_at`.
 Alpha deletion sets `status: deleted`. Deleted item files remain in the repository. Deleted items
 are hidden from the normal WebUI but remain visible to validation and direct lookup.
 
-### SQLite index
-
-A disposable local SQLite database under `.taskpilot/cache/index.db`. Built from canonical files,
-ignored by Git, and rebuildable on demand or on file change. Contains no unique source-of-truth
-data. Writes always update canonical files first, then refresh the index.
-
 ## Tech Stack
 
 ### Core, CLI, and API server
@@ -114,7 +105,6 @@ data. Writes always update canonical files first, then refresh the index.
 - **YAML read/write**: PyYAML
 - **CLI framework**: Typer
 - **REST API**: FastAPI
-- **SQLite**: better-sqlite3 (via Python bindings)
 - **Testing**: pytest
 
 ### WebUI
@@ -169,8 +159,6 @@ synchronization, treated as a transparent tool rather than an API.
   available through `taskpilot validate` and a WebUI errors panel.
 - **Error handling**: Writes validate the target operation before changing files. Writes do not
   silently rewrite unrelated invalid files.
-- **File watching**: Optional future watcher to auto-rebuild the SQLite index on canonical file
-  changes.
 - **Attachments**: Relative paths only, validated to not escape the repository root, missing files
   are warnings not errors. TaskPilot does not upload or manage attachment files through Beta.
 

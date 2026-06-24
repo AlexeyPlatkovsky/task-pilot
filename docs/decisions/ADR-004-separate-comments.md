@@ -44,5 +44,5 @@ Comment edit/delete is deferred until Beta.
   field changes, causing merge conflicts and timestamp noise.
 - **Single comments file per item** — rejected because it still creates merge conflicts when
   multiple parties append.
-- **SQLite for comments** — rejected because comments should be Git-visible and not depend on
-  a binary cache.
+- **Binary database for comments** — rejected because comments should be Git-visible and remain
+  normal text files.

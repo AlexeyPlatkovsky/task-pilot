@@ -12,17 +12,17 @@
 | `design.md` | Product/UX design: user flows, screens, states, UX principles, accessibility | You need UI design or interaction patterns |
 | `testing.md` | Test strategy, levels, tooling, environments, quality gates | You need how quality is verified |
 | `roadmap.md` | Phases, milestones, release levels, sequencing, implementation phases | You need release plan or priorities |
+| `specs/` | Accepted product contracts, behavior, public interfaces, persistence decisions | You need governing product requirements |
 | `decisions/` | Architectural decision records | You need the rationale behind a choice |
 
 ### Legacy Documents
 
-These documents predate the SDD structure and are retained for reference. SDD documents
-supersede them where they conflict.
+These documents predate the SDD structure and are retained for reference. Accepted specifications
+under `docs/specs/` supersede them where they conflict.
 
 | Document | Owns | Read when |
 | --- | --- | --- |
-| `taskpilot_concept.md` | Original product concept (superseded) | Historical reference only |
-| `specs/` | Original specifications 0001, 0002 (superseded) | Historical reference; content migrated to SDD docs |
+| `taskpilot_concept.md` | Original product concept (superseded by accepted specs where they differ) | Historical reference only |
 
 ## Feature Registry
 
@@ -31,11 +31,10 @@ supersede them where they conflict.
 | F001 | task-file-storage | planned | 7 | 8 | 7 | Phase 1 — File model and parser |
 | F002 | domain-services | planned | 8 | 8 | 8 | Phase 2 — Domain/service layer |
 | F003 | cli-interface | planned | 8 | 8 | 9 | Phase 3 — CLI |
-| F004 | webui-workspace | planned | 8 | 8 | 8 | Phase 4 — Local WebUI |
-| F005 | sqlite-index | planned | 7 | 8 | 7 | Phase 5 — SQLite index/cache |
-| F006 | advanced-views | planned | 6 | 7 | 6 | Phase 6 — Better views |
-| F007 | git-helpers | planned | 5 | 5 | 5 | Phase 7 — Git helpers |
-| F008 | mcp-adapter | planned | 6 | 7 | 5 | Phase 8 — MCP adapter |
+| F004 | webui-workspace | planned | 9 | 9 | 9 | Phase 4 — Local WebUI |
+| F006 | advanced-views | planned | 5 | 6 | 5 | Phase 5 — Better views |
+| F007 | git-helpers | planned | 5 | 5 | 5 | Phase 6 — Git helpers |
+| F008 | mcp-adapter | planned | 6 | 7 | 5 | Phase 7 — MCP adapter |
 
 ## Decision Log
 

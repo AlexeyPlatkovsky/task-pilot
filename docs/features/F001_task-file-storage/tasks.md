@@ -13,6 +13,6 @@
 
 ## Notes
 
-- Item YAML field order should be: `schema_version`, `id`, `title`, `type`, `status`, `priority`, then optional fields in alphabetical order, then `created_at`, `updated_at`.
-- Comment filename format: `YYYY-MM-DDTHH-MM-SSZ.md`. Collision suffix: `_2`, `_3`, etc.
+- Item YAML field order should match `docs/specs/0002-alpha-product-and-stack-decisions.md`: `schema_version`, `id`, `title`, `priority`, `type`, `status`, `created_at`, `updated_at`, then known optional fields in the accepted order, followed by preserved unknown fields in deterministic key order.
+- Comment filename format: `YYYY-MM-DDTHH-MM-SSZ.md`. Collision suffix: `-2`, `-3`, etc.
 - Parser should handle and report YAML syntax errors, not crash.

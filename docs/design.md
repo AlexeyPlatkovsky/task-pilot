@@ -29,7 +29,7 @@ The first screen after `taskpilot serve`. Shows a list of registered projects wi
 names and keys. A project can be disabled locally without changing the repository.
 
 States:
-- **Empty**: No registered projects. Show a message with the `taskpilot register .` command hint.
+- **Empty**: No registered projects. Show a message with the `taskpilot init .` command hint.
 - **Populated**: List of projects. Clicking one navigates to its Kanban board.
 - **Error**: A registered project has an unreadable root. Show warning with path.
 
@@ -39,8 +39,8 @@ The primary workspace page for a selected project.
 
 ### Layout
 
-Six columns fixed in Alpha: backlog, ready, in_progress, done, cancelled. A seventh column
-(deleted) is hidden by default and accessible through a toggle.
+Five columns fixed in Alpha: backlog, ready, in_progress, done, cancelled. Deleted items are hidden
+from the normal board.
 
 Within each column, cards are sorted by type order then numeric item ID:
 epic > feature > task > bug.
@@ -53,13 +53,13 @@ single-line where possible.
 ### Interaction
 
 - Clicking a card opens the item detail modal.
-- Drag a card to another column to change its status (Release).
+- Drag a card to another column to change its status.
 - Drag and drop uses the library specified in `architecture.md`.
 - Columns scroll independently on overflow.
 
 ### States
 
-- **Empty board**: All columns empty. Show a prompt to create the first item.
+- **Empty board**: All columns empty. Show a prompt to create the first item with the CLI.
 - **Populated board**: Cards visible across columns.
 - **All items in one column**: Normal state. Columns may be empty.
 
@@ -75,30 +75,24 @@ tags, attachments, external references, comments thread, created/updated timesta
 
 ### Edit mode
 
-Toggled by an Edit button. Fields become editable:
+Toggled by an Edit button. Alpha fields become editable:
 - title (text input);
 - description (textarea or Markdown editor);
 - priority (dropdown: low, normal, high);
-- type (dropdown: epic, feature, task, bug);
-- status (dropdown: backlog, ready, in_progress, done, cancelled);
-- parent_id (item search/select);
-- tags (tag input with add/remove);
-- dor/dod (list of editable strings);
-- attachments (list of relative paths);
-- external_refs (list of strings).
+- status (dropdown: backlog, ready, in_progress, done, cancelled).
+
+All other Alpha item fields are visible read-only until later phases.
 
 Save commits changes. Cancel reverts. Validation errors surface inline near the offending field.
 
 ### Comment thread
 
-Comments display in chronological order with author and timestamp. Add comment field at the
-bottom. Comments are append-only in Alpha — no edit or delete.
+Comments display in chronological order with author and timestamp. Comments are read-only in the
+Alpha WebUI. Comment creation is available through the CLI and moves into the WebUI later.
 
 ### Actions
 
 - Edit (toggle edit mode);
-- Add link (opens link picker);
-- Add child item (creates a new item with parent_id pre-set);
 - Delete (sets status: deleted, with confirmation dialog).
 
 ### States

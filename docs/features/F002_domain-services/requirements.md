@@ -38,14 +38,13 @@ No UI or I/O adapters — pure business logic operating on validated models.
 ## Constraints
 
 - Domain layer must not import CLI, FastAPI, or file-system specifics beyond the canonical file access layer (F001).
-- All write operations write canonical files first, then notify index (when F005 exists).
+- All write operations update canonical files through a validated write path.
 - Adding/removing a link updates only the source item file.
 - Reverse link derivation must be consistent with the stored link direction.
 - No operation silently overwrites or deletes files outside a validated write path.
 
 ## Out of Scope
 
-- SQLite index queries (F005).
 - Comment edit/delete (Beta).
 - Permanent item delete (Beta).
 - Project-configured workflow statuses (Beta).

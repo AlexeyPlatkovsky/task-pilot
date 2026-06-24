@@ -35,7 +35,7 @@ Covers: F003-R4
 ```gherkin
 Scenario: Create item with all required fields
   Given project VP exists
-  When the user runs "taskpilot item create --project VP --title 'Benchmark task' --type task --priority high"
+  When the user runs "taskpilot item create --title 'Benchmark task' --type task --priority high"
   Then a new item is created with the next available ID
     And stdout prints the item ID
     And exit code is 0
@@ -60,7 +60,7 @@ Covers: F003-R5
 ```gherkin
 Scenario: Add link between items
   Given items VP-1 and VP-2 exist
-  When the user runs "taskpilot item link VP-1 blocks VP-2"
+  When the user runs "taskpilot item blocks VP-1 VP-2"
   Then stdout confirms the link was added
     And running the same command again succeeds (idempotent)
     And exit code is 0
@@ -123,6 +123,6 @@ Scenario: Start REST API server
 - [ ] (F003-R1) `taskpilot init .` in a non-empty directory with existing files succeeds and does not delete existing files.
 - [ ] (F003-R4) `taskpilot item create` with missing required fields prints usage error to stderr and exits non-zero.
 - [ ] (F003-R4) `taskpilot item update VP-NONEXISTENT` prints error and exits non-zero.
-- [ ] (F003-R5) `taskpilot item link VP-1 blocks VP-NONEXISTENT` prints error about target not found.
+- [ ] (F003-R5) `taskpilot item blocks VP-1 VP-NONEXISTENT` prints error about target not found.
 - [ ] (F003-R2) `taskpilot serve` without `--port` uses a default port and prints the listening URL.
 - [ ] (F003-R8) JSON output across multiple calls with no state changes is byte-identical.

@@ -27,18 +27,18 @@ Scenario: Validate blocks commit
     And exit code is non-zero
 ```
 
-### F007-S3: Pull rebases and rebuilds index
+### F007-S3: Pull rebases and validates files
 
 Covers: F007-R3
 
 ```gherkin
-Scenario: Pull rebases and rebuilds index
-  Given a clean Git repository with an index built at 10:00
+Scenario: Pull rebases and validates files
+  Given a clean Git repository with a valid TaskPilot workspace
     And a remote has new commits modifying VP-5.yaml
   When "taskpilot sync pull" runs
   Then "git pull --rebase" is executed and printed
-    And "taskpilot index rebuild" runs automatically
-    And the index shows VP-5's updated content
+    And "taskpilot validate" runs automatically
+    And validation includes VP-5's updated content
 ```
 
 ### F007-S4: Push stages, commits, and pushes
