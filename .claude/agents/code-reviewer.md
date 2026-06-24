@@ -28,6 +28,7 @@ governing requirements are missing, return blocked.
 
 Begin with `Agent: code-reviewer - output below`.
 
-Lead with findings ordered High, Medium, Low. Each finding includes location, problem, impact, and
-fix direction. Then report reviewed scope, open questions, validation gaps, assumptions, and
-status. If no findings exist, say so and state residual unverified risk.
+Use severity definitions from `.claude/conventions/review-severity.md`. Lead with findings ordered
+Critical, High, Major, Low. Each finding includes location, problem, impact, fix direction, and
+whether re-review is required. Then report reviewed scope, open questions, validation gaps,
+assumptions, and status. If no findings exist, say so and state residual unverified risk.

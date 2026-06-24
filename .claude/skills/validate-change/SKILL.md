@@ -11,9 +11,13 @@ Validation is read-only.
 2. Map each requirement and planned gate to concrete evidence.
 3. Run the smallest sufficient formatting, type, unit, contract, integration, component, API, E2E,
    build, and manual checks.
-4. Distinguish implementation defects from environment blockers.
-5. Check affected documentation and public contracts for drift.
-6. Inspect the final diff for scope and regression risk.
+4. Apply `.claude/conventions/testing.md`; do not substitute broad E2E checks for missing
+   lower-level evidence.
+5. For runnable UI changes, include Playwright TypeScript evidence when that convention requires
+   browser validation.
+6. Distinguish implementation defects from environment blockers.
+7. Check affected documentation and public contracts for drift.
+8. Inspect the final diff for scope and regression risk.
 
 Overall status is completed only when every required gate passes. Mark every gate `pass`, `fail`,
 `skipped`, or `blocked`; skipped checks require a reason and residual risk.

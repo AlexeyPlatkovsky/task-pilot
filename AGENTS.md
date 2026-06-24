@@ -49,16 +49,16 @@ pipeline. Raw command output is evidence, not a routed artifact.
 
 ## Working Method
 
-Use specification-driven development for non-trivial product work:
+Use conditional rigor for non-trivial product work. The route must scale with risk and scope:
 
-1. Discover relevant docs, code, tests, and constraints.
-2. Create or update an accepted specification under `docs/specs/`.
-3. Define acceptance criteria and test levels.
-4. Implement the smallest complete vertical slice.
-5. Validate with the smallest sufficient test matrix.
-6. Obtain an independent review when the route requires it.
-7. Synchronize affected documentation.
-8. Close through `task-complete`.
+- Small local changes use the narrowest route that proves behavior and preserves contracts.
+- Standard and major task-backed feature work use a fresh task branch, task-state hygiene when the
+  manager requires it, requirements discovery, tests before implementation, implementation,
+  validation, independent review when required, documentation synchronization, and `task-complete`.
+- Behavior-preserving refactors use the refactor route: characterize existing behavior where
+  coverage is weak, change code without changing contracts, then validate the same behavior.
+- UI work adds design-system alignment, component-level coverage, browser evidence for major
+  paths, and independent design review.
 
 Small local fixes may skip a new specification only when expected behavior is already explicit.
 
@@ -85,6 +85,7 @@ Routing:
 
 - Manager: `.claude/skills/manager/SKILL.md`
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
+- Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
 - Review pipeline: `.claude/pipelines/code-review.md`
 - Instruction change pipeline: `.claude/pipelines/instruction-change.md`
@@ -92,6 +93,7 @@ Routing:
 Skills:
 
 - Brainstorming: `.claude/skills/brainstorm/SKILL.md`
+- Work preparation: `.claude/skills/work-with-git/SKILL.md`
 - Specification: `.claude/skills/spec-driven-development/SKILL.md`
 - Implementation: `.claude/skills/implement-change/SKILL.md`
 - Testing: `.claude/skills/test-change/SKILL.md`
@@ -115,7 +117,7 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 ## Quality and Safety
 
 - Map each non-trivial change to explicit acceptance criteria.
-- Test at the lowest level that proves behavior and at boundaries where contracts cross.
+- Follow the testing pyramid defined in `.claude/conventions/testing.md`.
 - Cover failure paths, invalid files, deterministic output, and relevant cross-platform paths.
 - Do not weaken assertions, delete tests, or broadly update snapshots to force a pass.
 - Run relevant formatting, types, tests, builds, CLI/API, and browser checks available in the repo.

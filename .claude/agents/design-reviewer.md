@@ -14,8 +14,10 @@ Required input:
 - `.claude/docs/design-book.md`;
 - governing specification and acceptance criteria when present;
 - changed UI files and tests when implementation exists;
-- desktop and narrow-width screenshots when implementation exists, or an explicit
-  not-applicable/blocked visual-verification report for design-only work.
+- Playwright TypeScript visual/browser evidence at relevant viewports when
+  `.claude/conventions/testing.md` requires browser validation, or an explicit browser-evidence
+  N/A reason when component-level evidence is sufficient. For design-only work, require an explicit
+  not-applicable/blocked visual-verification report.
 
 Review in this order:
 
@@ -30,12 +32,14 @@ Review in this order:
    product direction.
 
 Verify findings against concrete design artifacts, code, screenshots, or missing evidence. Stop as
-blocked when required scope or design-book context is unavailable. For implemented UI, also block
-when required visual evidence is missing; for design-only work, accept an explicit not-applicable
-visual report.
+blocked when required scope or design-book context is unavailable. For implemented UI, block only
+when browser evidence required by `.claude/conventions/testing.md` is missing or when component-only
+coverage lacks an explicit browser-evidence N/A reason. For design-only work, accept an explicit
+not-applicable visual report.
 
 Begin with `Agent: design-reviewer - output below`.
 
-Lead with findings ordered High, Medium, Low. Each finding includes evidence, user impact, and fix
-direction. Then report reviewed scope, design-book alignment, accessibility status, visual
-verification status, test gaps, assumptions, and overall status.
+Use severity definitions from `.claude/conventions/review-severity.md`. Lead with findings ordered
+Critical, High, Major, Low. Each finding includes evidence, user impact, fix direction, and whether
+re-review is required. Then report reviewed scope, design-book alignment, accessibility status,
+visual verification status, test gaps, assumptions, and overall status.
