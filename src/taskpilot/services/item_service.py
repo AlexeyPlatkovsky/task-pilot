@@ -19,7 +19,7 @@ from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.core.timestamps import utc_now_iso
 from taskpilot.services.errors import NotFound, ValidationFailed
-from taskpilot.services.hierarchy import validate_parent
+from taskpilot.services.hierarchy import validate_can_parent_children, validate_parent
 from taskpilot.services.operation_validation import build_validated_item
 from taskpilot.services.project_service import read_project
 
@@ -134,8 +134,30 @@ def update_item(
     updated = build_validated_item(data)
 
     validate_parent(paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id)
+    if updated.type != current.type:
+        validate_can_parent_children(paths, parent_id=updated.id, parent_type=updated.type)
+    _validate_links(paths, updated)
     write_item(paths, updated)
     return updated
+
+
+def _validate_links(paths: WorkspacePaths, item: Item) -> None:
+    """Reject self-links or links to unknown items on the canonical write path.
+
+    ``add_link``/``remove_link`` validate before delegating here, but ``links``
+    can also reach :func:`update_item` directly, so the shared write path must
+    enforce the same rules (F002-R4/R8) — no dangling or self links may persist.
+    """
+    if item.links is None:
+        return
+    for link_type in ("blocks", "relates_to"):
+        for target in getattr(item.links, link_type):
+            if target == item.id:
+                raise ValidationFailed(f"Item {item.id!r} cannot link to itself")
+            if not paths.item_file(target).is_file():
+                raise ValidationFailed(
+                    f"links.{link_type} references unknown item {target!r}"
+                )
 
 
 def delete_item(paths: WorkspacePaths, item_id: str, *, now: str | None = None) -> Item:

@@ -19,7 +19,7 @@ from __future__ import annotations
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.services.errors import NotFound, ValidationFailed
 
-__all__ = ["ALLOWED_CHILD_TYPES", "validate_parent"]
+__all__ = ["ALLOWED_CHILD_TYPES", "validate_parent", "validate_can_parent_children"]
 
 #: Allowed child types keyed by parent type.
 ALLOWED_CHILD_TYPES: dict[str, set[str]] = {
@@ -79,3 +79,27 @@ def validate_parent(
             cursor = read_item(paths, cursor.parent_id)
         except (NotFound, ValidationFailed):
             break
+
+
+def validate_can_parent_children(
+    paths: WorkspacePaths,
+    *,
+    parent_id: str,
+    parent_type: str,
+) -> None:
+    """Ensure ``parent_type`` may still parent every item currently pointing at it.
+
+    Called when an item's ``type`` changes: a parent must not be retyped into a
+    type that cannot legally parent its existing children (which would persist an
+    item-graph the hierarchy table forbids). Raises :class:`ValidationFailed`
+    naming the first offending child.
+    """
+    from taskpilot.services.item_service import list_items  # local import avoids a cycle
+
+    allowed = ALLOWED_CHILD_TYPES.get(parent_type, set())
+    for child in list_items(paths, include_deleted=True):
+        if child.parent_id == parent_id and child.type not in allowed:
+            raise ValidationFailed(
+                f"Cannot change {parent_id!r} to type {parent_type!r}: it parents "
+                f"{child.id!r} (a {child.type}), which a {parent_type} cannot parent"
+            )

@@ -115,3 +115,19 @@ def test_remove_link_idempotent_no_write_when_absent(tmp_path: Path):
     # removing a link that was never added does not error and does not rewrite
     link_service.remove_link(paths, a.id, "blocks", b.id)
     assert paths.item_file(a.id).read_text(encoding="utf-8") == before
+
+
+def test_update_item_rejects_dangling_link_on_write_path(tmp_path: Path):
+    """links reaching the canonical write path directly are still validated."""
+    paths = _workspace(tmp_path)
+    a, _ = _two_items(paths)
+    with pytest.raises(ValidationFailed):
+        item_service.update_item(paths, a.id, links={"blocks": ["VP-999"], "relates_to": []})
+    assert item_service.read_item(paths, a.id).links is None
+
+
+def test_update_item_rejects_self_link_on_write_path(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    a, _ = _two_items(paths)
+    with pytest.raises(ValidationFailed):
+        item_service.update_item(paths, a.id, links={"blocks": [a.id], "relates_to": []})
