@@ -11,7 +11,7 @@ from __future__ import annotations
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.services import item_service
-from taskpilot.services.errors import NotFound, ValidationFailed
+from taskpilot.services.errors import ValidationFailed
 
 __all__ = ["LINK_TYPES", "add_link", "remove_link", "query_links"]
 

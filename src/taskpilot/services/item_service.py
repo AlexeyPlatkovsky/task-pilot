@@ -12,8 +12,6 @@ in their own tasks; this service owns plain field create/read/update/list.
 
 from __future__ import annotations
 
-import re
-
 from pydantic import ValidationError
 
 from taskpilot.core.item_io import ItemParseError, parse_item_file, write_item
