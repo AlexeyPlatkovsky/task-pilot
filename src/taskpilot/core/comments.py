@@ -26,7 +26,12 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from typing_extensions import Annotated
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.core.timestamps import is_canonical_iso, iso_to_filename_stamp, utc_now_iso
+from taskpilot.core.timestamps import (
+    filename_stamp_to_iso,
+    is_canonical_iso,
+    iso_to_filename_stamp,
+    utc_now_iso,
+)
 from taskpilot.core.yaml_io import dump_yaml, load_yaml
 
 __all__ = [
@@ -39,6 +44,7 @@ __all__ = [
     "dump_comment",
     "write_comment",
     "add_comment",
+    "comment_filename_timestamp",
 ]
 
 #: Current canonical schema version for comment frontmatter.
@@ -123,6 +129,23 @@ def _comment_sort_key(filename: str) -> tuple[str, int]:
     rest = stem[marker + 1 :]
     suffix = int(rest.lstrip("-")) if rest.startswith("-") and rest[1:].isdigit() else 0
     return (stamp, suffix)
+
+
+def comment_filename_timestamp(filename: str) -> str | None:
+    """Return the canonical ISO timestamp encoded in a comment filename, or ``None``.
+
+    Strips the ``.md`` suffix and any ``-N`` collision suffix, then converts the
+    ``YYYY-MM-DDTHH-MM-SSZ`` stamp to ``YYYY-MM-DDTHH:MM:SSZ``. Returns ``None``
+    when the filename does not encode a valid timestamp stamp.
+    """
+    stem = filename[:-3] if filename.endswith(".md") else filename
+    marker = stem.find("Z")
+    if marker == -1:
+        return None
+    try:
+        return filename_stamp_to_iso(stem[: marker + 1])
+    except ValueError:
+        return None
 
 
 def list_comments(paths: WorkspacePaths, item_id: str) -> list[Comment]:

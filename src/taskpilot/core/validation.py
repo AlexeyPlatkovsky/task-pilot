@@ -27,6 +27,11 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ValidationError
 
+from taskpilot.core.comments import (
+    CommentParseError,
+    comment_filename_timestamp,
+    parse_comment_text,
+)
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.core.yaml_io import load_yaml
@@ -133,8 +138,56 @@ def _validate_attachment(value: str, *, paths: WorkspacePaths, path: str, item_i
     return None
 
 
+def _validate_comments(paths: WorkspacePaths) -> list[Finding]:
+    """Validate ``comments/<ITEM_ID>/*.md`` files without crashing the run.
+
+    Reports unreadable/malformed comment files as errors and a filename whose
+    timestamp does not match the frontmatter ``created_at`` as a warning. The
+    owning item id is the comment folder name.
+    """
+    findings: list[Finding] = []
+    if not paths.comments_dir.is_dir():
+        return findings
+
+    for item_dir in sorted(p for p in paths.comments_dir.iterdir() if p.is_dir()):
+        item_id = item_dir.name
+        for file in sorted(f for f in item_dir.glob("*.md") if f.is_file()):
+            rel = paths.relative_posix(file)
+            try:
+                text = file.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError) as exc:
+                findings.append(Finding(severity=Severity.error, code="comment_unreadable", path=rel,
+                                        item_id=item_id, message=f"Cannot read comment file as UTF-8: {exc}"))
+                continue
+
+            try:
+                comment = parse_comment_text(text)
+            except CommentParseError as exc:
+                findings.append(Finding(severity=Severity.error, code="invalid_comment", path=rel,
+                                        item_id=item_id, message=str(exc)))
+                continue
+            except ValidationError as exc:
+                for err in exc.errors():
+                    findings.append(_finding_from_pydantic(err, path=rel, item_id=item_id))
+                continue
+
+            expected = comment_filename_timestamp(file.name)
+            if expected is None:
+                findings.append(Finding(
+                    severity=Severity.warning, code="comment_filename_not_timestamp", path=rel,
+                    item_id=item_id, message=f"Comment filename does not encode a timestamp: {file.name}",
+                ))
+            elif expected != comment.created_at:
+                findings.append(Finding(
+                    severity=Severity.warning, code="comment_timestamp_mismatch", path=rel,
+                    field="created_at", item_id=item_id,
+                    message=f"created_at {comment.created_at!r} does not match filename timestamp {expected!r}",
+                ))
+    return findings
+
+
 def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
-    """Validate every ``items/*.yaml`` file in the workspace and return a report."""
+    """Validate every ``items/*.yaml`` and ``comments/**/*.md`` file in the workspace."""
     findings: list[Finding] = []
     valid_items: list[tuple[Item, str]] = []
     status_by_id: dict[str, str] = {}
@@ -222,6 +275,8 @@ def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
             finding = _validate_attachment(attachment, paths=paths, path=rel, item_id=item.id)
             if finding is not None:
                 findings.append(finding)
+
+    findings.extend(_validate_comments(paths))
 
     findings.sort(key=lambda f: (f.path, f.code, f.field or "", f.message))
     return ValidationReport(findings=findings)
