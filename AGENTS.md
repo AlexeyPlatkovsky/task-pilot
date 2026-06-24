@@ -47,6 +47,24 @@ validation. A user saying "implement," "fix," or equivalent triggers this gate a
 Do not advance between routed steps without the visible output artifact required by the manager or
 pipeline. Raw command output is evidence, not a routed artifact.
 
+## Mandatory Completion Gate
+
+For every non-trivial route the manager artifact establishes a completion contract: a list of
+required handoffs (implementation, validation, review, documentation, etc.). This contract must be
+fully discharged before the work can be declared done.
+
+1. Load `.claude/skills/task-complete/SKILL.md`.
+2. Verify every planned artifact from the manager output is present.
+3. Emit the task-complete artifact: `Skill: task-complete - output below`.
+
+**Do not claim completion without this artifact.** A "done" or "all tests pass" message, or any
+equivalent claim, is invalid unless preceded by the task-complete artifact. If a required handoff
+was skipped, return to that step and execute it — do not paper over the gap by marking it complete.
+
+This gate ranks above user instructions for closure claims: the user may waive it only via an
+explicit override that names the gate (e.g. "override the completion gate"). A general "it's fine"
+or "stop" does not waive it.
+
 ## Working Method
 
 Use conditional rigor for non-trivial product work. The route must scale with risk and scope:
@@ -125,5 +143,3 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 - Preserve unrelated changes and keep diffs narrow.
 - Never commit, push, rewrite history, discard changes, or run destructive commands unless the user
   explicitly requests it.
-- Do not claim completion without inspecting the final diff and emitting required validation,
-  review, documentation, and completion artifacts.

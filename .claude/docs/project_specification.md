@@ -244,7 +244,11 @@ them:
 - final package manager, monorepo/package layout, backend framework, CLI library, and UI component
   system;
 - exact canonical workspace, project, item, link, and comment schemas;
-- timestamp, identifier allocation, locking, concurrent write, and atomic update rules;
+- timestamp, identifier allocation, and locking rules;
+- concurrent write and atomic update rules: resolved — canonical file writers in `src/taskpilot/core/`
+  use temp-file + `os.replace` for overwrite paths (`write_project`, `write_item`) and
+  `open(..., "x")` (O_EXCL) for append-only paths (`write_comment`) to prevent torn writes
+  and TOCTOU races;
 - finalized CLI exit codes and JSON contracts;
 - finalized REST API contracts and UI interaction states;
 - packaging and release process;
