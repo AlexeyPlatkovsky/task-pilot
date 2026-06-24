@@ -29,7 +29,7 @@ under `docs/specs/` supersede them where they conflict.
 | ID | Feature | Status | Requirements | Tasks | Scenarios | Serves |
 | --- | --- | --- | --- | --- | --- | --- |
 | F001 | task-file-storage | planned | 7 | 8 | 7 | Phase 1 — File model and parser |
-| F002 | domain-services | planned | 8 | 8 | 8 | Phase 2 — Domain/service layer |
+| F002 | domain-services | implemented | 8 | 8 | 8 | Phase 2 — Domain/service layer |
 | F003 | cli-interface | planned | 8 | 8 | 9 | Phase 3 — CLI |
 | F004 | webui-workspace | planned | 9 | 9 | 9 | Phase 4 — Local WebUI |
 | F006 | advanced-views | planned | 5 | 6 | 5 | Phase 5 — Better views |
