@@ -13,10 +13,11 @@ from pathlib import Path
 
 import yaml
 
+from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
-from taskpilot.core.yaml_io import load_yaml
+from taskpilot.core.yaml_io import dump_yaml, load_yaml
 
-__all__ = ["ItemParseError", "parse_item_text", "parse_item_file"]
+__all__ = ["ItemParseError", "parse_item_text", "parse_item_file", "dump_item", "write_item"]
 
 
 class ItemParseError(Exception):
@@ -52,3 +53,46 @@ def parse_item_file(path: Path) -> Item:
     """Read and parse the item file at ``path``."""
     text = path.read_text(encoding="utf-8")
     return parse_item_text(text, path=path)
+
+
+def dump_item(item: Item) -> str:
+    """Serialize ``item`` to canonical YAML text.
+
+    Known fields are emitted in canonical declaration order; absent optionals
+    (``None``) and empty link lists are omitted; preserved unknown fields are
+    written after known fields in sorted key order. The result is byte-stable on
+    re-serialization (F001-R3).
+    """
+    raw = item.model_dump()
+
+    ordered: dict = {}
+    for name in Item.model_fields:
+        if name not in raw:
+            continue
+        value = raw[name]
+        if value is None:
+            continue  # absent optional field is omitted
+        if name == "links":
+            non_empty = {k: v for k, v in value.items() if v}
+            if non_empty:
+                ordered[name] = non_empty
+            continue
+        ordered[name] = value
+
+    # Preserve unknown fields verbatim (including explicit nulls), after known
+    # fields, in sorted key order.
+    for key in sorted(k for k in raw if k not in Item.model_fields):
+        ordered[key] = raw[key]
+
+    return dump_yaml(ordered)
+
+
+def write_item(paths: WorkspacePaths, item: Item) -> Path:
+    """Write ``item`` to its canonical ``items/<id>.yaml`` path.
+
+    Creates the ``items/`` directory if missing and returns the written path.
+    """
+    target = paths.item_file(item.id)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(dump_item(item), encoding="utf-8")
+    return target
