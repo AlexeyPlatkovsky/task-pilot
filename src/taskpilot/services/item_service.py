@@ -22,6 +22,7 @@ from taskpilot.core.models import Item
 from taskpilot.core.timestamps import utc_now_iso
 from taskpilot.services.errors import NotFound, ValidationFailed
 from taskpilot.services.hierarchy import validate_parent
+from taskpilot.services.operation_validation import build_validated_item
 from taskpilot.services.project_service import read_project
 
 __all__ = ["create_item", "read_item", "update_item", "delete_item", "list_items", "next_id"]
@@ -74,22 +75,21 @@ def create_item(
     project = read_project(paths)  # raises NotFound when absent
     timestamp = now or utc_now_iso()
     item_id = next_id(paths, project.key)
-    try:
-        item = Item(
-            id=item_id,
-            title=title,
-            type=type,
-            priority=priority,
-            status=status,
-            created_at=timestamp,
-            updated_at=timestamp,
-            description=description,
-            parent_id=parent_id,
-            tags=tags,
-            created_by=created_by,
-        )
-    except ValidationError as exc:
-        raise ValidationFailed(f"Cannot create item: {exc}") from exc
+    item = build_validated_item(
+        {
+            "id": item_id,
+            "title": title,
+            "type": type,
+            "priority": priority,
+            "status": status,
+            "created_at": timestamp,
+            "updated_at": timestamp,
+            "description": description,
+            "parent_id": parent_id,
+            "tags": tags,
+            "created_by": created_by,
+        }
+    )
     validate_parent(paths, child_id=item.id, child_type=item.type, parent_id=item.parent_id)
     write_item(paths, item)
     return item
@@ -133,10 +133,7 @@ def update_item(
     data = current.model_dump()
     data.update(fields)
     data["updated_at"] = now or utc_now_iso()
-    try:
-        updated = Item.model_validate(data)
-    except ValidationError as exc:
-        raise ValidationFailed(f"Cannot update item {item_id!r}: {exc}") from exc
+    updated = build_validated_item(data)
 
     validate_parent(paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id)
     write_item(paths, updated)
