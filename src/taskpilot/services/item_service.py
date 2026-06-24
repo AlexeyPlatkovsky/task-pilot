@@ -24,7 +24,7 @@ from taskpilot.services.errors import NotFound, ValidationFailed
 from taskpilot.services.hierarchy import validate_parent
 from taskpilot.services.project_service import read_project
 
-__all__ = ["create_item", "read_item", "update_item", "list_items", "next_id"]
+__all__ = ["create_item", "read_item", "update_item", "delete_item", "list_items", "next_id"]
 
 
 def _numeric_suffix(item_id: str, key: str) -> int | None:
@@ -141,6 +141,19 @@ def update_item(
     validate_parent(paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id)
     write_item(paths, updated)
     return updated
+
+
+def delete_item(paths: WorkspacePaths, item_id: str, *, now: str | None = None) -> Item:
+    """Soft-delete an item by setting ``status: deleted`` (F002-R7).
+
+    The file is preserved on disk and stays findable by direct lookup; default
+    listings exclude it. Idempotent: deleting an already-deleted item returns it
+    unchanged without rewriting the file. Raises :class:`NotFound` when absent.
+    """
+    current = read_item(paths, item_id)  # raises NotFound when absent
+    if current.status == "deleted":
+        return current  # idempotent: no rewrite, updated_at preserved
+    return update_item(paths, item_id, now=now, status="deleted")
 
 
 def _numeric_id_key(item: Item) -> tuple[int, str]:
