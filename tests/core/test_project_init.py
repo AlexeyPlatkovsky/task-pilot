@@ -114,3 +114,45 @@ def test_write_then_read_project_round_trips(tmp_path: Path):
     write_project(paths, meta)
 
     assert read_project(paths) == meta
+
+
+def test_write_project_preserves_existing_file_on_replace_failure(tmp_path: Path, monkeypatch):
+    """Existing project.yaml is not truncated if os.replace fails after temp write."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    paths.workspace_dir.mkdir()
+    meta = ProjectMeta(id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z")
+    write_project(paths, meta)
+    original = paths.project_file.read_text(encoding="utf-8")
+
+    def _fail_replace(src: str, dst: str) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr("os.replace", _fail_replace)
+
+    meta2 = ProjectMeta(id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z")
+    with pytest.raises(OSError):
+        write_project(paths, meta2)
+
+    assert paths.project_file.read_text(encoding="utf-8") == original
+    assert not list(paths.workspace_dir.glob("*.tmp")), "orphaned temp file after replace failure"
+
+
+def test_write_project_cleans_up_temp_file_on_write_failure(tmp_path: Path, monkeypatch):
+    """Temp file is removed and original preserved if os.write fails."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    paths.workspace_dir.mkdir()
+    meta = ProjectMeta(id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z")
+    write_project(paths, meta)
+    original = paths.project_file.read_text(encoding="utf-8")
+
+    def _fail_write(fd: int, data: bytes) -> int:
+        raise OSError("simulated write failure")
+
+    monkeypatch.setattr("os.write", _fail_write)
+
+    meta2 = ProjectMeta(id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z")
+    with pytest.raises(OSError):
+        write_project(paths, meta2)
+
+    assert paths.project_file.read_text(encoding="utf-8") == original
+    assert not list(paths.workspace_dir.glob("*.tmp")), "orphaned temp file after write failure"

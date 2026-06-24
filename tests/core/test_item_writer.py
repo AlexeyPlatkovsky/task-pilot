@@ -7,6 +7,8 @@ preserved unknown fields.
 
 from pathlib import Path
 
+import pytest
+
 from taskpilot.core.item_io import dump_item, parse_item_file, parse_item_text, write_item
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
@@ -161,3 +163,47 @@ def test_round_trip_from_model_preserves_fields():
     item = parse_item_text(FULL_ITEM)
     reparsed = parse_item_text(dump_item(item))
     assert reparsed == item
+
+
+def test_write_item_preserves_existing_file_on_replace_failure(tmp_path: Path, monkeypatch):
+    """Existing item file is not truncated if os.replace fails after temp write."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    paths.items_dir.mkdir(parents=True)
+    item = parse_item_text(MINIMAL_ITEM)
+    write_item(paths, item)
+    item_path = paths.item_file("TP-2")
+    original = item_path.read_text(encoding="utf-8")
+
+    def _fail_replace(src: str, dst: str) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr("os.replace", _fail_replace)
+
+    item.title = "Changed"
+    with pytest.raises(OSError):
+        write_item(paths, item)
+
+    assert item_path.read_text(encoding="utf-8") == original
+    assert not list(item_path.parent.glob("*.tmp")), "orphaned temp file after replace failure"
+
+
+def test_write_item_cleans_up_temp_file_on_write_failure(tmp_path: Path, monkeypatch):
+    """Temp file is removed and original preserved if os.write fails."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    paths.items_dir.mkdir(parents=True)
+    item = parse_item_text(MINIMAL_ITEM)
+    write_item(paths, item)
+    item_path = paths.item_file("TP-2")
+    original = item_path.read_text(encoding="utf-8")
+
+    def _fail_write(fd: int, data: bytes) -> int:
+        raise OSError("simulated write failure")
+
+    monkeypatch.setattr("os.write", _fail_write)
+
+    item.title = "Changed"
+    with pytest.raises(OSError):
+        write_item(paths, item)
+
+    assert item_path.read_text(encoding="utf-8") == original
+    assert not list(item_path.parent.glob("*.tmp")), "orphaned temp file after write failure"

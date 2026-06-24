@@ -117,3 +117,32 @@ def test_written_comments_list_chronologically(tmp_path: Path):
     add_comment(paths, "TP-1", body="late", created_by="C", now="2026-06-24T09:00:00Z")
 
     assert [c.created_by for c in list_comments(paths, "TP-1")] == ["A", "B", "C"]
+
+
+def test_write_comment_does_not_overwrite_preexisting_file(tmp_path: Path):
+    """O_EXCL: a file that already exists on disk is never overwritten."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    target = paths.item_comments_dir("TP-1") / "2026-06-23T10-00-00Z.md"
+    target.parent.mkdir(parents=True)
+    target.write_text("preexisting content", encoding="utf-8")
+
+    written = write_comment(paths, "TP-1", _comment())
+
+    assert written.name == "2026-06-23T10-00-00Z-2.md"
+    assert target.read_text(encoding="utf-8") == "preexisting content"
+
+
+def test_write_comment_o_excl_handles_multiple_preexisting_slots(tmp_path: Path):
+    """O_EXCL skips pre-existing -2 slot and lands on -3 without overwriting."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    directory = paths.item_comments_dir("TP-1")
+    directory.mkdir(parents=True)
+
+    (directory / "2026-06-23T10-00-00Z.md").write_text("orig", encoding="utf-8")
+    (directory / "2026-06-23T10-00-00Z-2.md").write_text("collision", encoding="utf-8")
+
+    written = write_comment(paths, "TP-1", _comment())
+
+    assert written.name == "2026-06-23T10-00-00Z-3.md"
+    assert (directory / "2026-06-23T10-00-00Z.md").read_text(encoding="utf-8") == "orig"
+    assert (directory / "2026-06-23T10-00-00Z-2.md").read_text(encoding="utf-8") == "collision"

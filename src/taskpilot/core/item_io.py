@@ -9,6 +9,8 @@ Both are surfaced as actionable findings by the validation/loader layers
 
 from __future__ import annotations
 
+import os
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -90,9 +92,24 @@ def dump_item(item: Item) -> str:
 def write_item(paths: WorkspacePaths, item: Item) -> Path:
     """Write ``item`` to its canonical ``items/<id>.yaml`` path.
 
-    Creates the ``items/`` directory if missing and returns the written path.
+    Creates the ``items/`` directory if missing, serializes the item first, then
+    publishes via a temp-file + ``os.replace`` so the target file is never left
+    truncated by a partial write.
     """
     target = paths.item_file(item.id)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(dump_item(item), encoding="utf-8")
+    content = dump_item(item).encode("utf-8")
+    fd, tmp = tempfile.mkstemp(dir=str(target.parent), prefix=f".{item.id}_", suffix=".tmp")
+    try:
+        os.write(fd, content)
+    except BaseException:
+        os.close(fd)
+        os.unlink(tmp)
+        raise
+    os.close(fd)
+    try:
+        os.replace(tmp, str(target))
+    except BaseException:
+        os.unlink(tmp)
+        raise
     return target

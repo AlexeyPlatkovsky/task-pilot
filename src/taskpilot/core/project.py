@@ -7,6 +7,8 @@ local project registry, or project-service orchestration (those are F003/F002).
 
 from __future__ import annotations
 
+import os
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -61,8 +63,26 @@ class InitResult:
 
 
 def write_project(paths: WorkspacePaths, meta: ProjectMeta) -> None:
-    """Write ``meta`` to the canonical ``project.yaml`` deterministically."""
-    paths.project_file.write_text(dump_yaml(meta.model_dump()), encoding="utf-8")
+    """Write ``meta`` to the canonical ``project.yaml`` deterministically.
+
+    Serialization happens first, then the content is written to a temp file in the
+    same directory and ``os.replace`` publishes it atomically. A crash or error
+    after serialization cannot leave ``project.yaml`` truncated or empty.
+    """
+    content = dump_yaml(meta.model_dump()).encode("utf-8")
+    fd, tmp = tempfile.mkstemp(dir=str(paths.workspace_dir), prefix=".project_", suffix=".tmp")
+    try:
+        os.write(fd, content)
+    except BaseException:
+        os.close(fd)
+        os.unlink(tmp)
+        raise
+    os.close(fd)
+    try:
+        os.replace(tmp, str(paths.project_file))
+    except BaseException:
+        os.unlink(tmp)
+        raise
 
 
 def read_project(paths: WorkspacePaths) -> ProjectMeta:

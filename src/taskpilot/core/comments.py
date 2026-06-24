@@ -195,19 +195,28 @@ def write_comment(paths: WorkspacePaths, item_id: str, comment: Comment) -> Path
     The filename is derived from ``comment.created_at``; same-second collisions
     receive ``-2``, ``-3``, ... suffixes (F001-R5). Creates the comment directory
     if missing.
+
+    Slot acquisition uses ``open(..., "x")`` (O_EXCL) so the check-and-create is
+    atomic: two concurrent writers in the same second cannot both claim the same
+    filename.
     """
     directory = paths.item_comments_dir(item_id)
     directory.mkdir(parents=True, exist_ok=True)
 
+    content = dump_comment(comment)
     base = iso_to_filename_stamp(comment.created_at)
     target = directory / f"{base}.md"
     suffix = 2
-    while target.exists():
-        target = directory / f"{base}-{suffix}.md"
-        suffix += 1
-
-    target.write_text(dump_comment(comment), encoding="utf-8")
-    return target
+    while True:
+        try:
+            with open(target, "x", encoding="utf-8") as f:
+                f.write(content)
+            return target
+        except FileExistsError:
+            if suffix > 10_000:
+                raise RuntimeError(f"Too many comment collisions for {base}")
+            target = directory / f"{base}-{suffix}.md"
+            suffix += 1
 
 
 def add_comment(

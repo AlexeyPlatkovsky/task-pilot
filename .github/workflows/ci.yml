@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Tests
+        id: tests
+        continue-on-error: true
+        run: |
+          uv run pytest --tb=short -q > pytest.out 2>&1; rc=$?
+          cat pytest.out
+
+          passed=$(grep -oP '\d+(?= passed)' pytest.out || echo 0)
+          failed=$(grep -oP '\d+(?= failed)' pytest.out || echo 0)
+          error=$(grep -oP '\d+(?= error)' pytest.out || echo 0)
+          total=$((passed + failed + error))
+          [ "$total" -eq 0 ] && total=$(($(grep -c '^' pytest.out 2>/dev/null || echo 0)))
+
+          jq -n \
+            --argjson ok "$([ $rc -eq 0 ] && echo true || echo false)" \
+            --argjson passed "$passed" \
+            --argjson total "$total" \
+            '{name:"Tests",ok:$ok,passed:$passed,total:$total}' > result-tests.json
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: |
+          pip install ruff -q
+          ruff check . > lint.out 2>&1; rc=$?
+          cat lint.out
+
+          issues=$(grep -oP '\d+(?= error)' lint.out | tail -1 || echo 0)
+          warnings=$(grep -oP '\d+(?= warning)' lint.out | tail -1 || echo 0)
+          [ -z "$issues" ] && issues=0
+          [ -z "$warnings" ] && warnings=0
+          total=$((issues + warnings))
+
+          jq -n \
+            --argjson ok "$([ $total -eq 0 ] && echo true || echo false)" \
+            --argjson issues "$total" \
+            '{name:"Lint",ok:$ok,issues:$issues}' > result-lint.json
+
+      - name: Format
+        id: format
+        continue-on-error: true
+        run: |
+          ruff format --check . > format.out 2>&1; rc=$?
+          cat format.out
+
+          changed=$(grep -c "Would reformat" format.out || echo 0)
+          unchanged=$(grep -c "Already formatted" format.out || echo 0)
+          [ -z "$changed" ] && changed=0
+
+          jq -n \
+            --argjson ok "$([ $rc -eq 0 ] && echo true || echo false)" \
+            --argjson changed "$changed" \
+            '{name:"Format",ok:$ok,changed:$changed}' > result-format.json
+
+      - name: Comment PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          comment="## CI Results\n\n| Check | Result | Details |\n| --- | --- | --- |"
+
+          for result_file in result-tests.json result-lint.json result-format.json; do
+            if [ ! -f "$result_file" ]; then
+              name=$(echo "$result_file" | sed 's/result-//;s/.json//')
+              comment="${comment}\n| ${name^} | ⚠️ | skipped |"
+              continue
+            fi
+
+            name=$(jq -r .name "$result_file")
+
+            if [ "$(jq -r .ok "$result_file")" = "true" ]; then
+              emoji="✅"
+            else
+              emoji="❌"
+            fi
+
+            detail=""
+            case "$name" in
+              Tests)
+                passed=$(jq -r .passed "$result_file")
+                total=$(jq -r .total "$result_file")
+                detail="${passed}/${total}"
+                ;;
+              Lint)
+                issues=$(jq -r .issues "$result_file")
+                detail="${issues} issue$([ "$issues" != "1" ] && echo s)"
+                ;;
+              Format)
+                changed=$(jq -r .changed "$result_file")
+                detail="${changed} file$([ "$changed" != "1" ] && echo s) would change"
+                ;;
+            esac
+
+            comment="${comment}\n| ${name} | ${emoji} | ${detail} |"
+          done
+
+          printf '%b\n' "$comment" | gh pr comment "$PR" --body-file - --edit-last 2>/dev/null \
+            || printf '%b\n' "$comment" | gh pr comment "$PR" --body-file -
