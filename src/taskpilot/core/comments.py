@@ -26,8 +26,8 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from typing_extensions import Annotated
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.core.timestamps import is_canonical_iso
-from taskpilot.core.yaml_io import load_yaml
+from taskpilot.core.timestamps import is_canonical_iso, iso_to_filename_stamp, utc_now_iso
+from taskpilot.core.yaml_io import dump_yaml, load_yaml
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -36,6 +36,9 @@ __all__ = [
     "parse_comment_text",
     "parse_comment_file",
     "list_comments",
+    "dump_comment",
+    "write_comment",
+    "add_comment",
 ]
 
 #: Current canonical schema version for comment frontmatter.
@@ -140,3 +143,62 @@ def list_comments(paths: WorkspacePaths, item_id: str) -> list[Comment]:
         key=lambda p: _comment_sort_key(p.name),
     )
     return [parse_comment_file(p) for p in files]
+
+
+def dump_comment(comment: Comment) -> str:
+    """Serialize ``comment`` to Markdown-with-frontmatter, round-tripping the parser.
+
+    Frontmatter is emitted as ``schema_version``, ``created_at``, ``created_by``,
+    then preserved unknown fields in sorted key order, followed by the body.
+    """
+    raw = comment.model_dump()
+    frontmatter: dict = {
+        "schema_version": raw["schema_version"],
+        "created_at": raw["created_at"],
+        "created_by": raw["created_by"],
+    }
+    for key in sorted(k for k in raw if k not in Comment.model_fields):
+        frontmatter[key] = raw[key]
+
+    text = f"---\n{dump_yaml(frontmatter)}---\n"
+    if comment.body:
+        text += f"\n{comment.body}\n"
+    return text
+
+
+def write_comment(paths: WorkspacePaths, item_id: str, comment: Comment) -> Path:
+    """Write ``comment`` under ``item_id``, returning the chosen path.
+
+    The filename is derived from ``comment.created_at``; same-second collisions
+    receive ``-2``, ``-3``, ... suffixes (F001-R5). Creates the comment directory
+    if missing.
+    """
+    directory = paths.item_comments_dir(item_id)
+    directory.mkdir(parents=True, exist_ok=True)
+
+    base = iso_to_filename_stamp(comment.created_at)
+    target = directory / f"{base}.md"
+    suffix = 2
+    while target.exists():
+        target = directory / f"{base}-{suffix}.md"
+        suffix += 1
+
+    target.write_text(dump_comment(comment), encoding="utf-8")
+    return target
+
+
+def add_comment(
+    paths: WorkspacePaths,
+    item_id: str,
+    *,
+    body: str,
+    created_by: str,
+    now: str | None = None,
+) -> Path:
+    """Create and write a new comment for ``item_id``; returns the written path.
+
+    ``now`` defaults to the current UTC time and becomes both the frontmatter
+    ``created_at`` and the filename timestamp.
+    """
+    comment = Comment(created_at=now or utc_now_iso(), created_by=created_by, body=body)
+    return write_comment(paths, item_id, comment)
