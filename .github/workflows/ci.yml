@@ -60,7 +60,7 @@ jobs:
           total=$((issues + warnings))
 
           jq -n \
-            --argjson ok "$([ $total -eq 0 ] && echo true || echo false)" \
+            --argjson ok "$([ $rc -eq 0 ] && echo true || echo false)" \
             --argjson issues "$total" \
             '{name:"Lint",ok:$ok,issues:$issues}' > result-lint.json
 
@@ -123,5 +123,4 @@ jobs:
             comment="${comment}\n| ${name} | ${emoji} | ${detail} |"
           done
 
-          printf '%b\n' "$comment" | gh pr comment "$PR" --body-file - --edit-last 2>/dev/null \
-            || printf '%b\n' "$comment" | gh pr comment "$PR" --body-file -
+          printf '%b\n' "$comment" | gh pr comment "$PR" --body-file -
