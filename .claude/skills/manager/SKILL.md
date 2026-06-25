@@ -62,6 +62,14 @@ Size definitions (choose the highest that applies):
 - Feature or non-trivial behavior-changing bug fix: `.claude/pipelines/feature-change.md`.
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
 - Product UI design or implementation: `.claude/pipelines/ui-change.md`.
+- Live browser investigation, WebUI verification, or business-logic confirmation without code
+  changes: `.claude/pipelines/browser-verify.md`. When browser investigation is requested as a
+  sub-step within a running feature-change, ui-change, test-change, or validate-change context,
+  `playwright-cli` is called inline by the owning skill — `browser-verify.md` applies only when
+  investigation is the sole stated goal. Mid-session code-change requests during a browser-verify
+  run return control to the manager. When a single request names both an investigation goal and a
+  code-change goal, treat the request as non-trivial and route through the appropriate
+  feature-change, test-change, or ui-change pipeline, invoking `playwright-cli` inline.
 - Read-only instruction-system review: `.claude/agents/instruction-evaluator.md`.
 - Instruction-system review with iterative fix loop: `.claude/pipelines/instructions-review.md`.
 - Other read-only review request: `.claude/pipelines/code-review.md`.
