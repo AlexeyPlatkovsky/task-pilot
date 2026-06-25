@@ -11,8 +11,13 @@ Use for a feature or non-trivial bug fix that changes TaskPilot production behav
   `Skill: work-with-git - output below`.
 - Skip `work-with-git` for small low-risk changes unless the user requested branch or task-state
   handling.
-- Require tests before implementation for behavior changes. If tests first are not feasible, the
-  `test-change` artifact must explain why and define the compensating validation.
+- Require tests before implementation for behavior changes. If full test code before
+  implementation is not feasible, step 3 must still produce a requirement→assertion mapping
+  (a test plan) naming the specific assertion for every success path, error path, and boundary
+  condition identified for the change. Boundary conditions include inputs the spec defines as
+  invalid or out-of-scope, silent-failure paths, and error-envelope overlap with framework
+  defaults. Full test code may be deferred to step 6, but the assertion mapping is a mandatory
+  deliverable of step 3.
 - For major or high-risk feature work, run `code-reviewer` on the test scope before production
   implementation. Require `Agent: code-reviewer - output below`.
 - For any `code-reviewer` findings with Critical, High, or Major severity as defined in

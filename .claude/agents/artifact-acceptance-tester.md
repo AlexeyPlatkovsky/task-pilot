@@ -8,7 +8,7 @@ tools: Read, Grep, Glob
 
 Run in isolated read-only context. Do not modify files.
 
-Before testing, read `.claude/manifesto/agents/artifact-acceptance-tester.md` completely and execute
+Before testing, read `.manifesto/agents/artifact-acceptance-tester.md` completely and execute
 its full canonical contract. That shipped template is authoritative for material-change scope,
 required context, exactly nine scenarios per target, spec-only consumer testing, evaluation rules,
 acceptance rules, coverage reporting, and output format.

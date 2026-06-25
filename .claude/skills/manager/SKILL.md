@@ -21,6 +21,14 @@ Classify before edits:
 - Change type: feature, bug fix, refactor, UI, documentation, review, instruction, or brainstorm.
 - Task backing: task-backed when the user supplies a task ID, a canonical TaskPilot item exists for
   the work, or the requested work clearly implements a tracked feature task; otherwise untracked.
+- Architecture-boundary scan: before finalising the classification, list every new cross-layer
+  import the change requires and check each against AGENTS.md Architecture Boundaries (lines 86-98).
+  A "layer" here means one of: ``core``, ``services``, ``cli``, ``server``, ``web`` (the
+  TypeScript frontend). Adapter→adapter imports (``server``→``cli``, ``web``→``cli``,
+  ``cli``→``server``, etc.) are mandatory violations — the diagram shows adapters as peers:
+  ``CLI | REST API | future MCP``, all fed by the same domain/service layer. Third-party library
+  imports (fastapi, typer, etc.) are not in scope for this scan.
+  Record each violation in the output contract's assumptions-and-blockers section.
 
 Treat the task as non-trivial when it changes behavior, contracts, persistence, architecture,
 production dependencies, or requires more than one coordinated capability.
@@ -46,7 +54,7 @@ Size definitions:
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.
 - Project instruction-system creation or material change: `.claude/pipelines/instruction-change.md`.
 
-Framework stages under `.claude/manifesto/`, including `02_review.md`, are invoked explicitly by
+Framework stages under `.manifesto/`, including `02_review.md`, are invoked explicitly by
 the user. They are framework workflows, not project routing targets.
 
 Use conditional rigor:
