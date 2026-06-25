@@ -40,6 +40,7 @@ Size definitions:
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
 - Product UI design or implementation: `.claude/pipelines/ui-change.md`.
 - Read-only instruction-system review: `.claude/agents/instruction-evaluator.md`.
+- Instruction-system review with iterative fix loop: `.claude/pipelines/instructions-review.md`.
 - Other read-only review request: `.claude/pipelines/code-review.md`.
 - Open high-impact choice with materially different outcomes: `.claude/skills/brainstorm/SKILL.md`.
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.

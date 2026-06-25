@@ -107,6 +107,7 @@ Routing:
 - UI change pipeline: `.claude/pipelines/ui-change.md`
 - Review pipeline: `.claude/pipelines/code-review.md`
 - Instruction change pipeline: `.claude/pipelines/instruction-change.md`
+- Instructions review pipeline: `.claude/pipelines/instructions-review.md`
 
 Skills:
 
