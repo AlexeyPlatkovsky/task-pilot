@@ -10,6 +10,7 @@ JSON output dumps the item model in canonical field order for determinism
 
 from __future__ import annotations
 
+import getpass
 from typing import Optional
 
 import typer
@@ -19,7 +20,15 @@ from taskpilot.cli.errors import service_errors
 from taskpilot.cli.output import print_json, print_line, render_key_values, render_table
 from taskpilot.cli.workspace import find_workspace
 from taskpilot.core.models import Item
-from taskpilot.services import item_service, link_service
+from taskpilot.services import comment_service, item_service, link_service
+
+
+def _default_author() -> str:
+    """Best-effort local author identity for comments when ``--author`` is omitted."""
+    try:
+        return getpass.getuser()
+    except Exception:  # pragma: no cover - getuser is environment-dependent
+        return "unknown"
 
 __all__ = ["register"]
 
@@ -236,6 +245,32 @@ def item_unrelates(
         paths = find_workspace()
         item = link_service.remove_link(paths, source_id, "relates_to", target_id)
     _emit_relationship(ctx, item, f"{source_id} no longer relates to {target_id}.")
+
+
+@item_app.command("comment")
+def item_comment(
+    ctx: typer.Context,
+    item_id: str = typer.Argument(..., help="Item id to comment on."),
+    text: str = typer.Argument(..., help="Comment body."),
+    author: Optional[str] = typer.Option(None, "--author", help="Comment author (defaults to the local user)."),
+) -> None:
+    """Add a comment to an item and print the comment filename."""
+    with service_errors():
+        paths = find_workspace()
+        written = comment_service.add_comment(
+            paths, item_id, body=text, created_by=author or _default_author()
+        )
+
+    if get_state(ctx).json:
+        print_json(
+            {
+                "item_id": item_id,
+                "filename": written.name,
+                "path": paths.relative_posix(written),
+            }
+        )
+        return
+    print_line(written.name)
 
 
 def register(app: typer.Typer) -> None:
