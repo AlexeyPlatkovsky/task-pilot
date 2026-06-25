@@ -7,7 +7,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from taskpilot.cli import registry
+from taskpilot.services import registry
 from taskpilot.cli.app import app
 
 runner = CliRunner()

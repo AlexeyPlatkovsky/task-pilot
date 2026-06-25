@@ -13,6 +13,13 @@
   service plus index/cache.
 - Browser E2E tests own only critical cross-surface journeys and major UI paths. Use Playwright
   with TypeScript and the repository's Playwright CLI/script when browser automation is required.
+- `playwright-cli` is the AI investigation tool for live browser interaction. Use it to discover
+  accessible names, stable element refs, and DOM structure before writing static Playwright
+  TypeScript test files, and to gather browser evidence during validation. Prefer refs from the
+  current accessibility snapshot over CSS selectors; re-snapshot after any action that adds,
+  removes, or repositions DOM elements (navigation, form submission, modal open/close, list item added, removed, or reordered).
+  `playwright-cli` findings are evidence that informs test authoring; they are not a substitute for
+  persistent test files in the repository.
 - A major UI path is a workflow that crosses screens or browser state, depends on the REST API,
   exercises drag/drop or keyboard alternatives, verifies responsive behavior, or represents a
   primary user journey such as project selection, board navigation, item editing, or invalid-file

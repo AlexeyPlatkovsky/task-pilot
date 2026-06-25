@@ -17,7 +17,7 @@ from pathlib import Path
 
 import typer
 
-from taskpilot.cli import registry
+from taskpilot.services import registry
 from taskpilot.cli.context import get_state
 from taskpilot.cli.errors import service_errors
 from taskpilot.cli.output import print_json, print_line

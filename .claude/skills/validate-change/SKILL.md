@@ -18,7 +18,10 @@ Validation is read-only.
 4. Apply `.claude/conventions/testing.md`; do not substitute broad E2E checks for missing
    lower-level evidence.
 5. For runnable UI changes, include Playwright TypeScript evidence when that convention requires
-   browser validation.
+   browser validation. When confirmation requires element state that repository files or prior test
+   output cannot supply, invoke `playwright-cli` per `.claude/conventions/testing.md` to capture
+   accessibility snapshots and screenshots, then reference those findings in the validation table.
+   Require `Skill: playwright-cli - output below` when this step runs.
 6. Distinguish implementation defects from environment blockers.
 7. Check affected documentation and public contracts for drift.
 8. Inspect the final diff for scope and regression risk.

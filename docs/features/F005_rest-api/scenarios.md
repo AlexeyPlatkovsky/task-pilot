@@ -69,14 +69,20 @@ Scenario: Update item status via PATCH
     And the canonical YAML file for VP-1 has status: in_progress
 ```
 
-### F005-S6: Patch item with invalid status returns 422
+### F005-S6: Patch item with invalid status returns 400
 
 Covers: F005-R8
 
 ```gherkin
-Scenario: Update item with invalid status
+Scenario: Update item with invalid status value
   Given a project "Alpha" with item VP-1
   When the client sends PATCH /api/projects/alpha/items/VP-1 with body {"status": "flying"}
+  Then the response status is 400
+    And the response body has field detail
+
+Scenario: Update item with malformed body (wrong type) returns 422
+  Given a project "Alpha" with item VP-1
+  When the client sends PATCH /api/projects/alpha/items/VP-1 with body {"status": 12345}
   Then the response status is 422
     And the response body has field detail
 ```

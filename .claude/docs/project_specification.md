@@ -171,7 +171,7 @@ Authority follows this order:
 5. Architecture decisions under `docs/decisions/`.
 6. Existing code, tests, and established project conventions.
 
-Additional framework sources under `.claude/manifesto/` govern construction of the AI instruction
+Additional framework sources under `.manifesto/` govern construction of the AI instruction
 system, not TaskPilot product behavior.
 
 Conflicts that affect product behavior, public contracts, persistence, or architecture must be

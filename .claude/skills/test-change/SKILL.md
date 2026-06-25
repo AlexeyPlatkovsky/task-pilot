@@ -16,7 +16,10 @@ Read `references/test-strategy.md` and `.claude/conventions/testing.md`.
 6. Use red-green-refactor for behavior changes unless the active route explicitly permits a
    different order. For refactors, add characterization tests first when existing coverage is weak.
 7. For UI changes, apply `.claude/conventions/testing.md` for component, Playwright TypeScript, and
-   E2E scope.
+   E2E scope. When the element refs, accessible names, or DOM structure required for assertions
+   cannot be determined from static repository source files such as TypeScript/JSX source — committed playwright-cli snapshot files satisfy this condition only when they were generated against the current component structure; if the component may have changed since the last committed snapshot, treat refs as unavailable and invoke `playwright-cli` per
+   `.claude/conventions/testing.md`. Require `Skill: playwright-cli - output below` when this
+   investigation step runs.
 8. Run narrow tests, then the affected suite.
 9. Inspect for false positives, brittle mocks, timing assumptions, over-broad E2E coverage, and
    redundant coverage.

@@ -3,7 +3,7 @@
 ## Trigger
 
 Use for explicitly approved creation or material change of TaskPilot runtime instruction artifacts.
-Do not use it to run framework stages under `.claude/manifesto/`.
+Do not use it to run framework stages under `.manifesto/`.
 
 ## Ordered Steps
 

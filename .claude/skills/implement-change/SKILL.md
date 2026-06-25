@@ -9,13 +9,31 @@ Prerequisites: an accepted specification or explicit behavior, known success cri
 planned validation route.
 
 1. Read affected code, tests, conventions, and decisions.
-2. State intended behavior, affected layers, and assumptions.
+2. For every requirement in scope, enumerate boundary conditions:
+   - null / empty / missing / unrecognized inputs (in PATCH semantics
+     ``null`` = explicitly cleared field, ``missing`` = not sent — distinct);
+   - conflicting or duplicate state (existing project, repeated id, etc.);
+   - silent-failure paths (files that can't be parsed, unreadable, wrong format);
+   - error-envelope overlap with framework defaults (same status code,
+     different body shape from the framework's own error handler).
+
+   Map each boundary to an observable assertion or to a documented limitation.
+   Report the resulting table as part of the artifact. The boundary-condition
+   table complements the test plan produced by ``test-change`` step 3 — it is
+   not a replacement. When the pipeline deferred tests (mapping-only mode),
+   this step must check that the existing mapping is complete and add any
+   boundaries discovered during implementation.
 3. Implement the smallest complete vertical slice.
 4. Keep domain rules in services and translation in adapters.
 5. Preserve canonical-file-first writes and deterministic outputs.
 6. Add only production and directly required support changes; test implementation belongs to
    `test-change`.
-7. Run narrow compile or static checks needed to catch implementation errors.
+7. Run narrow compile or static checks needed to catch implementation errors
+   and code-quality issues — including unused parameters, unused imports,
+   and dead code. Use the project's configured linter for the language
+   (ruff for Python, ESLint for TypeScript). If no linter is configured,
+   propose installing one; add it only with user approval, or document
+   the gap as a blocker.
 8. Inspect the implementation diff for unrelated churn, leaked abstractions, and missing errors.
 
 Stop for an unapproved breaking contract, canonical migration, production dependency, destructive

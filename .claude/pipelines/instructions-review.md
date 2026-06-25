@@ -6,7 +6,7 @@ Use for reviewing one or more existing TaskPilot instruction artifacts (skills, 
 conventions, root contracts, or any runtime instruction file) and iteratively fixing findings
 through a bounded review-fix loop.
 
-Do not use for framework-stage work under `.claude/manifesto/`.
+Do not use for framework-stage work under `.manifesto/`.
 
 ## Input
 

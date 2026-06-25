@@ -7,7 +7,7 @@ semantics, the one-entry-per-id rule, and deterministic listing.
 
 from pathlib import Path
 
-from taskpilot.cli import registry
+from taskpilot.services import registry
 
 
 def test_register_adds_entry_and_lists_it(tmp_path: Path):
