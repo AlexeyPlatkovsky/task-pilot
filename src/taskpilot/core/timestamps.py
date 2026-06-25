@@ -10,7 +10,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-__all__ = ["utc_now_iso", "is_canonical_iso", "iso_to_filename_stamp", "filename_stamp_to_iso"]
+__all__ = [
+    "utc_now_iso",
+    "is_canonical_iso",
+    "iso_to_filename_stamp",
+    "filename_stamp_to_iso",
+]
 
 _ISO_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 

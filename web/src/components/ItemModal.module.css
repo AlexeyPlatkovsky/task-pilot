@@ -1,0 +1,302 @@
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  inset: 0;
+  animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding-right: 2rem;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.closeButton:hover {
+  color: #343a40;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: #dc3545;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.retryButton {
+  padding: 0.5rem 1rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.retryButton:hover {
+  background: #0056b3;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.typeBadge {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.statusBadge {
+  background: #0066cc;
+  color: white;
+}
+
+.status-backlog {
+  background: #6c757d;
+}
+
+.status-ready {
+  background: #17a2b8;
+}
+
+.status-in_progress {
+  background: #0066cc;
+}
+
+.status-done {
+  background: #28a745;
+}
+
+.status-cancelled {
+  background: #ffc107;
+  color: #343a40;
+}
+
+.status-deleted {
+  background: #dc3545;
+}
+
+.priorityBadge {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.priority-low {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.priority-normal {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.priority-high {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.section {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1rem;
+}
+
+.section h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.description {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
+}
+
+.fields dt {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.fields dd {
+  margin: 0;
+}
+
+.tags {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: #e9ecef;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8125rem;
+}
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.checklist li {
+  padding: 0.25rem 0;
+}
+
+.checklist li::before {
+  content: "\25CB";
+  margin-right: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.editButton {
+  padding: 0.5rem 1rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.editButton:hover {
+  background: #0056b3;
+}
+
+.deleteButton {
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.deleteButton:hover {
+  background: #c82333;
+}
+
+.findings {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.findings li {
+  padding: 0.375rem 0;
+}
+
+.findingError {
+  color: #dc3545;
+}
+
+.findingWarning {
+  color: #ffc107;
+}
+
+@keyframes overlayShow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contentShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}

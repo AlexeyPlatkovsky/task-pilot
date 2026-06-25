@@ -53,7 +53,11 @@ def test_project_yaml_has_canonical_field_order(tmp_path: Path):
     _init(tmp_path, now="2026-06-24T10:00:00Z")
     text = WorkspacePaths.for_root(tmp_path).project_file.read_text(encoding="utf-8")
 
-    keys = [line.split(":", 1)[0] for line in text.splitlines() if line and not line.startswith(" ")]
+    keys = [
+        line.split(":", 1)[0]
+        for line in text.splitlines()
+        if line and not line.startswith(" ")
+    ]
     assert keys == ["schema_version", "id", "key", "name", "created_at"]
 
 
@@ -109,18 +113,24 @@ def test_init_rejects_malformed_timestamp(tmp_path: Path):
 def test_write_then_read_project_round_trips(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
     paths.workspace_dir.mkdir()
-    meta = ProjectMeta(id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z")
+    meta = ProjectMeta(
+        id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z"
+    )
 
     write_project(paths, meta)
 
     assert read_project(paths) == meta
 
 
-def test_write_project_preserves_existing_file_on_replace_failure(tmp_path: Path, monkeypatch):
+def test_write_project_preserves_existing_file_on_replace_failure(
+    tmp_path: Path, monkeypatch
+):
     """Existing project.yaml is not truncated if os.replace fails after temp write."""
     paths = WorkspacePaths.for_root(tmp_path)
     paths.workspace_dir.mkdir()
-    meta = ProjectMeta(id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z")
+    meta = ProjectMeta(
+        id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z"
+    )
     write_project(paths, meta)
     original = paths.project_file.read_text(encoding="utf-8")
 
@@ -129,19 +139,27 @@ def test_write_project_preserves_existing_file_on_replace_failure(tmp_path: Path
 
     monkeypatch.setattr("os.replace", _fail_replace)
 
-    meta2 = ProjectMeta(id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z")
+    meta2 = ProjectMeta(
+        id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z"
+    )
     with pytest.raises(OSError):
         write_project(paths, meta2)
 
     assert paths.project_file.read_text(encoding="utf-8") == original
-    assert not list(paths.workspace_dir.glob("*.tmp")), "orphaned temp file after replace failure"
+    assert not list(paths.workspace_dir.glob("*.tmp")), (
+        "orphaned temp file after replace failure"
+    )
 
 
-def test_write_project_cleans_up_temp_file_on_write_failure(tmp_path: Path, monkeypatch):
+def test_write_project_cleans_up_temp_file_on_write_failure(
+    tmp_path: Path, monkeypatch
+):
     """Temp file is removed and original preserved if os.write fails."""
     paths = WorkspacePaths.for_root(tmp_path)
     paths.workspace_dir.mkdir()
-    meta = ProjectMeta(id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z")
+    meta = ProjectMeta(
+        id="task-pilot", key="TP", name="TaskPilot", created_at="2026-06-24T10:00:00Z"
+    )
     write_project(paths, meta)
     original = paths.project_file.read_text(encoding="utf-8")
 
@@ -150,9 +168,13 @@ def test_write_project_cleans_up_temp_file_on_write_failure(tmp_path: Path, monk
 
     monkeypatch.setattr("os.write", _fail_write)
 
-    meta2 = ProjectMeta(id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z")
+    meta2 = ProjectMeta(
+        id="task-pilot", key="TP", name="Changed", created_at="2026-06-24T10:00:00Z"
+    )
     with pytest.raises(OSError):
         write_project(paths, meta2)
 
     assert paths.project_file.read_text(encoding="utf-8") == original
-    assert not list(paths.workspace_dir.glob("*.tmp")), "orphaned temp file after write failure"
+    assert not list(paths.workspace_dir.glob("*.tmp")), (
+        "orphaned temp file after write failure"
+    )

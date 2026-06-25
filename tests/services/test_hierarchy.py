@@ -19,7 +19,9 @@ from taskpilot.services.hierarchy import ALLOWED_CHILD_TYPES, validate_parent
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
@@ -94,8 +96,12 @@ def test_self_parent_rejected(tmp_path: Path):
 def test_cycle_rejected(tmp_path: Path):
     paths = _workspace(tmp_path)
     epic = item_service.create_item(paths, title="epic", type="epic")
-    feature = item_service.create_item(paths, title="feat", type="feature", parent_id=epic.id)
-    task = item_service.create_item(paths, title="task", type="task", parent_id=feature.id)
+    feature = item_service.create_item(
+        paths, title="feat", type="feature", parent_id=epic.id
+    )
+    task = item_service.create_item(
+        paths, title="task", type="task", parent_id=feature.id
+    )
     # making the epic a child of the task would close a cycle epic->feature->task->epic
     with pytest.raises(ValidationFailed):
         item_service.update_item(paths, epic.id, parent_id=task.id)

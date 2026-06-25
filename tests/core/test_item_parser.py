@@ -133,7 +133,9 @@ def test_invalid_type_enum_raises_validation_error():
 
 
 def test_malformed_created_at_raises_validation_error():
-    text = MINIMAL_ITEM.replace("created_at: 2026-06-23T10:00:00Z", "created_at: yesterday")
+    text = MINIMAL_ITEM.replace(
+        "created_at: 2026-06-23T10:00:00Z", "created_at: yesterday"
+    )
     with pytest.raises(ValidationError):
         parse_item_text(text)
 

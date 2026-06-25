@@ -16,7 +16,9 @@ from taskpilot.services.errors import NotFound, ValidationFailed
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
@@ -35,7 +37,11 @@ def test_create_item_persists_and_reads_back_fields(tmp_path: Path):
     paths = _workspace(tmp_path)
 
     created = item_service.create_item(
-        paths, title="Add benchmark", type="task", priority="normal", now="2026-06-20T11:00:00Z"
+        paths,
+        title="Add benchmark",
+        type="task",
+        priority="normal",
+        now="2026-06-20T11:00:00Z",
     )
 
     read = item_service.read_item(paths, created.id)
@@ -51,7 +57,9 @@ def test_create_item_rejects_invalid_status_without_writing(tmp_path: Path):
     paths = _workspace(tmp_path)
 
     with pytest.raises(ValidationFailed):
-        item_service.create_item(paths, title="Bad", type="task", status="imaginary_status")
+        item_service.create_item(
+            paths, title="Bad", type="task", status="imaginary_status"
+        )
 
     assert not any(paths.items_dir.glob("*.yaml"))
 
@@ -74,7 +82,9 @@ def test_next_id_skips_gaps_from_deleted_items(tmp_path: Path):
 
 def test_update_item_changes_status_and_refreshes_updated_at(tmp_path: Path):
     paths = _workspace(tmp_path)
-    created = item_service.create_item(paths, title="Add benchmark", type="task", now="2026-06-20T11:00:00Z")
+    created = item_service.create_item(
+        paths, title="Add benchmark", type="task", now="2026-06-20T11:00:00Z"
+    )
 
     updated = item_service.update_item(
         paths, created.id, now="2026-06-21T09:00:00Z", status="in_progress"
@@ -90,7 +100,9 @@ def test_update_item_changes_status_and_refreshes_updated_at(tmp_path: Path):
 
 def test_update_item_rejects_invalid_value_and_preserves_file(tmp_path: Path):
     paths = _workspace(tmp_path)
-    created = item_service.create_item(paths, title="Add benchmark", type="task", now="2026-06-20T11:00:00Z")
+    created = item_service.create_item(
+        paths, title="Add benchmark", type="task", now="2026-06-20T11:00:00Z"
+    )
 
     with pytest.raises(ValidationFailed):
         item_service.update_item(paths, created.id, status="imaginary_status")
@@ -143,10 +155,15 @@ def test_list_items_filters_by_project_key_prefix(tmp_path: Path):
     item_service.create_item(paths, title="a", type="task")
     # an item from a different project key sitting in the same workspace
     other = Item(
-        id="OT-1", title="other", type="task", status="backlog",
-        created_at="2026-06-20T10:00:00Z", updated_at="2026-06-20T10:00:00Z",
+        id="OT-1",
+        title="other",
+        type="task",
+        status="backlog",
+        created_at="2026-06-20T10:00:00Z",
+        updated_at="2026-06-20T10:00:00Z",
     )
     from taskpilot.core.item_io import write_item
+
     write_item(paths, other)
 
     vp = item_service.list_items(paths, project="VP")

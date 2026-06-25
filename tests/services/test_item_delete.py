@@ -15,13 +15,17 @@ from taskpilot.services.errors import NotFound
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
 def test_delete_sets_status_and_keeps_file(tmp_path: Path):
     paths = _workspace(tmp_path)
-    item = item_service.create_item(paths, title="x", type="task", now="2026-06-20T11:00:00Z")
+    item = item_service.create_item(
+        paths, title="x", type="task", now="2026-06-20T11:00:00Z"
+    )
 
     deleted = item_service.delete_item(paths, item.id, now="2026-06-21T09:00:00Z")
 
@@ -38,12 +42,16 @@ def test_deleted_item_excluded_from_default_list_but_findable(tmp_path: Path):
     item_service.delete_item(paths, item.id)
 
     assert item.id not in [i.id for i in item_service.list_items(paths)]
-    assert item.id in [i.id for i in item_service.list_items(paths, include_deleted=True)]
+    assert item.id in [
+        i.id for i in item_service.list_items(paths, include_deleted=True)
+    ]
 
 
 def test_delete_is_idempotent(tmp_path: Path):
     paths = _workspace(tmp_path)
-    item = item_service.create_item(paths, title="x", type="task", now="2026-06-20T11:00:00Z")
+    item = item_service.create_item(
+        paths, title="x", type="task", now="2026-06-20T11:00:00Z"
+    )
     first = item_service.delete_item(paths, item.id, now="2026-06-21T09:00:00Z")
     before = paths.item_file(item.id).read_text(encoding="utf-8")
 

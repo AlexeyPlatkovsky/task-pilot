@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from taskpilot.core.item_io import dump_item, parse_item_file, parse_item_text, write_item
+from taskpilot.core.item_io import (
+    dump_item,
+    parse_item_file,
+    parse_item_text,
+    write_item,
+)
 from taskpilot.core.layout import WorkspacePaths
 
 FULL_ITEM = """\
@@ -54,16 +59,34 @@ updated_at: 2026-06-23T10:00:00Z
 
 
 def _top_level_keys(text: str) -> list[str]:
-    return [ln.split(":", 1)[0] for ln in text.splitlines() if ln and not ln[0].isspace() and ":" in ln]
+    return [
+        ln.split(":", 1)[0]
+        for ln in text.splitlines()
+        if ln and not ln[0].isspace() and ":" in ln
+    ]
 
 
 def test_full_item_dumps_in_canonical_field_order():
     text = dump_item(parse_item_text(FULL_ITEM))
 
     assert _top_level_keys(text) == [
-        "schema_version", "id", "title", "priority", "type", "status",
-        "created_at", "updated_at", "parent_id", "tags", "description",
-        "attachments", "dor", "dod", "links", "created_by", "performed_by",
+        "schema_version",
+        "id",
+        "title",
+        "priority",
+        "type",
+        "status",
+        "created_at",
+        "updated_at",
+        "parent_id",
+        "tags",
+        "description",
+        "attachments",
+        "dor",
+        "dod",
+        "links",
+        "created_by",
+        "performed_by",
         "external_refs",
     ]
 
@@ -73,8 +96,14 @@ def test_minimal_item_omits_absent_optionals():
     keys = _top_level_keys(text)
 
     assert keys == [
-        "schema_version", "id", "title", "priority", "type", "status",
-        "created_at", "updated_at",
+        "schema_version",
+        "id",
+        "title",
+        "priority",
+        "type",
+        "status",
+        "created_at",
+        "updated_at",
     ]
     assert "parent_id" not in text
     assert "null" not in text
@@ -164,7 +193,9 @@ def test_round_trip_from_model_preserves_fields():
     assert reparsed == item
 
 
-def test_write_item_preserves_existing_file_on_replace_failure(tmp_path: Path, monkeypatch):
+def test_write_item_preserves_existing_file_on_replace_failure(
+    tmp_path: Path, monkeypatch
+):
     """Existing item file is not truncated if os.replace fails after temp write."""
     paths = WorkspacePaths.for_root(tmp_path)
     paths.items_dir.mkdir(parents=True)
@@ -183,7 +214,9 @@ def test_write_item_preserves_existing_file_on_replace_failure(tmp_path: Path, m
         write_item(paths, item)
 
     assert item_path.read_text(encoding="utf-8") == original
-    assert not list(item_path.parent.glob("*.tmp")), "orphaned temp file after replace failure"
+    assert not list(item_path.parent.glob("*.tmp")), (
+        "orphaned temp file after replace failure"
+    )
 
 
 def test_write_item_cleans_up_temp_file_on_write_failure(tmp_path: Path, monkeypatch):
@@ -205,4 +238,6 @@ def test_write_item_cleans_up_temp_file_on_write_failure(tmp_path: Path, monkeyp
         write_item(paths, item)
 
     assert item_path.read_text(encoding="utf-8") == original
-    assert not list(item_path.parent.glob("*.tmp")), "orphaned temp file after write failure"
+    assert not list(item_path.parent.glob("*.tmp")), (
+        "orphaned temp file after write failure"
+    )

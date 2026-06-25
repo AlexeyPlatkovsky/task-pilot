@@ -15,13 +15,19 @@ from taskpilot.services.errors import NotFound, ValidationFailed
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
 def _two_items(paths: WorkspacePaths):
-    a = item_service.create_item(paths, title="a", type="task", now="2026-06-20T11:00:00Z")
-    b = item_service.create_item(paths, title="b", type="task", now="2026-06-20T11:00:00Z")
+    a = item_service.create_item(
+        paths, title="a", type="task", now="2026-06-20T11:00:00Z"
+    )
+    b = item_service.create_item(
+        paths, title="b", type="task", now="2026-06-20T11:00:00Z"
+    )
     return a, b
 
 
@@ -30,7 +36,9 @@ def test_add_link_updates_only_source_file(tmp_path: Path):
     a, b = _two_items(paths)
     before_b = paths.item_file(b.id).read_text(encoding="utf-8")
 
-    updated = link_service.add_link(paths, a.id, "blocks", b.id, now="2026-06-21T09:00:00Z")
+    updated = link_service.add_link(
+        paths, a.id, "blocks", b.id, now="2026-06-21T09:00:00Z"
+    )
 
     assert updated.links is not None
     assert b.id in updated.links.blocks
@@ -122,7 +130,9 @@ def test_update_item_rejects_dangling_link_on_write_path(tmp_path: Path):
     paths = _workspace(tmp_path)
     a, _ = _two_items(paths)
     with pytest.raises(ValidationFailed):
-        item_service.update_item(paths, a.id, links={"blocks": ["VP-999"], "relates_to": []})
+        item_service.update_item(
+            paths, a.id, links={"blocks": ["VP-999"], "relates_to": []}
+        )
     assert item_service.read_item(paths, a.id).links is None
 
 
@@ -130,4 +140,6 @@ def test_update_item_rejects_self_link_on_write_path(tmp_path: Path):
     paths = _workspace(tmp_path)
     a, _ = _two_items(paths)
     with pytest.raises(ValidationFailed):
-        item_service.update_item(paths, a.id, links={"blocks": [a.id], "relates_to": []})
+        item_service.update_item(
+            paths, a.id, links={"blocks": [a.id], "relates_to": []}
+        )

@@ -1,0 +1,7 @@
+.wrapper {
+  touch-action: none;
+}
+
+.wrapper.dragging {
+  z-index: 1000;
+}

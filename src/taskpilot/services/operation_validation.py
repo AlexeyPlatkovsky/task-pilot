@@ -47,4 +47,6 @@ def build_validated_item(data: dict) -> Item:
     try:
         return Item.model_validate(data)
     except ValidationError as exc:
-        raise ValidationFailed(f"Invalid item: {describe_validation_error(exc)}") from exc
+        raise ValidationFailed(
+            f"Invalid item: {describe_validation_error(exc)}"
+        ) from exc

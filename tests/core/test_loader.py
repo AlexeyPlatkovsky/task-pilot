@@ -23,19 +23,29 @@ updated_at: 2026-06-23T10:00:00Z
 
 
 def _init(tmp_path: Path) -> WorkspacePaths:
-    init_workspace(tmp_path, project_id="task-pilot", key="TP", name="TaskPilot", now="2026-06-24T10:00:00Z")
+    init_workspace(
+        tmp_path,
+        project_id="task-pilot",
+        key="TP",
+        name="TaskPilot",
+        now="2026-06-24T10:00:00Z",
+    )
     return WorkspacePaths.for_root(tmp_path)
 
 
 def _item(paths: WorkspacePaths, item_id: str, title: str = "A title"):
-    (paths.items_dir / f"{item_id}.yaml").write_text(VALID.format(id=item_id, title=title), encoding="utf-8")
+    (paths.items_dir / f"{item_id}.yaml").write_text(
+        VALID.format(id=item_id, title=title), encoding="utf-8"
+    )
 
 
 def test_loads_valid_items_and_surfaces_invalid(tmp_path: Path):
     paths = _init(tmp_path)
     for n in range(1, 6):
         _item(paths, f"TP-{n}")
-    (paths.items_dir / "TP-6.yaml").write_text("id: TP-6\n  bad: : indent\n", encoding="utf-8")
+    (paths.items_dir / "TP-6.yaml").write_text(
+        "id: TP-6\n  bad: : indent\n", encoding="utf-8"
+    )
 
     loaded = load_project(paths)
 
@@ -80,7 +90,9 @@ def test_missing_project_yaml_reports_finding(tmp_path: Path):
 def test_invalid_project_yaml_reports_finding(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
     paths.workspace_dir.mkdir(parents=True)
-    paths.project_file.write_text("schema_version: 1\nid: x\n", encoding="utf-8")  # missing key/name
+    paths.project_file.write_text(
+        "schema_version: 1\nid: x\n", encoding="utf-8"
+    )  # missing key/name
 
     loaded = load_project(paths)
 
@@ -101,8 +113,12 @@ def test_structurally_valid_items_with_cross_file_errors_still_load(tmp_path: Pa
     # Contract: duplicate-id / id-mismatch items parse and appear in items even
     # though they carry error findings (ok is False). Nothing is silently dropped.
     paths = _init(tmp_path)
-    (paths.items_dir / "a.yaml").write_text(VALID.format(id="TP-1", title="A"), encoding="utf-8")
-    (paths.items_dir / "b.yaml").write_text(VALID.format(id="TP-1", title="B"), encoding="utf-8")
+    (paths.items_dir / "a.yaml").write_text(
+        VALID.format(id="TP-1", title="A"), encoding="utf-8"
+    )
+    (paths.items_dir / "b.yaml").write_text(
+        VALID.format(id="TP-1", title="B"), encoding="utf-8"
+    )
 
     loaded = load_project(paths)
 
@@ -113,9 +129,12 @@ def test_structurally_valid_items_with_cross_file_errors_still_load(tmp_path: Pa
 
 def test_non_numeric_ids_sort_without_crashing(tmp_path: Path):
     paths = _init(tmp_path)
-    (paths.items_dir / "TP-3.yaml").write_text(VALID.format(id="TP-3", title="N"), encoding="utf-8")
+    (paths.items_dir / "TP-3.yaml").write_text(
+        VALID.format(id="TP-3", title="N"), encoding="utf-8"
+    )
     (paths.items_dir / "odd.yaml").write_text(
-        VALID.format(id="odd", title="Odd").replace("id: odd", "id: weird-id"), encoding="utf-8"
+        VALID.format(id="odd", title="Odd").replace("id: odd", "id: weird-id"),
+        encoding="utf-8",
     )
 
     loaded = load_project(paths)

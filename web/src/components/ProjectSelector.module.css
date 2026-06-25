@@ -1,0 +1,36 @@
+.selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 1px;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 0.875rem;
+}
+
+.empty {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.empty code {
+  background: #e9ecef;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.8125rem;
+}

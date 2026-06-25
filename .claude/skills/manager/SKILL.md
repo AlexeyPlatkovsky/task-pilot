@@ -77,6 +77,10 @@ reviewer, and records the attempt count plus repeated artifact labels.
 Name every selected capability and expected artifact before execution. Do not advance when an
 expected artifact is absent or reports blocked/failed status. Raw tool output is not a substitute.
 
+When the manager selects a pipeline, that pipeline must be loaded and its first artifact emitted
+before any implementation begins. Do not proceed directly to implementation even when tasks are
+clearly defined.
+
 When implementation changes behavior, interfaces, commands, architecture, domain facts, project
 structure, or known failure modes, append documentation maintenance after substantive work.
 

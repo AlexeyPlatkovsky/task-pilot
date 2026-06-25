@@ -22,7 +22,9 @@ def _paths(tmp_path: Path) -> WorkspacePaths:
 def test_create_project_writes_values_and_returns_model(tmp_path: Path):
     paths = _paths(tmp_path)
 
-    meta = project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-24T10:00:00Z")
+    meta = project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-24T10:00:00Z"
+    )
 
     assert isinstance(meta, ProjectMeta)
     assert meta.name == "VoicePilot"
@@ -34,12 +36,16 @@ def test_create_project_writes_values_and_returns_model(tmp_path: Path):
 
 
 def test_create_project_derives_id_from_name(tmp_path: Path):
-    meta = project_service.create_project(_paths(tmp_path), key="VP", name="Voice Pilot")
+    meta = project_service.create_project(
+        _paths(tmp_path), key="VP", name="Voice Pilot"
+    )
     assert meta.id == "voice-pilot"
 
 
 def test_create_project_honors_explicit_id(tmp_path: Path):
-    meta = project_service.create_project(_paths(tmp_path), key="VP", name="VoicePilot", project_id="vp-core")
+    meta = project_service.create_project(
+        _paths(tmp_path), key="VP", name="VoicePilot", project_id="vp-core"
+    )
     assert meta.id == "vp-core"
 
 
