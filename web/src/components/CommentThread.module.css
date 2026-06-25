@@ -1,0 +1,41 @@
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.empty {
+  color: #adb5bd;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.comment {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.author {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #495057;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.body {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
