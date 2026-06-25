@@ -1,15 +1,16 @@
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { fetchItem } from "../api";
 import type { ItemDetail, Status, Priority, ItemType } from "../types";
 import { CommentThread } from "./CommentThread";
+import { ItemEditForm } from "./ItemEditForm";
 import styles from "./ItemModal.module.css";
 
 interface Props {
   projectId: string;
   itemId: string | null;
   onClose: () => void;
-  onEdit?: (itemId: string) => void;
   onDelete?: (itemId: string) => void;
 }
 
@@ -35,13 +36,9 @@ const TYPE_LABELS: Record<ItemType, string> = {
   bug: "Bug",
 };
 
-export function ItemModal({
-  projectId,
-  itemId,
-  onClose,
-  onEdit,
-  onDelete,
-}: Props) {
+export function ItemModal({ projectId, itemId, onClose, onDelete }: Props) {
+  const [isEditing, setIsEditing] = useState(false);
+
   const {
     data: item,
     isLoading,
@@ -52,8 +49,17 @@ export function ItemModal({
     enabled: !!itemId,
   });
 
+  const handleClose = () => {
+    setIsEditing(false);
+    onClose();
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+  };
+
   return (
-    <Dialog.Root open={!!itemId} onOpenChange={(open) => !open && onClose()}>
+    <Dialog.Root open={!!itemId} onOpenChange={(open) => !open && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.overlay} />
         <Dialog.Content className={styles.content}>
@@ -61,7 +67,7 @@ export function ItemModal({
             {item ? `${item.id}: ${item.title}` : "Item Detail"}
           </Dialog.Title>
           <Dialog.Description className={styles.srOnly}>
-            Item detail view
+            {isEditing ? "Edit item" : "Item detail view"}
           </Dialog.Description>
 
           <Dialog.Close className={styles.closeButton} aria-label="Close">
@@ -76,29 +82,37 @@ export function ItemModal({
             </div>
           )}
 
-          {item && <ItemDetailView item={item} />}
+          {item && isEditing && (
+            <ItemEditForm
+              projectId={projectId}
+              item={item}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+            />
+          )}
 
-          {item && (
-            <div className={styles.actions}>
-              {onEdit && (
+          {item && !isEditing && (
+            <>
+              <ItemDetailView item={item} />
+              <div className={styles.actions}>
                 <button
                   type="button"
                   className={styles.editButton}
-                  onClick={() => onEdit(item.id)}
+                  onClick={() => setIsEditing(true)}
                 >
                   Edit
                 </button>
-              )}
-              {onDelete && item.status !== "deleted" && (
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={() => onDelete(item.id)}
-                >
-                  Delete
-                </button>
-              )}
-            </div>
+                {onDelete && item.status !== "deleted" && (
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    onClick={() => onDelete(item.id)}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </Dialog.Content>
       </Dialog.Portal>
@@ -113,10 +127,14 @@ function ItemDetailView({ item }: { item: ItemDetail }) {
         <span className={`${styles.badge} ${styles.typeBadge}`}>
           {TYPE_LABELS[item.type]}
         </span>
-        <span className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${item.status}`]}`}>
+        <span
+          className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${item.status}`]}`}
+        >
           {STATUS_LABELS[item.status]}
         </span>
-        <span className={`${styles.badge} ${styles.priorityBadge} ${styles[`priority-${item.priority}`]}`}>
+        <span
+          className={`${styles.badge} ${styles.priorityBadge} ${styles[`priority-${item.priority}`]}`}
+        >
           {PRIORITY_LABELS[item.priority]}
         </span>
       </div>
