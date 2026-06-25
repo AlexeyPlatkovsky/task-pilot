@@ -72,9 +72,7 @@ class TestListProjects:
         assert r.status_code == 200
         assert r.json() == []
 
-    def test_returns_registered_projects(
-        self, client, tmp_path, workspace
-    ):
+    def test_returns_registered_projects(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         r = client.get("/api/projects")
         data = r.json()
@@ -88,16 +86,18 @@ class TestListProjects:
 
 
 class TestListItems:
-    def test_list_excludes_deleted(
-        self, client, tmp_path, workspace
-    ):
+    def test_list_excludes_deleted(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="Active item", type="task",
+            workspace,
+            title="Active item",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         item_service.create_item(
-            workspace, title="To delete", type="bug",
+            workspace,
+            title="To delete",
+            type="bug",
             now="2026-06-25T10:01:00Z",
         )
         item_service.delete_item(workspace, "VP-2", now="2026-06-25T10:02:00Z")
@@ -113,19 +113,30 @@ class TestListItems:
         assert r.status_code == 404
         assert r.json() == {"detail": "Project not found: ghost"}
 
+    def test_empty_items_list(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        r = client.get("/api/projects/voice-pilot/items")
+        assert r.status_code == 200
+        assert r.json() == []
+
 
 class TestGetItem:
-    def test_returns_detail_with_comments(
-        self, client, tmp_path, workspace
-    ):
+    def test_returns_detail_with_comments(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="My item", type="task",
-            priority="high", now="2026-06-25T10:00:00Z",
+            workspace,
+            title="My item",
+            type="task",
+            priority="high",
+            now="2026-06-25T10:00:00Z",
         )
         from taskpilot.services.comment_service import add_comment
+
         add_comment(
-            workspace, "VP-1", body="First comment", created_by="Tester",
+            workspace,
+            "VP-1",
+            body="First comment",
+            created_by="Tester",
             now="2026-06-25T11:00:00Z",
         )
 
@@ -140,9 +151,7 @@ class TestGetItem:
         assert len(data["comments"]) == 1
         assert data["comments"][0]["body"] == "First comment"
 
-    def test_404_for_unknown_item(
-        self, client, tmp_path, workspace
-    ):
+    def test_404_for_unknown_item(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         r = client.get("/api/projects/voice-pilot/items/VP-999")
         assert r.status_code == 404
@@ -151,14 +160,26 @@ class TestGetItem:
         r = client.get("/api/projects/ghost/items/VP-1")
         assert r.status_code == 404
 
-
-class TestPatchItem:
-    def test_updates_status(
-        self, client, tmp_path, workspace
-    ):
+    def test_empty_comments_when_none(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="My item", type="task",
+            workspace,
+            title="No comments",
+            type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+        assert r.status_code == 200
+        assert r.json()["comments"] == []
+
+
+class TestPatchItem:
+    def test_updates_status(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="My item",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         r = client.patch(
@@ -172,12 +193,12 @@ class TestPatchItem:
         reloaded = item_service.read_item(workspace, "VP-1")
         assert reloaded.status == "in_progress"
 
-    def test_422_for_invalid_status(
-        self, client, tmp_path, workspace
-    ):
+    def test_422_for_invalid_status(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="My item", type="task",
+            workspace,
+            title="My item",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         r = client.patch(
@@ -194,9 +215,7 @@ class TestPatchItem:
         )
         assert r.status_code == 404
 
-    def test_404_for_unknown_item(
-        self, client, tmp_path, workspace
-    ):
+    def test_404_for_unknown_item(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         r = client.patch(
             "/api/projects/voice-pilot/items/VP-999",
@@ -204,26 +223,57 @@ class TestPatchItem:
         )
         assert r.status_code == 404
 
-
-class TestDeterministicJson:
-    def test_repeated_get_identical(
-        self, client, tmp_path, workspace
-    ):
+    def test_empty_body_succeeds(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="Stable", type="task",
+            workspace,
+            title="My item",
+            type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        r = client.patch(
+            "/api/projects/voice-pilot/items/VP-1",
+            json={},
+        )
+        assert r.status_code == 200
+
+    def test_updates_multiple_fields(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Original",
+            type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        r = client.patch(
+            "/api/projects/voice-pilot/items/VP-1",
+            json={"title": "Updated", "priority": "high"},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["title"] == "Updated"
+        assert data["priority"] == "high"
+
+
+class TestDeterministicJson:
+    def test_repeated_get_identical(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Stable",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         r1 = client.get("/api/projects/voice-pilot/items/VP-1")
         r2 = client.get("/api/projects/voice-pilot/items/VP-1")
         assert r1.json() == r2.json()
 
-    def test_field_order_is_stable(
-        self, client, tmp_path, workspace
-    ):
+    def test_field_order_is_stable(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="Stable", type="task",
+            workspace,
+            title="Stable",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         r = client.get("/api/projects/voice-pilot/items/VP-1")

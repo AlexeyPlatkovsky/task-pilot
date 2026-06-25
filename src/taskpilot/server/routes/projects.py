@@ -6,7 +6,12 @@ from fastapi import APIRouter, HTTPException, Request
 
 from taskpilot.cli.registry import RegistryEntry, list_projects as registry_list
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.server.schemas import ItemDetail, ItemSummary, ItemUpdateInput, ProjectSummary
+from taskpilot.server.schemas import (
+    ItemDetail,
+    ItemSummary,
+    ItemUpdateInput,
+    ProjectSummary,
+)
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
 
@@ -27,14 +32,8 @@ def _paths(entry: RegistryEntry) -> WorkspacePaths:
 
 def _item_summary(item) -> dict:
     d = item.model_dump()
-    return {
-        "id": d["id"],
-        "title": d["title"],
-        "type": d["type"],
-        "status": d["status"],
-        "priority": d["priority"],
-        "valid": True,
-    }
+    d["valid"] = True
+    return d
 
 
 def _item_detail(item, ws: WorkspacePaths) -> dict:
@@ -80,9 +79,7 @@ def list_project_items(request: Request, project_id: str) -> list[ItemSummary]:
     "/projects/{project_id}/items/{item_id}",
     response_model=ItemDetail,
 )
-def get_item_detail(
-    request: Request, project_id: str, item_id: str
-) -> ItemDetail:
+def get_item_detail(request: Request, project_id: str, item_id: str) -> ItemDetail:
     entry = _registry_entry(request, project_id)
     ws = _paths(entry)
     item = item_svc.read_item(ws, item_id)
