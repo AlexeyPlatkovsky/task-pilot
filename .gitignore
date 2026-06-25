@@ -16,3 +16,4 @@ dist/
 
 # testing
 .playwright-cli/
+.playwright/screenshots/

@@ -7,6 +7,7 @@ description: Automates browser interactions for live UI exploration, testing, fo
 
 - Drive live browser automation when repository files, docs, and tests cannot reliably answer the current question.
 - Prefer repository evidence first. Run browser commands only when the codebase does not have the answer.
+- On first use in a project, create `.playwright/cli.config.json` if it does not exist (this file is intentionally committed as project configuration, not gitignored).
 
 ## What Is Playwright CLI
 
@@ -40,6 +41,8 @@ TaskPilot has two local servers that must both be running for full UI testing:
 | OpenAPI docs | `http://127.0.0.1:7152/docs` | (starts with REST API) |
 
 The Vite dev server proxies all `/api/*` requests to the REST API (`web/vite.config.ts`). If only the API needs testing without the UI, target `http://127.0.0.1:7152` directly. Canonical task data lives in `.taskpilot/` as YAML items and Markdown comments — browser automation must not modify these files directly.
+
+If a required service is not reachable when the skill is invoked, stop immediately and ask the user to start it before continuing.
 
 ## Safety Constraints
 
@@ -77,14 +80,28 @@ The Vite dev server proxies all `/api/*` requests to the REST API (`web/vite.con
 ## Error Handling
 
 When a browser command fails (page not found, element not found, timeout, JS error):
-- If the failure may be caused by stale refs after navigation or page change, take one fresh snapshot and retry once only for non-destructive actions.
+- If the failure may be caused by stale refs after navigation or page change, take one fresh snapshot and retry once only for non-destructive actions (navigate, snapshot, screenshot, read-only JavaScript evaluation, hover, scroll).
 - Do not retry destructive, submitting, purchasing, deleting, or permission-changing actions without explicit user approval.
 - Record unresolved failures as `UNKNOWN` with the command, error reason, and available evidence.
 - Continue with any remaining independent actions.
 
 ## Artifact Organization
 
-Store generated artifacts in the CLI output directory. By default, `playwright-cli` writes generated files such as snapshots and screenshots under `.playwright-cli/`; projects may override this with `outputDir` in `.playwright/cli.config.json` or `PLAYWRIGHT_MCP_OUTPUT_DIR`.
+Store all screenshots and debug artifacts under `.playwright/screenshots/`. This directory is gitignored by the project.
+
+**Preferred method — config file.** Create `.playwright/cli.config.json` with:
+
+```json
+{
+  "outputDir": ".playwright/screenshots"
+}
+```
+
+If `.playwright/cli.config.json` already exists, ensure `outputDir` is set to `.playwright/screenshots`.
+
+**Alternative — environment variable (CLI/bash invocation only).** When the working directory is read-only or no project root with write access can be determined, set `PLAYWRIGHT_MCP_OUTPUT_DIR=.playwright/screenshots` before invoking `playwright-cli`. Note: this env variable is only recognized by the `playwright-cli` bash command; it has no effect when `playwright-cli` runs as an MCP server.
+
+The tool writes to `.playwright-cli/` when neither config nor env variable is present. Always use one of the two methods above so artifacts land in the project-standard location.
 
 When an artifact is part of the final evidence, use an explicit `--filename` when the command supports it.
 
