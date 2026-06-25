@@ -29,3 +29,10 @@ def test_serve_is_listed_in_help():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "serve" in result.output
+
+
+def test_serve_default_port_matches_spec():
+    # spec 0002: Alpha serve uses port 7152 by default.
+    result = runner.invoke(app, ["serve", "--help"])
+    assert result.exit_code == 0
+    assert "7152" in result.output

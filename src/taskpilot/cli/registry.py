@@ -189,5 +189,10 @@ def register_project(
 
 
 def list_projects(registry_dir: Path) -> list[RegistryEntry]:
-    """Return registered projects sorted by ``id`` for deterministic output."""
-    return sorted(load_registry(registry_dir).projects, key=lambda e: e.id)
+    """Return registered projects sorted by name (spec ``0002``: ``project list``
+    "sorts by project name").
+
+    ``id`` is a secondary key so the order is total and deterministic (F003-R8)
+    even when two projects share a display name.
+    """
+    return sorted(load_registry(registry_dir).projects, key=lambda e: (e.name, e.id))

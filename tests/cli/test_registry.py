@@ -58,14 +58,16 @@ def test_reregister_reenables_inactive_entry(tmp_path: Path):
     assert registry.list_projects(home)[0].active is True
 
 
-def test_list_projects_sorted_by_id(tmp_path: Path):
+def test_list_projects_sorted_by_name(tmp_path: Path):
     home = tmp_path / "home"
-    for pid in ("zeta", "alpha", "mid"):
+    # ids and names sort differently so we truly test name ordering (spec 0002).
+    for pid, name in [("p1", "Zeta"), ("p2", "Alpha"), ("p3", "Mid")]:
         repo = tmp_path / pid
         repo.mkdir()
-        registry.register_project(home, id=pid, key=pid.upper(), name=pid,
+        registry.register_project(home, id=pid, key=pid.upper(), name=name,
                                   path=str(repo), now="2026-06-24T10:00:00Z")
-    assert [e.id for e in registry.list_projects(home)] == ["alpha", "mid", "zeta"]
+    assert [e.name for e in registry.list_projects(home)] == ["Alpha", "Mid", "Zeta"]
+    assert [e.id for e in registry.list_projects(home)] == ["p2", "p3", "p1"]
 
 
 def test_save_load_round_trip(tmp_path: Path):

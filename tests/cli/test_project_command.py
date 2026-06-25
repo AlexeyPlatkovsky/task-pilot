@@ -41,12 +41,13 @@ def test_project_list_json_is_byte_identical(tmp_path: Path):
     assert first.output == second.output
 
 
-def test_project_list_json_sorted_by_id(tmp_path: Path):
+def test_project_list_json_sorted_by_name(tmp_path: Path):
     home = tmp_path / "home"
+    # _seed sets name = id.title(), so name order matches: Alpha before Zeta.
     _seed(home, "zeta", "alpha")
     result = runner.invoke(app, ["--json", "project", "list"], env={"TASKPILOT_HOME": str(home)})
     payload = json.loads(result.output)
-    assert [e["id"] for e in payload] == ["alpha", "zeta"]
+    assert [e["name"] for e in payload] == ["Alpha", "Zeta"]
 
 
 def test_project_list_human_table(tmp_path: Path):

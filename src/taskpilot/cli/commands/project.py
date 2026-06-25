@@ -1,9 +1,10 @@
 """``taskpilot project list`` — list registered projects (task F003-T3, requirement F003-R3).
 
 Lists entries from the local system registry (spec ``0002``: "``project list``
-shows all registry entries, including disabled entries"), not the single in-repo
-project. Output is deterministic (entries sorted by id, canonical field order)
-so repeated ``--json`` calls are byte-identical (F003-R8).
+shows all registry entries, including disabled entries ... sorts by project
+name"), not the single in-repo project. Output is deterministic (entries sorted
+by name then id, canonical field order) so repeated ``--json`` calls are
+byte-identical (F003-R8).
 """
 
 from __future__ import annotations
