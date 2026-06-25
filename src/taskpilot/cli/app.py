@@ -44,12 +44,14 @@ def _register_commands() -> None:
     from taskpilot.cli.commands import init as init_cmd
     from taskpilot.cli.commands import item as item_cmd
     from taskpilot.cli.commands import project as project_cmd
+    from taskpilot.cli.commands import serve as serve_cmd
     from taskpilot.cli.commands import validate as validate_cmd
 
     init_cmd.register(app)
     project_cmd.register(app)
     item_cmd.register(app)
     validate_cmd.register(app)
+    serve_cmd.register(app)
 
 
 _register_commands()
