@@ -19,7 +19,7 @@ from taskpilot.cli.errors import service_errors
 from taskpilot.cli.output import print_json, print_line, render_key_values, render_table
 from taskpilot.cli.workspace import find_workspace
 from taskpilot.core.models import Item
-from taskpilot.services import item_service
+from taskpilot.services import item_service, link_service
 
 __all__ = ["register"]
 
@@ -151,6 +151,91 @@ def item_update(
         paths = find_workspace()
         item = item_service.update_item(paths, item_id, **fields)
     _emit_item(ctx, item, human_prefix="Updated")
+
+
+def _emit_relationship(ctx: typer.Context, item: Item, message: str) -> None:
+    """Render a relationship change: the updated source item (JSON) or a confirmation."""
+    if get_state(ctx).json:
+        print_json(item.model_dump())
+        return
+    print_line(message)
+
+
+@item_app.command("parent")
+def item_parent(
+    ctx: typer.Context,
+    child_id: str = typer.Argument(..., help="Child item id."),
+    parent_id: str = typer.Argument(..., help="Parent item id."),
+) -> None:
+    """Set ``child_id``'s parent to ``parent_id`` (hierarchy rules apply)."""
+    with service_errors():
+        paths = find_workspace()
+        item = item_service.update_item(paths, child_id, parent_id=parent_id)
+    _emit_relationship(ctx, item, f"{child_id} parent set to {parent_id}.")
+
+
+@item_app.command("unparent")
+def item_unparent(
+    ctx: typer.Context,
+    child_id: str = typer.Argument(..., help="Child item id."),
+) -> None:
+    """Clear ``child_id``'s parent."""
+    with service_errors():
+        paths = find_workspace()
+        item = item_service.update_item(paths, child_id, parent_id=None)
+    _emit_relationship(ctx, item, f"{child_id} parent cleared.")
+
+
+@item_app.command("blocks")
+def item_blocks(
+    ctx: typer.Context,
+    source_id: str = typer.Argument(..., help="Item that blocks."),
+    target_id: str = typer.Argument(..., help="Item that is blocked."),
+) -> None:
+    """Record that ``source_id`` blocks ``target_id`` (idempotent)."""
+    with service_errors():
+        paths = find_workspace()
+        item = link_service.add_link(paths, source_id, "blocks", target_id)
+    _emit_relationship(ctx, item, f"{source_id} now blocks {target_id}.")
+
+
+@item_app.command("unblocks")
+def item_unblocks(
+    ctx: typer.Context,
+    source_id: str = typer.Argument(..., help="Item that blocks."),
+    target_id: str = typer.Argument(..., help="Item that is blocked."),
+) -> None:
+    """Remove a ``blocks`` link from ``source_id`` to ``target_id`` (idempotent)."""
+    with service_errors():
+        paths = find_workspace()
+        item = link_service.remove_link(paths, source_id, "blocks", target_id)
+    _emit_relationship(ctx, item, f"{source_id} no longer blocks {target_id}.")
+
+
+@item_app.command("relates")
+def item_relates(
+    ctx: typer.Context,
+    source_id: str = typer.Argument(..., help="Source item."),
+    target_id: str = typer.Argument(..., help="Related item."),
+) -> None:
+    """Record that ``source_id`` relates to ``target_id`` (idempotent)."""
+    with service_errors():
+        paths = find_workspace()
+        item = link_service.add_link(paths, source_id, "relates_to", target_id)
+    _emit_relationship(ctx, item, f"{source_id} now relates to {target_id}.")
+
+
+@item_app.command("unrelates")
+def item_unrelates(
+    ctx: typer.Context,
+    source_id: str = typer.Argument(..., help="Source item."),
+    target_id: str = typer.Argument(..., help="Related item."),
+) -> None:
+    """Remove a ``relates_to`` link from ``source_id`` to ``target_id`` (idempotent)."""
+    with service_errors():
+        paths = find_workspace()
+        item = link_service.remove_link(paths, source_id, "relates_to", target_id)
+    _emit_relationship(ctx, item, f"{source_id} no longer relates to {target_id}.")
 
 
 def register(app: typer.Typer) -> None:
