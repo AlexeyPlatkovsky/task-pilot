@@ -19,27 +19,42 @@ Classify before edits:
 - Risk: low, medium, high, or system-level.
 - Reach: single area or cross-layer.
 - Change type: feature, bug fix, refactor, UI, documentation, review, instruction, or brainstorm.
-- Task backing: task-backed when the user supplies a task ID, a canonical TaskPilot item exists for
-  the work, or the requested work clearly implements a tracked feature task; otherwise untracked.
-- Architecture-boundary scan: before finalising the classification, list every new cross-layer
-  import the change requires and check each against AGENTS.md Architecture Boundaries (lines 86-98).
-  A "layer" here means one of: ``core``, ``services``, ``cli``, ``server``, ``web`` (the
-  TypeScript frontend). Adapter→adapter imports (``server``→``cli``, ``web``→``cli``,
-  ``cli``→``server``, etc.) are mandatory violations — the diagram shows adapters as peers:
-  ``CLI | REST API | future MCP``, all fed by the same domain/service layer. Third-party library
-  imports (fastapi, typer, etc.) are not in scope for this scan.
-  Record each violation in the output contract's assumptions-and-blockers section.
+- Task backing: a task is task-backed only if the user supplies a valid task ID or a canonical
+  TaskPilot item exists for the work. All other tasks are untracked.
+- Architecture-boundary scan: before finalising the classification, read the diff to list every new
+  cross-layer import the change introduces and check each against AGENTS.md Architecture Boundaries
+  (lines 86-98). A "layer" here means one of the project's top-level source directories: ``core``,
+  ``services``, ``cli``, ``server``, ``web`` (the TypeScript frontend). In the AGENTS.md diagram,
+  ``core`` + ``services`` together form "parser/validator → domain model and services". The adapters
+  are ``cli``, ``server``, and future ``mcp`` — all fed by the same domain/service layer.
+  Adapter→adapter imports (``server``→``cli``, ``web``→``cli``, ``cli``→``server``, etc.) are
+  mandatory violations. Third-party library imports (fastapi, typer, etc.) are not in scope for this
+  scan. If the scan finds a violation and its severity is unclear, treat it as a blocker and return
+  it to the user for a routing decision rather than silently proceeding.
 
 Treat the task as non-trivial when it changes behavior, contracts, persistence, architecture,
 production dependencies, or requires more than one coordinated capability.
 
-Size definitions:
+Size definitions (choose the highest that applies):
 
-- Small: localized, low-risk, expected behavior already explicit, and no public contract,
-  persistence, canonical format, cross-layer, or multi-step workflow change.
-- Standard: non-trivial production change with bounded scope, one primary task or behavior, and
-  no high-risk architecture, persistence, or canonical-format decision.
-- Major: cross-layer, multi-feature, high-risk, contract/persistence/canonical-format, broad UI
+1. **Small** — every condition must hold:
+   - localized to one file or module;
+   - low risk (no data loss, no contract change);
+   - expected behavior already explicit in an accepted spec;
+   - no public contract, persistence schema, canonical format, cross-layer boundary,
+     or multi-step workflow change.
+
+2. **Standard** — any condition may apply but none is high-risk:
+   - non-trivial production change with bounded scope;
+   - one primary task or behavior;
+   - no high-risk architecture, persistence, or canonical-format decision.
+
+3. **Major** — at least one condition applies:
+   - cross-layer (touches two or more of core, services, cli, server, web);
+   - multi-feature or multi-task;
+   - high-risk (data loss, contract break, security);
+   - changes a public contract, persistence schema, or canonical format;
+   - broad UI workflow crossing screens or browser state;
   workflow, or work that needs multiple independent review gates.
 
 ## Route Selection
