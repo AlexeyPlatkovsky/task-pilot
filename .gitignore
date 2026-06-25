@@ -15,5 +15,5 @@ build/
 dist/
 
 # testing
-.playwright-cli/
+.playwright/
 .playwright/screenshots/

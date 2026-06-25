@@ -87,21 +87,19 @@ When a browser command fails (page not found, element not found, timeout, JS err
 
 ## Artifact Organization
 
-Store all screenshots and debug artifacts under `.playwright/screenshots/`. This directory is gitignored by the project.
+All output artifacts (screenshots, snapshots, traces, videos, PDFs) land under `.playwright/` via `outputDir` config. Screenshots can be placed in `.playwright/screenshots/` by using `--filename=screenshots/name.png`. This directory is gitignored by the project.
 
-**Preferred method — config file.** Create `.playwright/cli.config.json` with:
+**Config file.** `.playwright/cli.config.json` must contain:
 
 ```json
 {
-  "outputDir": ".playwright/screenshots"
+  "outputDir": ".playwright"
 }
 ```
 
-If `.playwright/cli.config.json` already exists, ensure `outputDir` is set to `.playwright/screenshots`.
+**Alternative — environment variable (CLI/bash invocation only).** Set `PLAYWRIGHT_MCP_OUTPUT_DIR=.playwright` before invoking `playwright-cli`. Note: this env variable is only recognized by the `playwright-cli` bash command; it has no effect when `playwright-cli` runs as an MCP server.
 
-**Alternative — environment variable (CLI/bash invocation only).** When the working directory is read-only or no project root with write access can be determined, set `PLAYWRIGHT_MCP_OUTPUT_DIR=.playwright/screenshots` before invoking `playwright-cli`. Note: this env variable is only recognized by the `playwright-cli` bash command; it has no effect when `playwright-cli` runs as an MCP server.
-
-The tool writes to `.playwright-cli/` when neither config nor env variable is present. Always use one of the two methods above so artifacts land in the project-standard location.
+The tool writes to `.playwright/` when neither config nor env variable is present. Always use one of the two methods above so artifacts land in the project-standard location.
 
 When an artifact is part of the final evidence, use an explicit `--filename` when the command supports it.
 
