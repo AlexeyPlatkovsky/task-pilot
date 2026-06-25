@@ -32,7 +32,7 @@ under `docs/specs/` supersede them where they conflict.
 | F002 | domain-services | implemented | 8 | 8 | 8 | Phase 2 — Domain/service layer |
 | F003 | cli-interface | in progress | 8 | 8 | 9 | Phase 3 — CLI |
 | F004 | webui-workspace | implemented | 9 | 9 | 9 | Phase 4 — Local WebUI |
-| F005 | rest-api | planned | 9 | 8 | 10 | Phase 4 — Local WebUI (Backend REST API) |
+| F005 | rest-api | implemented | 9 | 8 | 10 | Phase 4 — Local WebUI (Backend REST API) |
 | F006 | advanced-views | planned | 5 | 6 | 5 | Phase 5 — Better views |
 | F007 | git-helpers | planned | 5 | 5 | 5 | Phase 6 — Git helpers |
 | F008 | mcp-adapter | planned | 6 | 7 | 5 | Phase 7 — MCP adapter |
