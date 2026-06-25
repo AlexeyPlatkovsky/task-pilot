@@ -5,13 +5,13 @@ import { fetchItem } from "../api";
 import type { ItemDetail, Status, Priority, ItemType } from "../types";
 import { CommentThread } from "./CommentThread";
 import { ItemEditForm } from "./ItemEditForm";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import styles from "./ItemModal.module.css";
 
 interface Props {
   projectId: string;
   itemId: string | null;
   onClose: () => void;
-  onDelete?: (itemId: string) => void;
 }
 
 const STATUS_LABELS: Record<Status, string> = {
@@ -36,8 +36,9 @@ const TYPE_LABELS: Record<ItemType, string> = {
   bug: "Bug",
 };
 
-export function ItemModal({ projectId, itemId, onClose, onDelete }: Props) {
+export function ItemModal({ projectId, itemId, onClose }: Props) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     data: item,
@@ -51,6 +52,7 @@ export function ItemModal({ projectId, itemId, onClose, onDelete }: Props) {
 
   const handleClose = () => {
     setIsEditing(false);
+    setIsDeleting(false);
     onClose();
   };
 
@@ -58,65 +60,84 @@ export function ItemModal({ projectId, itemId, onClose, onDelete }: Props) {
     setIsEditing(false);
   };
 
+  const handleDeleteConfirm = () => {
+    setIsDeleting(false);
+    handleClose();
+  };
+
   return (
-    <Dialog.Root open={!!itemId} onOpenChange={(open) => !open && handleClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.content}>
-          <Dialog.Title className={styles.title}>
-            {item ? `${item.id}: ${item.title}` : "Item Detail"}
-          </Dialog.Title>
-          <Dialog.Description className={styles.srOnly}>
-            {isEditing ? "Edit item" : "Item detail view"}
-          </Dialog.Description>
+    <>
+      <Dialog.Root
+        open={!!itemId && !isDeleting}
+        onOpenChange={(open) => !open && handleClose()}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className={styles.overlay} />
+          <Dialog.Content className={styles.content}>
+            <Dialog.Title className={styles.title}>
+              {item ? `${item.id}: ${item.title}` : "Item Detail"}
+            </Dialog.Title>
+            <Dialog.Description className={styles.srOnly}>
+              {isEditing ? "Edit item" : "Item detail view"}
+            </Dialog.Description>
 
-          <Dialog.Close className={styles.closeButton} aria-label="Close">
-            &times;
-          </Dialog.Close>
+            <Dialog.Close className={styles.closeButton} aria-label="Close">
+              &times;
+            </Dialog.Close>
 
-          {isLoading && <div className={styles.loading}>Loading item...</div>}
+            {isLoading && <div className={styles.loading}>Loading item...</div>}
 
-          {error && (
-            <div className={styles.error}>
-              <p>Failed to load item</p>
-            </div>
-          )}
+            {error && (
+              <div className={styles.error}>
+                <p>Failed to load item</p>
+              </div>
+            )}
 
-          {item && isEditing && (
-            <ItemEditForm
-              projectId={projectId}
-              item={item}
-              onSave={handleSave}
-              onCancel={() => setIsEditing(false)}
-            />
-          )}
+            {item && isEditing && (
+              <ItemEditForm
+                projectId={projectId}
+                item={item}
+                onSave={handleSave}
+                onCancel={() => setIsEditing(false)}
+              />
+            )}
 
-          {item && !isEditing && (
-            <>
-              <ItemDetailView item={item} />
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={styles.editButton}
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit
-                </button>
-                {onDelete && item.status !== "deleted" && (
+            {item && !isEditing && (
+              <>
+                <ItemDetailView item={item} />
+                <div className={styles.actions}>
                   <button
                     type="button"
-                    className={styles.deleteButton}
-                    onClick={() => onDelete(item.id)}
+                    className={styles.editButton}
+                    onClick={() => setIsEditing(true)}
                   >
-                    Delete
+                    Edit
                   </button>
-                )}
-              </div>
-            </>
-          )}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+                  {item.status !== "deleted" && (
+                    <button
+                      type="button"
+                      className={styles.deleteButton}
+                      onClick={() => setIsDeleting(true)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {itemId && isDeleting && (
+        <DeleteConfirmDialog
+          projectId={projectId}
+          itemId={itemId}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setIsDeleting(false)}
+        />
+      )}
+    </>
   );
 }
 
