@@ -10,7 +10,6 @@ import pytest
 from pydantic import ValidationError
 
 from taskpilot.core.comments import (
-    Comment,
     CommentParseError,
     list_comments,
     parse_comment_file,
