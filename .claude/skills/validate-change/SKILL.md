@@ -10,7 +10,11 @@ Validation is read-only.
 1. Read the request, accepted specification, acceptance criteria, diff, and changed tests.
 2. Map each requirement and planned gate to concrete evidence.
 3. Run the smallest sufficient formatting, type, unit, contract, integration, component, API, E2E,
-   build, and manual checks.
+   build, and manual checks. For changes that touch Python files (`.py`, `.pyi`), always run
+   `ruff format --check .` as a formatting gate. If ruff is unavailable, install it with
+   `uv pip install ruff -q` and retry. Mark the formatting gate `pass` when zero files would be
+   reformatted, `fail` when files would be reformatted (report the files), or `blocked` when the
+   tool cannot be installed.
 4. Apply `.claude/conventions/testing.md`; do not substitute broad E2E checks for missing
    lower-level evidence.
 5. For runnable UI changes, include Playwright TypeScript evidence when that convention requires
