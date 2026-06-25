@@ -59,7 +59,7 @@ jobs:
         if: always()
         run: |
           set +e
-          ruff check . > lint.out 2>&1
+          uv run ruff check . > lint.out 2>&1
           rc=$?
           set -e
           cat lint.out
@@ -83,13 +83,12 @@ jobs:
         if: always()
         run: |
           set +e
-          ruff format --check . > format.out 2>&1
+          uv run ruff format --check . > format.out 2>&1
           rc=$?
           set -e
           cat format.out
 
-          changed=$(grep -c "Would reformat" format.out || echo 0)
-          if [ -z "$changed" ]; then changed=0; fi
+          changed=$(grep -c "Would reformat" format.out 2>/dev/null) || changed=0
           if [ "$rc" -eq 0 ]; then ok=true; else ok=false; fi
 
           jq -n \
