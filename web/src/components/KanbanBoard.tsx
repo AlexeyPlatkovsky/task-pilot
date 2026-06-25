@@ -1,8 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchItems } from "../api";
+import { useState, useCallback } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+} from "@dnd-kit/core";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchItems, updateItem } from "../api";
 import type { ItemSummary, Status } from "../types";
 import { WORKFLOW_STATUSES } from "../types";
 import { KanbanColumn } from "./KanbanColumn";
+import { KanbanCard } from "./KanbanCard";
+import { ItemModal } from "./ItemModal";
 import styles from "./KanbanBoard.module.css";
 
 interface Props {
@@ -27,7 +42,8 @@ const TYPE_ORDER: Record<string, number> = {
 
 function sortItems(items: ItemSummary[]): ItemSummary[] {
   return [...items].sort((a, b) => {
-    const typeCompare = (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99);
+    const typeCompare =
+      (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99);
     if (typeCompare !== 0) return typeCompare;
 
     const aNum = parseInt(a.id.split("-").pop() ?? "0", 10);
@@ -55,55 +71,139 @@ function groupByStatus(items: ItemSummary[]): Map<Status, ItemSummary[]> {
 }
 
 export function KanbanBoard({ projectId }: Props) {
-  const {
-    data: items,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
+
+  const queryClient = useQueryClient();
+
+  const { data: items } = useQuery({
     queryKey: ["items", projectId],
     queryFn: () => fetchItems(projectId),
   });
 
-  if (isLoading) {
-    return <div className={styles.board}>Loading items...</div>;
-  }
+  const mutation = useMutation({
+    mutationFn: ({
+      itemId,
+      status,
+    }: {
+      itemId: string;
+      status: Status;
+    }) => updateItem(projectId, itemId, { status }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["items", projectId] });
+      if (selectedItemId) {
+        void queryClient.invalidateQueries({
+          queryKey: ["item", projectId, selectedItemId],
+        });
+      }
+    },
+  });
 
-  if (error) {
-    return (
-      <div className={styles.board}>
-        <div className={styles.error}>
-          <p>Failed to load items</p>
-          <button type="button" onClick={() => refetch()}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor),
+  );
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const item = items?.find((i) => i.id === event.active.id);
+      if (item && item.valid) {
+        setActiveItem(item);
+      }
+    },
+    [items],
+  );
+
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { active, over } = event;
+      if (!over) return;
+
+      const activeId = active.id as string;
+      const overId = over.id as string;
+
+      const activeItem = items?.find((i) => i.id === activeId);
+      if (!activeItem || !activeItem.valid) return;
+
+      const overStatus = WORKFLOW_STATUSES.find((s) => s === overId);
+      if (overStatus && activeItem.status !== overStatus) {
+        mutation.mutate({ itemId: activeId, status: overStatus });
+      }
+    },
+    [items, mutation],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveItem(null);
+
+      if (!over) return;
+
+      const activeId = active.id as string;
+      const overId = over.id as string;
+
+      const activeItem = items?.find((i) => i.id === activeId);
+      if (!activeItem || !activeItem.valid) return;
+
+      const overStatus = WORKFLOW_STATUSES.find((s) => s === overId);
+      if (overStatus && activeItem.status !== overStatus) {
+        mutation.mutate({ itemId: activeId, status: overStatus });
+      }
+    },
+    [items, mutation],
+  );
 
   const groups = groupByStatus(items ?? []);
-
   const isEmpty = Array.from(groups.values()).every((g) => g.length === 0);
 
   return (
-    <div className={styles.board}>
-      {WORKFLOW_STATUSES.map((status) => (
-        <KanbanColumn
-          key={status}
-          status={status}
-          label={STATUS_LABELS[status]}
-          items={groups.get(status) ?? []}
-        />
-      ))}
-      {isEmpty && (
-        <div className={styles.emptyPrompt}>
-          <p>No items yet.</p>
-          <p>
-            Create your first item with: <code>taskpilot item create</code>
-          </p>
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className={styles.board}>
+          {WORKFLOW_STATUSES.map((status) => {
+            const columnItems = groups.get(status) ?? [];
+            return (
+              <KanbanColumn
+                key={status}
+                status={status}
+                label={STATUS_LABELS[status]}
+                items={columnItems}
+                onItemClick={setSelectedItemId}
+              />
+            );
+          })}
+          {isEmpty && (
+            <div className={styles.emptyPrompt}>
+              <p>No items yet.</p>
+              <p>
+                Create your first item with:{" "}
+                <code>taskpilot item create</code>
+              </p>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+
+        <DragOverlay>
+          {activeItem ? <KanbanCard item={activeItem} /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      <ItemModal
+        projectId={projectId}
+        itemId={selectedItemId}
+        onClose={() => setSelectedItemId(null)}
+      />
+    </>
   );
 }

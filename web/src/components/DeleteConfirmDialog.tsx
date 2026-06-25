@@ -30,7 +30,7 @@ export function DeleteConfirmDialog({
   });
 
   return (
-    <AlertDialog.Root open onOpenChange={(open) => !open && onCancel()}>
+    <AlertDialog.Root open onOpenChange={(open: boolean) => !open && onCancel()}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className={styles.overlay} />
         <AlertDialog.Content className={styles.content}>
