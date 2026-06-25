@@ -1,20 +1,19 @@
-"""``taskpilot serve`` — placeholder until the REST API exists (task F003-T8, requirement F003-R2).
+"""``taskpilot serve`` — start the local REST API server (task F005-T6, requirement F005-R6).
 
-The real command starts the local FastAPI REST server, but that server layer is
-owned by Phase 4 / F004 (WebUI Workspace — "Backend REST API"), which is not yet
-implemented. Until then this command exists so the interface is discoverable and
-stable, but it reports that serving is unavailable and exits with the system-error
-code rather than pretending to start a server.
-
-The ``--host``/``--port`` options are accepted now so the command-line contract
-(F003-R2: configurable port) does not change when the server lands.
+Resolves the TaskPilot workspace and registry, then runs the FastAPI application
+via uvicorn. The server binds to ``127.0.0.1`` on port ``7152`` by default,
+matching the Vite dev proxy target in ``web/vite.config.ts``.
 """
 
 from __future__ import annotations
 
 import typer
+import uvicorn
 
 from taskpilot.cli.exit_codes import EXIT_SYSTEM_ERROR
+from taskpilot.cli.registry import default_registry_dir
+from taskpilot.cli.workspace import find_workspace
+from taskpilot.server.app import create_app
 
 __all__ = ["register"]
 
@@ -22,19 +21,38 @@ __all__ = ["register"]
 def serve_command(
     ctx: typer.Context,
     host: str = typer.Option(
-        "127.0.0.1", "--host", help="Host interface to bind (reserved for F004)."
+        "127.0.0.1", "--host", help="Host interface to bind."
     ),
     port: int = typer.Option(
-        7152, "--port", help="Port to listen on (reserved for F004)."
+        7152, "--port", help="Port to listen on."
+    ),
+    workspace: str | None = typer.Option(
+        None,
+        "--workspace",
+        help="Workspace root path (default: auto-detect from cwd).",
     ),
 ) -> None:
-    """Start the local REST API server (not yet available — see F004)."""
-    typer.echo(
-        "`taskpilot serve` is not available yet: the local REST API server "
-        "(feature F004) is not implemented.",
-        err=True,
-    )
-    raise typer.Exit(EXIT_SYSTEM_ERROR)
+    """Start the local REST API server."""
+    if workspace is not None:
+        from pathlib import Path
+        from taskpilot.core.layout import WorkspacePaths
+        ws = WorkspacePaths.for_root(Path(workspace))
+        if not ws.exists():
+            typer.echo(f"Error: no TaskPilot workspace at {ws.root}", err=True)
+            raise typer.Exit(EXIT_SYSTEM_ERROR)
+    else:
+        try:
+            ws = find_workspace()
+        except Exception as exc:
+            typer.echo(f"Error: {exc}", err=True)
+            raise typer.Exit(EXIT_SYSTEM_ERROR) from exc
+
+    registry_dir = default_registry_dir()
+    app = create_app(workspace=str(ws.root), registry_dir=str(registry_dir))
+
+    typer.echo(f"TaskPilot API server starting on http://{host}:{port}")
+    typer.echo(f"OpenAPI docs at http://{host}:{port}/docs")
+    uvicorn.run(app, host=host, port=port)
 
 
 def register(app: typer.Typer) -> None:
