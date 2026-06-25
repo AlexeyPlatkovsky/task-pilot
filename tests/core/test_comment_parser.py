@@ -47,7 +47,9 @@ def test_preserves_multiline_markdown_body():
 
 
 def test_unknown_frontmatter_fields_preserved():
-    text = COMMENT.replace("created_by: Aleksei\n", "created_by: Aleksei\nmood: curious\n")
+    text = COMMENT.replace(
+        "created_by: Aleksei\n", "created_by: Aleksei\nmood: curious\n"
+    )
     assert parse_comment_text(text).model_extra == {"mood": "curious"}
 
 
@@ -84,7 +86,9 @@ def test_parse_comment_file_includes_path_on_error(tmp_path: Path):
     assert "2026-06-23T10-00-00Z.md" in str(exc.value)
 
 
-def _write_comment(paths: WorkspacePaths, item_id: str, filename: str, created_at: str, who: str):
+def _write_comment(
+    paths: WorkspacePaths, item_id: str, filename: str, created_at: str, who: str
+):
     d = paths.item_comments_dir(item_id)
     d.mkdir(parents=True, exist_ok=True)
     (d / filename).write_text(
@@ -96,9 +100,15 @@ def _write_comment(paths: WorkspacePaths, item_id: str, filename: str, created_a
 def test_list_comments_chronological_including_collisions(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
     # Intentionally create out of order; collision base + suffixed at the same second.
-    _write_comment(paths, "TP-1", "2026-06-24T09-00-00Z.md", "2026-06-24T09:00:00Z", "Later")
-    _write_comment(paths, "TP-1", "2026-06-23T10-00-00Z-2.md", "2026-06-23T10:00:00Z", "Second")
-    _write_comment(paths, "TP-1", "2026-06-23T10-00-00Z.md", "2026-06-23T10:00:00Z", "First")
+    _write_comment(
+        paths, "TP-1", "2026-06-24T09-00-00Z.md", "2026-06-24T09:00:00Z", "Later"
+    )
+    _write_comment(
+        paths, "TP-1", "2026-06-23T10-00-00Z-2.md", "2026-06-23T10:00:00Z", "Second"
+    )
+    _write_comment(
+        paths, "TP-1", "2026-06-23T10-00-00Z.md", "2026-06-23T10:00:00Z", "First"
+    )
 
     comments = list_comments(paths, "TP-1")
 
@@ -137,7 +147,9 @@ def test_parser_does_not_cross_check_filename_against_created_at(tmp_path: Path)
 
 def test_list_comments_is_strict_and_raises_on_invalid_file(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
-    _write_comment(paths, "TP-1", "2026-06-23T10-00-00Z.md", "2026-06-23T10:00:00Z", "Valid")
+    _write_comment(
+        paths, "TP-1", "2026-06-23T10-00-00Z.md", "2026-06-23T10:00:00Z", "Valid"
+    )
     (paths.item_comments_dir("TP-1") / "2026-06-24T09-00-00Z.md").write_text(
         "no frontmatter\n", encoding="utf-8"
     )

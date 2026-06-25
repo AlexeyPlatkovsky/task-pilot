@@ -95,44 +95,71 @@ def _finding_from_pydantic(err: dict, *, path: str, item_id: str | None) -> Find
     etype = err["type"]
     if etype == "missing":
         return Finding(
-            severity=Severity.error, code="missing_required_field", path=path,
-            field=field, item_id=item_id, message=f"Missing required field: {field}",
+            severity=Severity.error,
+            code="missing_required_field",
+            path=path,
+            field=field,
+            item_id=item_id,
+            message=f"Missing required field: {field}",
         )
     if etype == "enum":
         expected = err.get("ctx", {}).get("expected", "")
         return Finding(
-            severity=Severity.error, code="invalid_enum", path=path, field=field,
-            item_id=item_id, message=f"Invalid value for {field}: expected one of {expected}",
+            severity=Severity.error,
+            code="invalid_enum",
+            path=path,
+            field=field,
+            item_id=item_id,
+            message=f"Invalid value for {field}: expected one of {expected}",
         )
     return Finding(
-        severity=Severity.error, code="invalid_field", path=path, field=field,
-        item_id=item_id, message=f"{field}: {err['msg']}",
+        severity=Severity.error,
+        code="invalid_field",
+        path=path,
+        field=field,
+        item_id=item_id,
+        message=f"{field}: {err['msg']}",
     )
 
 
-def _validate_attachment(value: str, *, paths: WorkspacePaths, path: str, item_id: str) -> Finding | None:
+def _validate_attachment(
+    value: str, *, paths: WorkspacePaths, path: str, item_id: str
+) -> Finding | None:
     if not value.strip():
         return Finding(
-            severity=Severity.error, code="attachment_empty", path=path,
-            field="attachments", item_id=item_id, message="Attachment path is empty",
+            severity=Severity.error,
+            code="attachment_empty",
+            path=path,
+            field="attachments",
+            item_id=item_id,
+            message="Attachment path is empty",
         )
     if Path(value).is_absolute():
         return Finding(
-            severity=Severity.error, code="attachment_not_relative", path=path,
-            field="attachments", item_id=item_id,
+            severity=Severity.error,
+            code="attachment_not_relative",
+            path=path,
+            field="attachments",
+            item_id=item_id,
             message=f"Attachment path must be relative: {value}",
         )
     resolved = (paths.root / value).resolve()
     if not resolved.is_relative_to(paths.root):
         return Finding(
-            severity=Severity.error, code="attachment_outside_repo", path=path,
-            field="attachments", item_id=item_id,
+            severity=Severity.error,
+            code="attachment_outside_repo",
+            path=path,
+            field="attachments",
+            item_id=item_id,
             message=f"Attachment path escapes the repository: {value}",
         )
     if not resolved.exists():
         return Finding(
-            severity=Severity.warning, code="missing_attachment", path=path,
-            field="attachments", item_id=item_id,
+            severity=Severity.warning,
+            code="missing_attachment",
+            path=path,
+            field="attachments",
+            item_id=item_id,
             message=f"Attachment file not found: {value}",
         )
     return None
@@ -156,33 +183,59 @@ def _validate_comments(paths: WorkspacePaths) -> list[Finding]:
             try:
                 text = file.read_text(encoding="utf-8")
             except (UnicodeDecodeError, OSError) as exc:
-                findings.append(Finding(severity=Severity.error, code="comment_unreadable", path=rel,
-                                        item_id=item_id, message=f"Cannot read comment file as UTF-8: {exc}"))
+                findings.append(
+                    Finding(
+                        severity=Severity.error,
+                        code="comment_unreadable",
+                        path=rel,
+                        item_id=item_id,
+                        message=f"Cannot read comment file as UTF-8: {exc}",
+                    )
+                )
                 continue
 
             try:
                 comment = parse_comment_text(text)
             except CommentParseError as exc:
-                findings.append(Finding(severity=Severity.error, code="invalid_comment", path=rel,
-                                        item_id=item_id, message=str(exc)))
+                findings.append(
+                    Finding(
+                        severity=Severity.error,
+                        code="invalid_comment",
+                        path=rel,
+                        item_id=item_id,
+                        message=str(exc),
+                    )
+                )
                 continue
             except ValidationError as exc:
                 for err in exc.errors():
-                    findings.append(_finding_from_pydantic(err, path=rel, item_id=item_id))
+                    findings.append(
+                        _finding_from_pydantic(err, path=rel, item_id=item_id)
+                    )
                 continue
 
             expected = comment_filename_timestamp(file.name)
             if expected is None:
-                findings.append(Finding(
-                    severity=Severity.warning, code="comment_filename_not_timestamp", path=rel,
-                    item_id=item_id, message=f"Comment filename does not encode a timestamp: {file.name}",
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.warning,
+                        code="comment_filename_not_timestamp",
+                        path=rel,
+                        item_id=item_id,
+                        message=f"Comment filename does not encode a timestamp: {file.name}",
+                    )
+                )
             elif expected != comment.created_at:
-                findings.append(Finding(
-                    severity=Severity.warning, code="comment_timestamp_mismatch", path=rel,
-                    field="created_at", item_id=item_id,
-                    message=f"created_at {comment.created_at!r} does not match filename timestamp {expected!r}",
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.warning,
+                        code="comment_timestamp_mismatch",
+                        path=rel,
+                        field="created_at",
+                        item_id=item_id,
+                        message=f"created_at {comment.created_at!r} does not match filename timestamp {expected!r}",
+                    )
+                )
     return findings
 
 
@@ -204,19 +257,37 @@ def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
         try:
             text = file.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError) as exc:
-            findings.append(Finding(severity=Severity.error, code="unreadable_file", path=rel,
-                                    message=f"Cannot read item file as UTF-8: {exc}"))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="unreadable_file",
+                    path=rel,
+                    message=f"Cannot read item file as UTF-8: {exc}",
+                )
+            )
             continue
 
         try:
             data = load_yaml(text)
         except yaml.YAMLError as exc:
-            findings.append(Finding(severity=Severity.error, code="invalid_yaml", path=rel,
-                                    message=f"Invalid YAML: {exc}"))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="invalid_yaml",
+                    path=rel,
+                    message=f"Invalid YAML: {exc}",
+                )
+            )
             continue
         if not isinstance(data, dict):
-            findings.append(Finding(severity=Severity.error, code="invalid_yaml", path=rel,
-                                    message="Item file is not a YAML mapping"))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="invalid_yaml",
+                    path=rel,
+                    message="Item file is not a YAML mapping",
+                )
+            )
             continue
 
         recoverable_id = data["id"] if isinstance(data.get("id"), str) else None
@@ -225,17 +296,24 @@ def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
             item = Item.model_validate(data)
         except ValidationError as exc:
             for err in exc.errors():
-                findings.append(_finding_from_pydantic(err, path=rel, item_id=recoverable_id))
+                findings.append(
+                    _finding_from_pydantic(err, path=rel, item_id=recoverable_id)
+                )
             if recoverable_id is not None:
                 paths_by_id[recoverable_id].append(rel)
             continue
 
         if item.id != filename_id:
-            findings.append(Finding(
-                severity=Severity.error, code="id_filename_mismatch", path=rel,
-                field="id", item_id=item.id,
-                message=f"Item id {item.id!r} does not match filename {file.name!r}",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="id_filename_mismatch",
+                    path=rel,
+                    field="id",
+                    item_id=item.id,
+                    message=f"Item id {item.id!r} does not match filename {file.name!r}",
+                )
+            )
         paths_by_id[item.id].append(rel)
         status_by_id[item.id] = item.status
         valid_items.append((item, rel))
@@ -244,35 +322,60 @@ def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
     for item_id, rels in paths_by_id.items():
         if len(rels) > 1:
             for rel in rels:
-                findings.append(Finding(
-                    severity=Severity.error, code="duplicate_id", path=rel, item_id=item_id,
-                    message=f"Duplicate item id {item_id!r} (also in {len(rels) - 1} other file(s))",
-                ))
+                findings.append(
+                    Finding(
+                        severity=Severity.error,
+                        code="duplicate_id",
+                        path=rel,
+                        item_id=item_id,
+                        message=f"Duplicate item id {item_id!r} (also in {len(rels) - 1} other file(s))",
+                    )
+                )
 
     known_ids = set(paths_by_id)
 
     def _check_reference(target: str, *, rel: str, source_id: str, field: str) -> None:
         if target not in known_ids:
-            findings.append(Finding(
-                severity=Severity.error, code="missing_reference", path=rel, field=field,
-                item_id=source_id, message=f"{field} references unknown item: {target}",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="missing_reference",
+                    path=rel,
+                    field=field,
+                    item_id=source_id,
+                    message=f"{field} references unknown item: {target}",
+                )
+            )
         elif status_by_id.get(target) == "deleted":
-            findings.append(Finding(
-                severity=Severity.warning, code="link_to_deleted", path=rel, field=field,
-                item_id=source_id, message=f"{field} references deleted item: {target}",
-            ))
+            findings.append(
+                Finding(
+                    severity=Severity.warning,
+                    code="link_to_deleted",
+                    path=rel,
+                    field=field,
+                    item_id=source_id,
+                    message=f"{field} references deleted item: {target}",
+                )
+            )
 
     for item, rel in valid_items:
         if item.parent_id:
-            _check_reference(item.parent_id, rel=rel, source_id=item.id, field="parent_id")
+            _check_reference(
+                item.parent_id, rel=rel, source_id=item.id, field="parent_id"
+            )
         if item.links:
             for target in item.links.blocks:
-                _check_reference(target, rel=rel, source_id=item.id, field="links.blocks")
+                _check_reference(
+                    target, rel=rel, source_id=item.id, field="links.blocks"
+                )
             for target in item.links.relates_to:
-                _check_reference(target, rel=rel, source_id=item.id, field="links.relates_to")
+                _check_reference(
+                    target, rel=rel, source_id=item.id, field="links.relates_to"
+                )
         for attachment in item.attachments or []:
-            finding = _validate_attachment(attachment, paths=paths, path=rel, item_id=item.id)
+            finding = _validate_attachment(
+                attachment, paths=paths, path=rel, item_id=item.id
+            )
             if finding is not None:
                 findings.append(finding)
 

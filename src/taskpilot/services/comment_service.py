@@ -42,7 +42,9 @@ def add_comment(
     if not paths.item_file(item_id).is_file():
         raise NotFound(f"No item found with id {item_id!r}")
     try:
-        comment = Comment(created_at=now or utc_now_iso(), created_by=created_by, body=body)
+        comment = Comment(
+            created_at=now or utc_now_iso(), created_by=created_by, body=body
+        )
     except ValidationError as exc:
         raise ValidationFailed(f"Cannot add comment to {item_id!r}: {exc}") from exc
     return core_comments.write_comment(paths, item_id, comment)

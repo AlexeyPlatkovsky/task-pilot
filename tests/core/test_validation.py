@@ -29,7 +29,11 @@ def _write(paths: WorkspacePaths, name: str, text: str):
 
 
 def _item(paths, item_id, *, status="backlog", title="A title", extra=""):
-    _write(paths, f"{item_id}.yaml", VALID.format(id=item_id, title=title, status=status) + extra)
+    _write(
+        paths,
+        f"{item_id}.yaml",
+        VALID.format(id=item_id, title=title, status=status) + extra,
+    )
 
 
 def _codes(report):
@@ -49,8 +53,12 @@ def test_valid_workspace_reports_ok_and_no_findings(tmp_path: Path):
 
 def test_missing_title_is_error_with_field_and_path(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
-    _write(paths, "TP-2.yaml", "schema_version: 1\nid: TP-2\ntype: task\nstatus: backlog\n"
-           "created_at: 2026-06-23T10:00:00Z\nupdated_at: 2026-06-23T10:00:00Z\n")
+    _write(
+        paths,
+        "TP-2.yaml",
+        "schema_version: 1\nid: TP-2\ntype: task\nstatus: backlog\n"
+        "created_at: 2026-06-23T10:00:00Z\nupdated_at: 2026-06-23T10:00:00Z\n",
+    )
 
     report = validate_workspace(paths)
 
@@ -91,7 +99,10 @@ def test_duplicate_ids_flag_every_offending_file(tmp_path: Path):
     report = validate_workspace(paths)
     dup = [f for f in report.findings if f.code == "duplicate_id"]
 
-    assert {f.path for f in dup} == {".taskpilot/items/a.yaml", ".taskpilot/items/b.yaml"}
+    assert {f.path for f in dup} == {
+        ".taskpilot/items/a.yaml",
+        ".taskpilot/items/b.yaml",
+    }
 
 
 def test_link_to_missing_item_is_error(tmp_path: Path):
@@ -201,8 +212,12 @@ def test_findings_are_deterministically_ordered(tmp_path: Path):
     # (appended later) — their natural build order is the reverse of sorted order, so
     # the assertion fails if the production sort is removed.
     paths = WorkspacePaths.for_root(tmp_path)
-    _write(paths, "TP-1.yaml", VALID.format(id="VP-5", title="X", status="backlog")
-           + "attachments:\n  - ../../escape.txt\n")
+    _write(
+        paths,
+        "TP-1.yaml",
+        VALID.format(id="VP-5", title="X", status="backlog")
+        + "attachments:\n  - ../../escape.txt\n",
+    )
 
     findings = validate_workspace(paths).findings
     keys = [(f.path, f.code, f.field or "", f.message) for f in findings]
@@ -213,8 +228,12 @@ def test_findings_are_deterministically_ordered(tmp_path: Path):
 
 def test_report_to_dict_matches_contract_shape(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
-    _write(paths, "TP-1.yaml", "schema_version: 1\nid: TP-1\ntype: task\nstatus: backlog\n"
-           "created_at: 2026-06-23T10:00:00Z\nupdated_at: 2026-06-23T10:00:00Z\n")
+    _write(
+        paths,
+        "TP-1.yaml",
+        "schema_version: 1\nid: TP-1\ntype: task\nstatus: backlog\n"
+        "created_at: 2026-06-23T10:00:00Z\nupdated_at: 2026-06-23T10:00:00Z\n",
+    )
 
     data = validate_workspace(paths).to_dict()
 

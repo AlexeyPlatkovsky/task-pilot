@@ -19,7 +19,12 @@ from taskpilot.core.item_io import ItemParseError, parse_item_file
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.core.project import ProjectMeta, read_project
-from taskpilot.core.validation import Finding, Severity, ValidationReport, validate_workspace
+from taskpilot.core.validation import (
+    Finding,
+    Severity,
+    ValidationReport,
+    validate_workspace,
+)
 
 __all__ = ["LoadedProject", "load_project"]
 
@@ -60,14 +65,26 @@ def load_project(paths: WorkspacePaths) -> LoadedProject:
     project: ProjectMeta | None = None
     project_rel = paths.relative_posix(paths.project_file)
     if not paths.project_file.exists():
-        findings.append(Finding(severity=Severity.error, code="project_missing", path=project_rel,
-                                message="Project file project.yaml is missing"))
+        findings.append(
+            Finding(
+                severity=Severity.error,
+                code="project_missing",
+                path=project_rel,
+                message="Project file project.yaml is missing",
+            )
+        )
     else:
         try:
             project = read_project(paths)
         except (ValidationError, yaml.YAMLError, UnicodeDecodeError, OSError) as exc:
-            findings.append(Finding(severity=Severity.error, code="project_invalid", path=project_rel,
-                                    message=f"Invalid project.yaml: {exc}"))
+            findings.append(
+                Finding(
+                    severity=Severity.error,
+                    code="project_invalid",
+                    path=project_rel,
+                    message=f"Invalid project.yaml: {exc}",
+                )
+            )
 
     # Parse the structurally valid items; invalid files are already in the report.
     items: list[Item] = []
@@ -80,4 +97,6 @@ def load_project(paths: WorkspacePaths) -> LoadedProject:
     items.sort(key=_numeric_id_key)
 
     findings.sort(key=lambda f: (f.path, f.code, f.field or "", f.message))
-    return LoadedProject(project=project, items=items, report=ValidationReport(findings=findings))
+    return LoadedProject(
+        project=project, items=items, report=ValidationReport(findings=findings)
+    )

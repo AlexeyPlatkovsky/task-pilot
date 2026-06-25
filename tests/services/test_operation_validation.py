@@ -17,14 +17,21 @@ from taskpilot.services.operation_validation import build_validated_item
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
 def _valid_item_data(**overrides) -> dict:
     data = dict(
-        id="VP-1", title="t", type="task", priority="normal", status="backlog",
-        created_at="2026-06-20T10:00:00Z", updated_at="2026-06-20T10:00:00Z",
+        id="VP-1",
+        title="t",
+        type="task",
+        priority="normal",
+        status="backlog",
+        created_at="2026-06-20T10:00:00Z",
+        updated_at="2026-06-20T10:00:00Z",
     )
     data.update(overrides)
     return data
@@ -60,13 +67,17 @@ def test_build_validated_item_reports_bad_timestamp():
 def test_create_item_rejects_invalid_status_and_writes_nothing(tmp_path: Path):
     paths = _workspace(tmp_path)
     with pytest.raises(ValidationFailed):
-        item_service.create_item(paths, title="x", type="task", status="imaginary_status")
+        item_service.create_item(
+            paths, title="x", type="task", status="imaginary_status"
+        )
     assert not any(paths.items_dir.glob("*.yaml"))
 
 
 def test_update_item_rejects_invalid_value_before_write(tmp_path: Path):
     paths = _workspace(tmp_path)
-    created = item_service.create_item(paths, title="x", type="task", now="2026-06-20T11:00:00Z")
+    created = item_service.create_item(
+        paths, title="x", type="task", now="2026-06-20T11:00:00Z"
+    )
     with pytest.raises(ValidationFailed):
         item_service.update_item(paths, created.id, priority="urgent")
     # unchanged on disk

@@ -20,7 +20,11 @@ import yaml
 from pydantic import ValidationError
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.core.project import ProjectMeta, init_workspace, read_project as _read_project_file
+from taskpilot.core.project import (
+    ProjectMeta,
+    init_workspace,
+    read_project as _read_project_file,
+)
 from taskpilot.services.errors import ConflictError, NotFound, ValidationFailed
 
 __all__ = ["create_project", "read_project", "list_projects", "slugify"]
@@ -63,9 +67,13 @@ def create_project(
 
     resolved_id = project_id if project_id else slugify(name)
     if not resolved_id:
-        raise ValidationFailed(f"Cannot derive a project id from name {name!r}; supply project_id")
+        raise ValidationFailed(
+            f"Cannot derive a project id from name {name!r}; supply project_id"
+        )
 
-    result = init_workspace(paths.root, project_id=resolved_id, key=key, name=name, now=now)
+    result = init_workspace(
+        paths.root, project_id=resolved_id, key=key, name=name, now=now
+    )
     if not result.created:
         # Lost a race: another writer initialized the project between our check and init.
         raise ConflictError(
@@ -81,7 +89,9 @@ def read_project(paths: WorkspacePaths) -> ProjectMeta:
     :class:`ValidationFailed` when it exists but is unreadable/invalid.
     """
     if not paths.project_file.exists():
-        raise NotFound(f"No project found at {paths.relative_posix(paths.project_file)}")
+        raise NotFound(
+            f"No project found at {paths.relative_posix(paths.project_file)}"
+        )
     try:
         return _read_project_file(paths)
     except (ValidationError, yaml.YAMLError, UnicodeDecodeError, OSError) as exc:

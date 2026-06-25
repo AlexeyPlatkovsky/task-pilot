@@ -79,6 +79,7 @@ Serves: [F003: CLI Interface](features/F003_cli-interface/)
 Backend REST API, React app, project selector, Kanban board, item detail modal, read-only comments.
 
 Serves: [F004: WebUI Workspace](features/F004_webui-workspace/)
+Serves: [F005: REST API](features/F005_rest-api/)
 
 ### Phase 5 — Better views
 

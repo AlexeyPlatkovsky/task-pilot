@@ -94,7 +94,9 @@ def validate_can_parent_children(
     item-graph the hierarchy table forbids). Raises :class:`ValidationFailed`
     naming the first offending child.
     """
-    from taskpilot.services.item_service import list_items  # local import avoids a cycle
+    from taskpilot.services.item_service import (
+        list_items,
+    )  # local import avoids a cycle
 
     allowed = ALLOWED_CHILD_TYPES.get(parent_type, set())
     for child in list_items(paths, include_deleted=True):

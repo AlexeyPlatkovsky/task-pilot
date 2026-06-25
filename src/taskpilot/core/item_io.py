@@ -19,7 +19,13 @@ from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.core.yaml_io import dump_yaml, load_yaml
 
-__all__ = ["ItemParseError", "parse_item_text", "parse_item_file", "dump_item", "write_item"]
+__all__ = [
+    "ItemParseError",
+    "parse_item_text",
+    "parse_item_file",
+    "dump_item",
+    "write_item",
+]
 
 
 class ItemParseError(Exception):
@@ -99,7 +105,9 @@ def write_item(paths: WorkspacePaths, item: Item) -> Path:
     target = paths.item_file(item.id)
     target.parent.mkdir(parents=True, exist_ok=True)
     content = dump_item(item).encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(target.parent), prefix=f".{item.id}_", suffix=".tmp")
+    fd, tmp = tempfile.mkstemp(
+        dir=str(target.parent), prefix=f".{item.id}_", suffix=".tmp"
+    )
     try:
         os.write(fd, content)
     except BaseException:

@@ -19,7 +19,14 @@ from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.timestamps import is_canonical_iso, utc_now_iso
 from taskpilot.core.yaml_io import dump_yaml, load_yaml
 
-__all__ = ["SCHEMA_VERSION", "ProjectMeta", "InitResult", "init_workspace", "read_project", "write_project"]
+__all__ = [
+    "SCHEMA_VERSION",
+    "ProjectMeta",
+    "InitResult",
+    "init_workspace",
+    "read_project",
+    "write_project",
+]
 
 #: Current canonical schema version for project.yaml.
 SCHEMA_VERSION = 1
@@ -44,7 +51,9 @@ class ProjectMeta(BaseModel):
     @classmethod
     def _check_created_at(cls, value: str) -> str:
         if not is_canonical_iso(value):
-            raise ValueError(f"created_at must be canonical UTC ISO 8601 (YYYY-MM-DDTHH:MM:SSZ): {value!r}")
+            raise ValueError(
+                f"created_at must be canonical UTC ISO 8601 (YYYY-MM-DDTHH:MM:SSZ): {value!r}"
+            )
         return value
 
 
@@ -70,7 +79,9 @@ def write_project(paths: WorkspacePaths, meta: ProjectMeta) -> None:
     after serialization cannot leave ``project.yaml`` truncated or empty.
     """
     content = dump_yaml(meta.model_dump()).encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(paths.workspace_dir), prefix=".project_", suffix=".tmp")
+    fd, tmp = tempfile.mkstemp(
+        dir=str(paths.workspace_dir), prefix=".project_", suffix=".tmp"
+    )
     try:
         os.write(fd, content)
     except BaseException:

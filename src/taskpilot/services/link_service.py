@@ -29,7 +29,10 @@ def _require_link_type(link_type: str) -> None:
 def _links_as_dict(item: Item) -> dict[str, list[str]]:
     if item.links is None:
         return {"blocks": [], "relates_to": []}
-    return {"blocks": list(item.links.blocks), "relates_to": list(item.links.relates_to)}
+    return {
+        "blocks": list(item.links.blocks),
+        "relates_to": list(item.links.relates_to),
+    }
 
 
 def add_link(

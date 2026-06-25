@@ -15,17 +15,25 @@ from taskpilot.services.errors import NotFound, ValidationFailed
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
 def test_add_comment_writes_file_without_touching_item(tmp_path: Path):
     paths = _workspace(tmp_path)
-    item = item_service.create_item(paths, title="x", type="task", now="2026-06-20T10:00:00Z")
+    item = item_service.create_item(
+        paths, title="x", type="task", now="2026-06-20T10:00:00Z"
+    )
     item_yaml_before = paths.item_file(item.id).read_text(encoding="utf-8")
 
     written = comment_service.add_comment(
-        paths, item.id, body="Investigated parser", created_by="Aleksei", now="2026-06-21T09:00:00Z"
+        paths,
+        item.id,
+        body="Investigated parser",
+        created_by="Aleksei",
+        now="2026-06-21T09:00:00Z",
     )
 
     # add_comment returns the written file path (the comment's identity).
@@ -43,7 +51,9 @@ def test_add_comment_writes_file_without_touching_item(tmp_path: Path):
 def test_comment_filename_encodes_timestamp(tmp_path: Path):
     paths = _workspace(tmp_path)
     item = item_service.create_item(paths, title="x", type="task")
-    comment_service.add_comment(paths, item.id, body="b", created_by="A", now="2026-06-21T09:00:00Z")
+    comment_service.add_comment(
+        paths, item.id, body="b", created_by="A", now="2026-06-21T09:00:00Z"
+    )
     names = [p.name for p in paths.item_comments_dir(item.id).glob("*.md")]
     assert names == ["2026-06-21T09-00-00Z.md"]
 
@@ -51,8 +61,12 @@ def test_comment_filename_encodes_timestamp(tmp_path: Path):
 def test_list_comments_chronological(tmp_path: Path):
     paths = _workspace(tmp_path)
     item = item_service.create_item(paths, title="x", type="task")
-    comment_service.add_comment(paths, item.id, body="second", created_by="A", now="2026-06-21T10:00:00Z")
-    comment_service.add_comment(paths, item.id, body="first", created_by="A", now="2026-06-20T08:00:00Z")
+    comment_service.add_comment(
+        paths, item.id, body="second", created_by="A", now="2026-06-21T10:00:00Z"
+    )
+    comment_service.add_comment(
+        paths, item.id, body="first", created_by="A", now="2026-06-20T08:00:00Z"
+    )
 
     bodies = [c.body for c in comment_service.list_comments(paths, item.id)]
     assert bodies == ["first", "second"]
@@ -67,8 +81,12 @@ def test_list_comments_empty_when_none(tmp_path: Path):
 def test_same_second_comments_get_distinct_files(tmp_path: Path):
     paths = _workspace(tmp_path)
     item = item_service.create_item(paths, title="x", type="task")
-    comment_service.add_comment(paths, item.id, body="one", created_by="A", now="2026-06-21T09:00:00Z")
-    comment_service.add_comment(paths, item.id, body="two", created_by="A", now="2026-06-21T09:00:00Z")
+    comment_service.add_comment(
+        paths, item.id, body="one", created_by="A", now="2026-06-21T09:00:00Z"
+    )
+    comment_service.add_comment(
+        paths, item.id, body="two", created_by="A", now="2026-06-21T09:00:00Z"
+    )
     assert len(list(paths.item_comments_dir(item.id).glob("*.md"))) == 2
 
 

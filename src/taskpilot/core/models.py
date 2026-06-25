@@ -79,7 +79,9 @@ class Item(BaseModel):
     # validate_default ensures defaulted enums (e.g. priority) are coerced to
     # their string values just like supplied ones, so model_dump() never yields a
     # raw enum object that breaks deterministic YAML serialization.
-    model_config = ConfigDict(extra="allow", use_enum_values=True, validate_default=True)
+    model_config = ConfigDict(
+        extra="allow", use_enum_values=True, validate_default=True
+    )
 
     # Mandatory fields (canonical order first).
     schema_version: int = SCHEMA_VERSION

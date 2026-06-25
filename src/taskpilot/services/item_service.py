@@ -23,7 +23,14 @@ from taskpilot.services.hierarchy import validate_can_parent_children, validate_
 from taskpilot.services.operation_validation import build_validated_item
 from taskpilot.services.project_service import read_project
 
-__all__ = ["create_item", "read_item", "update_item", "delete_item", "list_items", "next_id"]
+__all__ = [
+    "create_item",
+    "read_item",
+    "update_item",
+    "delete_item",
+    "list_items",
+    "next_id",
+]
 
 
 def _numeric_suffix(item_id: str, key: str) -> int | None:
@@ -88,7 +95,9 @@ def create_item(
             "created_by": created_by,
         }
     )
-    validate_parent(paths, child_id=item.id, child_type=item.type, parent_id=item.parent_id)
+    validate_parent(
+        paths, child_id=item.id, child_type=item.type, parent_id=item.parent_id
+    )
     write_item(paths, item)
     return item
 
@@ -133,9 +142,13 @@ def update_item(
     data["updated_at"] = now or utc_now_iso()
     updated = build_validated_item(data)
 
-    validate_parent(paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id)
+    validate_parent(
+        paths, child_id=updated.id, child_type=updated.type, parent_id=updated.parent_id
+    )
     if updated.type != current.type:
-        validate_can_parent_children(paths, parent_id=updated.id, parent_type=updated.type)
+        validate_can_parent_children(
+            paths, parent_id=updated.id, parent_type=updated.type
+        )
     _validate_links(paths, updated)
     write_item(paths, updated)
     return updated

@@ -77,7 +77,9 @@ class Comment(BaseModel):
     @classmethod
     def _check_created_at(cls, value: str) -> str:
         if not is_canonical_iso(value):
-            raise ValueError(f"created_at must be canonical UTC ISO 8601 (YYYY-MM-DDTHH:MM:SSZ): {value!r}")
+            raise ValueError(
+                f"created_at must be canonical UTC ISO 8601 (YYYY-MM-DDTHH:MM:SSZ): {value!r}"
+            )
         return value
 
 

@@ -59,7 +59,9 @@ def test_collisions_stay_chronological_past_nine(tmp_path: Path):
     for i in range(12):
         write_comment(paths, "TP-1", _comment(created_by=f"c{i:02d}"))
 
-    assert [c.created_by for c in list_comments(paths, "TP-1")] == [f"c{i:02d}" for i in range(12)]
+    assert [c.created_by for c in list_comments(paths, "TP-1")] == [
+        f"c{i:02d}" for i in range(12)
+    ]
 
 
 def test_collision_frontmatter_created_at_matches_canonical_timestamp(tmp_path: Path):
@@ -113,7 +115,9 @@ def test_add_comment_defaults_to_current_utc_time(tmp_path: Path):
 def test_written_comments_list_chronologically(tmp_path: Path):
     paths = WorkspacePaths.for_root(tmp_path)
     add_comment(paths, "TP-1", body="early", created_by="A", now="2026-06-23T10:00:00Z")
-    add_comment(paths, "TP-1", body="collision", created_by="B", now="2026-06-23T10:00:00Z")
+    add_comment(
+        paths, "TP-1", body="collision", created_by="B", now="2026-06-23T10:00:00Z"
+    )
     add_comment(paths, "TP-1", body="late", created_by="C", now="2026-06-24T09:00:00Z")
 
     assert [c.created_by for c in list_comments(paths, "TP-1")] == ["A", "B", "C"]
@@ -145,4 +149,6 @@ def test_write_comment_o_excl_handles_multiple_preexisting_slots(tmp_path: Path)
 
     assert written.name == "2026-06-23T10-00-00Z-3.md"
     assert (directory / "2026-06-23T10-00-00Z.md").read_text(encoding="utf-8") == "orig"
-    assert (directory / "2026-06-23T10-00-00Z-2.md").read_text(encoding="utf-8") == "collision"
+    assert (directory / "2026-06-23T10-00-00Z-2.md").read_text(
+        encoding="utf-8"
+    ) == "collision"

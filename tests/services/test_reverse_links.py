@@ -13,12 +13,16 @@ from taskpilot.services.reverse_links import derive_reverse_links, reverse_links
 
 def _workspace(tmp_path: Path) -> WorkspacePaths:
     paths = WorkspacePaths.for_root(tmp_path)
-    project_service.create_project(paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z")
+    project_service.create_project(
+        paths, key="VP", name="VoicePilot", now="2026-06-20T10:00:00Z"
+    )
     return paths
 
 
 def _items(paths: WorkspacePaths, n: int):
-    return [item_service.create_item(paths, title=f"i{k}", type="task") for k in range(n)]
+    return [
+        item_service.create_item(paths, title=f"i{k}", type="task") for k in range(n)
+    ]
 
 
 def test_blocked_by_is_derived_from_blocks(tmp_path: Path):
