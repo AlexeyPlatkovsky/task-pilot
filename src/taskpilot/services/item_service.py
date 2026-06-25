@@ -29,6 +29,7 @@ __all__ = [
     "update_item",
     "delete_item",
     "list_items",
+    "list_invalid_item_stubs",
     "next_id",
 ]
 
@@ -152,6 +153,35 @@ def update_item(
     _validate_links(paths, updated)
     write_item(paths, updated)
     return updated
+
+
+def list_invalid_item_stubs(
+    paths: WorkspacePaths,
+    *,
+    project: str | None = None,
+) -> list[tuple[str, str, str]]:
+    """Return (item_id, relative_path, error_message) for unparseable item files.
+
+    Scans the same ``items/*.yaml`` glob used by :func:`list_items` but collects
+    files that raise a parse or validation error instead of silently skipping them.
+    The caller is responsible for surfacing these as invalid-item representations
+    (e.g. API findings) to honor the product invariant that invalid files remain
+    visible and actionable.
+    """
+    result: list[tuple[str, str, str]] = []
+    if not paths.items_dir.is_dir():
+        return result
+    for file in paths.items_dir.glob("*.yaml"):
+        if not file.is_file():
+            continue
+        if project is not None and not file.stem.startswith(f"{project}-"):
+            continue
+        try:
+            parse_item_file(file)
+        except (ItemParseError, ValidationError, UnicodeDecodeError, OSError) as exc:
+            rel = paths.relative_posix(file)
+            result.append((file.stem, rel, str(exc)))
+    return result
 
 
 def _validate_links(paths: WorkspacePaths, item: Item) -> None:

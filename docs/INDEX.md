@@ -46,4 +46,4 @@ under `docs/specs/` supersede them where they conflict.
 | ADR-003 | Pure YAML Item Files | accepted |
 | ADR-004 | Separate Append-Only Comment Files | accepted |
 | ADR-005 | Kanban Board as Primary Workspace Page | accepted |
-| ADR-006 | System Registry in the CLI Adapter for Alpha | accepted |
+| ADR-006 | System Registry in the CLI Adapter for Alpha | superseded (registry promoted to services in F005) |

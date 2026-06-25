@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import typer
 
-from taskpilot.cli import registry
+from taskpilot.services import registry
 from taskpilot.cli.context import get_state
 from taskpilot.cli.output import print_json, print_line, render_table
 

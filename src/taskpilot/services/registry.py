@@ -6,11 +6,6 @@ project root known on this machine, with an ``active`` flag and cached ``key`` /
 ``name`` for display. It is never committed to a project repository and is not
 canonical product data.
 
-Scope note: this lives under :mod:`taskpilot.cli` for Alpha because the CLI is
-its only consumer today. When the REST API/WebUI (F004) needs to serve "active
-registered projects", promote it to the shared service layer — the data model
-and functions here are deliberately adapter-free so that move is mechanical.
-
 Test seam: the directory is resolved by :func:`default_registry_dir`, which
 honors the ``TASKPILOT_HOME`` environment variable so tests never touch a real
 home directory.

@@ -1,7 +1,8 @@
 """API integration tests for the FastAPI server (task F005-T8).
 
-Covers all endpoints, 404 paths, 422 validation errors, and deterministic
-JSON serialization using FastAPI TestClient.
+Covers all endpoints, 404 paths, 400/422 error responses, null-field clearing,
+malformed-comment resilience, invalid-file surfacing, and deterministic JSON
+serialization using FastAPI TestClient.
 """
 
 from __future__ import annotations
@@ -11,8 +12,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from taskpilot.cli.registry import (
-    default_registry_dir,
+from taskpilot.services.registry import (
     register_project as registry_register,
 )
 from taskpilot.core.layout import WorkspacePaths
@@ -26,10 +26,7 @@ def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     registry_dir.mkdir()
     monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
 
-    app = create_app(
-        workspace=str(tmp_path),
-        registry_dir=str(registry_dir),
-    )
+    app = create_app(registry_dir=str(registry_dir))
     return app
 
 
@@ -119,6 +116,27 @@ class TestListItems:
         assert r.status_code == 200
         assert r.json() == []
 
+    def test_invalid_item_file_surfaces_as_invalid_summary(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Good item", type="task", now="2026-06-25T10:00:00Z"
+        )
+        # Write a corrupt item file
+        bad_file = workspace.items_dir / "VP-99.yaml"
+        bad_file.write_text("not: valid: yaml: [\n", encoding="utf-8")
+
+        r = client.get("/api/projects/voice-pilot/items")
+        assert r.status_code == 200
+        data = r.json()
+        ids = [item["id"] for item in data]
+        assert "VP-1" in ids
+        assert "VP-99" in ids
+        invalid = next(item for item in data if item["id"] == "VP-99")
+        assert invalid["valid"] is False
+        assert invalid["findings"] is not None
+        assert len(invalid["findings"]) == 1
+        assert invalid["findings"][0]["code"] == "parse_error"
+
 
 class TestGetItem:
     def test_returns_detail_with_comments(self, client, tmp_path, workspace):
@@ -172,6 +190,41 @@ class TestGetItem:
         assert r.status_code == 200
         assert r.json()["comments"] == []
 
+    def test_malformed_comment_does_not_block_item(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Item with bad comment", type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        comment_dir = workspace.item_comments_dir("VP-1")
+        comment_dir.mkdir(parents=True, exist_ok=True)
+        (comment_dir / "2026-06-25T10-00-01Z.md").write_text(
+            "not frontmatter at all", encoding="utf-8"
+        )
+
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+        assert r.status_code == 200
+        assert r.json()["comments"] == []
+
+    def test_malformed_comment_does_not_block_patch(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Item with bad comment", type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        comment_dir = workspace.item_comments_dir("VP-1")
+        comment_dir.mkdir(parents=True, exist_ok=True)
+        (comment_dir / "2026-06-25T10-00-01Z.md").write_text(
+            "not frontmatter at all", encoding="utf-8"
+        )
+
+        r = client.patch(
+            "/api/projects/voice-pilot/items/VP-1",
+            json={"status": "done"},
+        )
+        assert r.status_code == 200
+        assert r.json()["status"] == "done"
+
 
 class TestPatchItem:
     def test_updates_status(self, client, tmp_path, workspace):
@@ -189,11 +242,10 @@ class TestPatchItem:
         assert r.status_code == 200
         data = r.json()
         assert data["status"] == "in_progress"
-        # canonical file on disk updated
         reloaded = item_service.read_item(workspace, "VP-1")
         assert reloaded.status == "in_progress"
 
-    def test_422_for_invalid_status(self, client, tmp_path, workspace):
+    def test_400_for_invalid_status(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
             workspace,
@@ -205,8 +257,19 @@ class TestPatchItem:
             "/api/projects/voice-pilot/items/VP-1",
             json={"status": "flying"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "detail" in r.json()
+
+    def test_422_for_malformed_body(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="My item", type="task", now="2026-06-25T10:00:00Z"
+        )
+        r = client.patch(
+            "/api/projects/voice-pilot/items/VP-1",
+            json={"status": 12345},
+        )
+        assert r.status_code == 422
 
     def test_404_for_unknown_project(self, client):
         r = client.patch(
@@ -254,6 +317,28 @@ class TestPatchItem:
         assert data["title"] == "Updated"
         assert data["priority"] == "high"
 
+    def test_null_clears_optional_field(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Item with description",
+            type="task",
+            description="initial description",
+            now="2026-06-25T10:00:00Z",
+        )
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+        assert r.json()["description"] == "initial description"
+
+        r = client.patch(
+            "/api/projects/voice-pilot/items/VP-1",
+            json={"description": None},
+        )
+        assert r.status_code == 200
+        assert r.json()["description"] is None
+
+        reloaded = item_service.read_item(workspace, "VP-1")
+        assert reloaded.description is None
+
 
 class TestDeterministicJson:
     def test_repeated_get_identical(self, client, tmp_path, workspace):
@@ -278,6 +363,5 @@ class TestDeterministicJson:
         )
         r = client.get("/api/projects/voice-pilot/items/VP-1")
         keys = list(r.json().keys())
-        # schema_version should come first (matching model field order)
         assert keys[0] == "schema_version"
         assert keys[1] == "id"

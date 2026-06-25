@@ -4,16 +4,18 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 
-from taskpilot.cli.registry import RegistryEntry, list_projects as registry_list
+from taskpilot.services.registry import RegistryEntry, list_projects as registry_list
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.schemas import (
     ItemDetail,
     ItemSummary,
     ItemUpdateInput,
     ProjectSummary,
+    ValidationFindingOut,
 )
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
+from taskpilot.services.errors import ValidationFailed
 
 router = APIRouter(tags=["projects"])
 
@@ -38,8 +40,11 @@ def _item_summary(item) -> dict:
 
 def _item_detail(item, ws: WorkspacePaths) -> dict:
     d = item.model_dump()
-    comments = comment_svc.list_comments(ws, item.id)
-    d["comments"] = [c.model_dump() for c in comments]
+    try:
+        comments = comment_svc.list_comments(ws, item.id)
+        d["comments"] = [c.model_dump() for c in comments]
+    except ValidationFailed:
+        d["comments"] = []
     d["valid"] = True
     return d
 
@@ -72,7 +77,30 @@ def list_project_items(request: Request, project_id: str) -> list[ItemSummary]:
     entry = _registry_entry(request, project_id)
     ws = _paths(entry)
     items = item_svc.list_items(ws, project=entry.key, include_deleted=False)
-    return [ItemSummary(**_item_summary(i)) for i in items]
+    valid_summaries: list[ItemSummary] = [ItemSummary(**_item_summary(i)) for i in items]
+
+    invalid_stubs = item_svc.list_invalid_item_stubs(ws, project=entry.key)
+    invalid_summaries: list[ItemSummary] = [
+        ItemSummary(
+            id=item_id,
+            title=f"[unparseable: {item_id}.yaml]",
+            type="unknown",
+            status="unknown",
+            priority="unknown",
+            valid=False,
+            findings=[
+                ValidationFindingOut(
+                    severity="error",
+                    code="parse_error",
+                    path=rel_path,
+                    message=error_msg,
+                )
+            ],
+        )
+        for item_id, rel_path, error_msg in invalid_stubs
+    ]
+
+    return valid_summaries + invalid_summaries
 
 
 @router.get(
@@ -98,6 +126,6 @@ def patch_item(
 ) -> ItemDetail:
     entry = _registry_entry(request, project_id)
     ws = _paths(entry)
-    fields = body.model_dump(exclude_defaults=True, exclude_none=True)
+    fields = body.model_dump(exclude_unset=True)
     item = item_svc.update_item(ws, item_id, **fields)
     return ItemDetail(**_item_detail(item, ws))

@@ -13,3 +13,6 @@ venv/
 # Build artifacts
 build/
 dist/
+
+# testing
+.playwright-cli/

@@ -178,3 +178,56 @@ def test_list_items_sorted_by_numeric_id(tmp_path: Path):
     ids = [i.id for i in item_service.list_items(paths)]
     assert ids[:3] == ["VP-1", "VP-2", "VP-3"]
     assert ids[-1] == "VP-11"  # numeric, not lexical
+
+
+class TestListInvalidItemStubs:
+    def test_returns_empty_when_items_dir_absent(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        assert item_service.list_invalid_item_stubs(paths) == []
+
+    def test_returns_empty_when_all_files_are_valid(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        item_service.create_item(paths, title="Good", type="task")
+        assert item_service.list_invalid_item_stubs(paths) == []
+
+    def test_returns_stub_for_corrupt_yaml(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        item_service.create_item(paths, title="Good", type="task", now="2026-06-20T10:00:00Z")
+        bad = paths.items_dir / "VP-99.yaml"
+        bad.write_text("not: valid: yaml: [\n", encoding="utf-8")
+
+        stubs = item_service.list_invalid_item_stubs(paths)
+        assert len(stubs) == 1
+        item_id, rel_path, error_msg = stubs[0]
+        assert item_id == "VP-99"
+        assert "VP-99.yaml" in rel_path
+        assert error_msg  # non-empty error description
+
+    def test_mutual_exclusion_with_list_items(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        item_service.create_item(paths, title="Valid", type="task")
+        (paths.items_dir / "VP-99.yaml").write_text("bad: yaml: [\n", encoding="utf-8")
+
+        valid_ids = {i.id for i in item_service.list_items(paths)}
+        invalid_ids = {stub[0] for stub in item_service.list_invalid_item_stubs(paths)}
+        assert valid_ids & invalid_ids == set()  # no overlap
+
+    def test_project_filter_excludes_other_project_files(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        (paths.items_dir / "OTHER-1.yaml").write_text("bad: [\n", encoding="utf-8")
+        (paths.items_dir / "VP-99.yaml").write_text("bad: [\n", encoding="utf-8")
+
+        vp_stubs = item_service.list_invalid_item_stubs(paths, project="VP")
+        ids = [s[0] for s in vp_stubs]
+        assert "VP-99" in ids
+        assert "OTHER-1" not in ids
+
+    def test_project_filter_none_returns_all(self, tmp_path: Path):
+        paths = _workspace(tmp_path)
+        (paths.items_dir / "VP-99.yaml").write_text("bad: [\n", encoding="utf-8")
+        (paths.items_dir / "OTHER-1.yaml").write_text("bad: [\n", encoding="utf-8")
+
+        all_stubs = item_service.list_invalid_item_stubs(paths)
+        ids = {s[0] for s in all_stubs}
+        assert "VP-99" in ids
+        assert "OTHER-1" in ids

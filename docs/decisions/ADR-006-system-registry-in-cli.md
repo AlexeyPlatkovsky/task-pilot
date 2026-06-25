@@ -1,6 +1,6 @@
 # ADR-006: System Registry in the CLI Adapter for Alpha
 
-- **Status:** accepted
+- **Status:** superseded — planned migration executed in F005 (see Amendment below)
 - **Date:** 2026-06-25
 - **Deciders:** TaskPilot project
 
@@ -51,3 +51,18 @@ service layer; because it carries no adapter coupling, that move is mechanical.
 - **Defer the registry entirely; `project list` reads the single in-repo project**
   — rejected: it contradicts the spec wording for `init` (register) and `project
   list` (list registry entries) and the multi-project WebUI model.
+
+## Amendment — F005 (2026-06-25)
+
+The REST API server (`feat/f005-rest-api`) became the second consumer of the registry,
+triggering the planned migration. The registry was promoted to the shared service layer
+during F005 code-review remediation:
+
+- **Old path:** `src/taskpilot/cli/registry.py`
+- **New path:** `src/taskpilot/services/registry.py`
+
+Import sites updated: `cli/commands/init.py`, `cli/commands/project.py`,
+`cli/commands/serve.py`, and all relevant test files. The module carried no adapter
+coupling (as designed), making the move a mechanical file-move plus import updates.
+A known adapter-to-adapter violation (`cli/commands/serve.py` importing `server.app`)
+is tracked as TP-4 for future extraction.
