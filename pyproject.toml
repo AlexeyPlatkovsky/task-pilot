@@ -5,9 +5,11 @@ description = "Local-first, file-based task management. Markdown/YAML files are 
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.115",
     "pydantic>=2",
     "pyyaml>=6",
     "typer>=0.12",
+    "uvicorn[standard]>=0.34",
 ]
 
 [project.scripts]
