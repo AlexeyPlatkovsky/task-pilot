@@ -24,12 +24,16 @@ def test_add_comment_writes_file_without_touching_item(tmp_path: Path):
     item = item_service.create_item(paths, title="x", type="task", now="2026-06-20T10:00:00Z")
     item_yaml_before = paths.item_file(item.id).read_text(encoding="utf-8")
 
-    comment = comment_service.add_comment(
+    written = comment_service.add_comment(
         paths, item.id, body="Investigated parser", created_by="Aleksei", now="2026-06-21T09:00:00Z"
     )
 
-    assert comment.body == "Investigated parser"
-    assert comment.created_by == "Aleksei"
+    # add_comment returns the written file path (the comment's identity).
+    assert written.suffix == ".md"
+    assert written.is_file()
+    stored = comment_service.list_comments(paths, item.id)
+    assert stored[0].body == "Investigated parser"
+    assert stored[0].created_by == "Aleksei"
     md_files = list(paths.item_comments_dir(item.id).glob("*.md"))
     assert len(md_files) == 1
     # item YAML untouched

@@ -9,6 +9,8 @@ the target item must exist, and low-level parse/validation failures surface as
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import ValidationError
 
 from taskpilot.core import comments as core_comments
@@ -27,13 +29,15 @@ def add_comment(
     body: str,
     created_by: str,
     now: str | None = None,
-) -> Comment:
-    """Add a comment to ``item_id`` and return it (F002-R6).
+) -> Path:
+    """Add a comment to ``item_id`` and return the written file path (F002-R6).
 
-    The owning item must exist. Writes a timestamped ``.md`` file (same-second
-    collisions get ``-N`` suffixes) and leaves the item YAML untouched. Raises
-    :class:`NotFound` for an unknown item and :class:`ValidationFailed` for
-    invalid comment fields (e.g. empty author).
+    A comment's identity *is* its filename (spec ``0002``), so the path — not the
+    in-memory model — is the useful result for callers such as the CLI, matching
+    the core ``write_comment`` contract. The owning item must exist; a timestamped
+    ``.md`` file is written (same-second collisions get ``-N`` suffixes) and the
+    item YAML is left untouched. Raises :class:`NotFound` for an unknown item and
+    :class:`ValidationFailed` for invalid comment fields (e.g. empty author).
     """
     if not paths.item_file(item_id).is_file():
         raise NotFound(f"No item found with id {item_id!r}")
@@ -41,8 +45,7 @@ def add_comment(
         comment = Comment(created_at=now or utc_now_iso(), created_by=created_by, body=body)
     except ValidationError as exc:
         raise ValidationFailed(f"Cannot add comment to {item_id!r}: {exc}") from exc
-    core_comments.write_comment(paths, item_id, comment)
-    return comment
+    return core_comments.write_comment(paths, item_id, comment)
 
 
 def list_comments(paths: WorkspacePaths, item_id: str) -> list[Comment]:

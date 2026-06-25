@@ -11,7 +11,6 @@ import pytest
 
 from taskpilot.core.item_io import dump_item, parse_item_file, parse_item_text, write_item
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.core.models import Item
 
 FULL_ITEM = """\
 schema_version: 1

@@ -30,7 +30,7 @@ under `docs/specs/` supersede them where they conflict.
 | --- | --- | --- | --- | --- | --- | --- |
 | F001 | task-file-storage | planned | 7 | 8 | 7 | Phase 1 — File model and parser |
 | F002 | domain-services | implemented | 8 | 8 | 8 | Phase 2 — Domain/service layer |
-| F003 | cli-interface | planned | 8 | 8 | 9 | Phase 3 — CLI |
+| F003 | cli-interface | in progress | 8 | 8 | 9 | Phase 3 — CLI |
 | F004 | webui-workspace | planned | 9 | 9 | 9 | Phase 4 — Local WebUI |
 | F006 | advanced-views | planned | 5 | 6 | 5 | Phase 5 — Better views |
 | F007 | git-helpers | planned | 5 | 5 | 5 | Phase 6 — Git helpers |
@@ -45,3 +45,4 @@ under `docs/specs/` supersede them where they conflict.
 | ADR-003 | Pure YAML Item Files | accepted |
 | ADR-004 | Separate Append-Only Comment Files | accepted |
 | ADR-005 | Kanban Board as Primary Workspace Page | accepted |
+| ADR-006 | System Registry in the CLI Adapter for Alpha | accepted |
