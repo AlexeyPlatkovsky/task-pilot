@@ -14,6 +14,7 @@
 
 ## Notes
 
+- Review-fix pass 2026-06-25: fixed drag/drop mutation timing (handleDragEnd only), added Markdown rendering with DOMPurify, added KanbanBoard error/loading/retry states, added ItemModal retry button, extracted shared label constants, tightened Zod schema with EDITABLE_STATUSES, added Vitest component test suite (25 tests).
 - TanStack Query manages server state with cache invalidation on mutations.
 - CSS Modules naming: `ComponentName.module.css` co-located with component files.
 - Type definitions shared between frontend and backend through OpenAPI schema or a shared types package (future).

@@ -11,6 +11,15 @@ export const STATUSES = [
 ] as const;
 export type Status = (typeof STATUSES)[number];
 
+export const EDITABLE_STATUSES = [
+  "backlog",
+  "ready",
+  "in_progress",
+  "done",
+  "cancelled",
+] as const;
+export type EditableStatus = (typeof EDITABLE_STATUSES)[number];
+
 export const WORKFLOW_STATUSES: readonly Status[] = [
   "backlog",
   "ready",

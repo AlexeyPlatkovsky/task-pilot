@@ -9,12 +9,12 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
-  type DragOverEvent,
 } from "@dnd-kit/core";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchItems, updateItem } from "../api";
 import type { ItemSummary, Status } from "../types";
 import { WORKFLOW_STATUSES } from "../types";
+import { STATUS_LABELS, TYPE_ORDER } from "../types/labels";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
 import { ItemModal } from "./ItemModal";
@@ -23,22 +23,6 @@ import styles from "./KanbanBoard.module.css";
 interface Props {
   projectId: string;
 }
-
-const STATUS_LABELS: Record<Status, string> = {
-  backlog: "Backlog",
-  ready: "Ready",
-  in_progress: "In Progress",
-  done: "Done",
-  cancelled: "Cancelled",
-  deleted: "Deleted",
-};
-
-const TYPE_ORDER: Record<string, number> = {
-  epic: 0,
-  feature: 1,
-  task: 2,
-  bug: 3,
-};
 
 function sortItems(items: ItemSummary[]): ItemSummary[] {
   return [...items].sort((a, b) => {
@@ -76,7 +60,12 @@ export function KanbanBoard({ projectId }: Props) {
 
   const queryClient = useQueryClient();
 
-  const { data: items } = useQuery({
+  const {
+    data: items,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["items", projectId],
     queryFn: () => fetchItems(projectId),
   });
@@ -118,25 +107,6 @@ export function KanbanBoard({ projectId }: Props) {
     [items],
   );
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event;
-      if (!over) return;
-
-      const activeId = active.id as string;
-      const overId = over.id as string;
-
-      const activeItem = items?.find((i) => i.id === activeId);
-      if (!activeItem || !activeItem.valid) return;
-
-      const overStatus = WORKFLOW_STATUSES.find((s) => s === overId);
-      if (overStatus && activeItem.status !== overStatus) {
-        mutation.mutate({ itemId: activeId, status: overStatus });
-      }
-    },
-    [items, mutation],
-  );
-
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
@@ -161,13 +131,27 @@ export function KanbanBoard({ projectId }: Props) {
   const groups = groupByStatus(items ?? []);
   const isEmpty = Array.from(groups.values()).every((g) => g.length === 0);
 
+  if (isLoading) {
+    return <div className={styles.loading}>Loading items...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.error}>
+        <p>Failed to load items</p>
+        <button type="button" onClick={() => refetch()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className={styles.board}>

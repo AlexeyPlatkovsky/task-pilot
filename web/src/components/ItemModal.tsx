@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { fetchItem } from "../api";
-import type { ItemDetail, Status, Priority, ItemType } from "../types";
+import type { ItemDetail } from "../types";
+import { STATUS_LABELS, PRIORITY_LABELS, TYPE_LABELS } from "../types/labels";
 import { CommentThread } from "./CommentThread";
 import { ItemEditForm } from "./ItemEditForm";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -14,28 +17,6 @@ interface Props {
   onClose: () => void;
 }
 
-const STATUS_LABELS: Record<Status, string> = {
-  backlog: "Backlog",
-  ready: "Ready",
-  in_progress: "In Progress",
-  done: "Done",
-  cancelled: "Cancelled",
-  deleted: "Deleted",
-};
-
-const PRIORITY_LABELS: Record<Priority, string> = {
-  low: "Low",
-  normal: "Normal",
-  high: "High",
-};
-
-const TYPE_LABELS: Record<ItemType, string> = {
-  epic: "Epic",
-  feature: "Feature",
-  task: "Task",
-  bug: "Bug",
-};
-
 export function ItemModal({ projectId, itemId, onClose }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -44,6 +25,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
     data: item,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["item", projectId, itemId],
     queryFn: () => fetchItem(projectId, itemId!),
@@ -90,6 +72,13 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
             {error && (
               <div className={styles.error}>
                 <p>Failed to load item</p>
+                <button
+                  type="button"
+                  className={styles.retryButton}
+                  onClick={() => refetch()}
+                >
+                  Retry
+                </button>
               </div>
             )}
 
@@ -142,6 +131,14 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
 }
 
 function ItemDetailView({ item }: { item: ItemDetail }) {
+  const descriptionHtml = useMemo(
+    () =>
+      item.description
+        ? DOMPurify.sanitize(marked.parse(item.description) as string)
+        : null,
+    [item.description],
+  );
+
   return (
     <div className={styles.detail}>
       <div className={styles.badges}>
@@ -160,10 +157,13 @@ function ItemDetailView({ item }: { item: ItemDetail }) {
         </span>
       </div>
 
-      {item.description && (
+      {descriptionHtml && (
         <div className={styles.section}>
           <h4>Description</h4>
-          <div className={styles.description}>{item.description}</div>
+          <div
+            className={styles.description}
+            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+          />
         </div>
       )}
 

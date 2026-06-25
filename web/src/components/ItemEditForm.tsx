@@ -3,15 +3,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateItem } from "../api";
-import type { ItemDetail, Priority, Status } from "../types";
-import { STATUSES, PRIORITIES } from "../types";
+import type { ItemDetail, EditableStatus } from "../types";
+import { EDITABLE_STATUSES, PRIORITIES } from "../types";
+import { STATUS_LABELS, PRIORITY_LABELS } from "../types/labels";
 import styles from "./ItemEditForm.module.css";
 
 const itemEditSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   description: z.string().optional(),
   priority: z.enum(PRIORITIES),
-  status: z.enum(STATUSES),
+  status: z.enum(EDITABLE_STATUSES),
 });
 
 type ItemEditFormData = z.infer<typeof itemEditSchema>;
@@ -22,21 +23,6 @@ interface Props {
   onSave: () => void;
   onCancel: () => void;
 }
-
-const STATUS_LABELS: Record<Status, string> = {
-  backlog: "Backlog",
-  ready: "Ready",
-  in_progress: "In Progress",
-  done: "Done",
-  cancelled: "Cancelled",
-  deleted: "Deleted",
-};
-
-const PRIORITY_LABELS: Record<Priority, string> = {
-  low: "Low",
-  normal: "Normal",
-  high: "High",
-};
 
 export function ItemEditForm({
   projectId,
@@ -56,7 +42,10 @@ export function ItemEditForm({
       title: item.title,
       description: item.description ?? "",
       priority: item.priority,
-      status: item.status,
+      status:
+        item.status === "deleted"
+          ? ("backlog" as EditableStatus)
+          : (item.status as EditableStatus),
     },
   });
 
@@ -137,7 +126,7 @@ export function ItemEditForm({
             className={styles.select}
             {...register("status")}
           >
-            {STATUSES.filter((s) => s !== "deleted").map((s) => (
+            {EDITABLE_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABELS[s]}
               </option>
