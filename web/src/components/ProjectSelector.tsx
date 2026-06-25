@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchProjects } from "../api";
-import type { ProjectSummary } from "../types";
 import styles from "./ProjectSelector.module.css";
 
 interface Props {
