@@ -35,5 +35,19 @@ def main(
     ctx.obj = CLIState(json=json)
 
 
+def _register_commands() -> None:
+    """Attach every command module to :data:`app`.
+
+    Imported here (not at module top) so command modules can import from this
+    module without a circular import.
+    """
+    from taskpilot.cli.commands import init as init_cmd
+
+    init_cmd.register(app)
+
+
+_register_commands()
+
+
 if __name__ == "__main__":  # pragma: no cover - manual invocation convenience
     app()
