@@ -36,13 +36,12 @@ def project_list(ctx: typer.Context) -> None:
         return
 
     if not entries:
-        print_line("No registered projects. Run `taskpilot init .` in a project repository.")
+        print_line(
+            "No registered projects. Run `taskpilot init .` in a project repository."
+        )
         return
 
-    rows = [
-        [e.id, e.key, e.name, "yes" if e.active else "no", e.path]
-        for e in entries
-    ]
+    rows = [[e.id, e.key, e.name, "yes" if e.active else "no", e.path] for e in entries]
     print_line(render_table(["ID", "KEY", "NAME", "ACTIVE", "PATH"], rows))
 
 

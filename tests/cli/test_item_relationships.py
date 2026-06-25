@@ -86,7 +86,9 @@ def test_relates_and_unrelates(workspace):
 
 
 def test_parent_sets_and_unparent_clears(workspace):
-    item_service.create_item(workspace, title="Feature", type="feature", now=NOW)  # VP-1
+    item_service.create_item(
+        workspace, title="Feature", type="feature", now=NOW
+    )  # VP-1
     item_service.create_item(workspace, title="Task", type="task", now=NOW)  # VP-2
 
     set_result = runner.invoke(app, ["item", "parent", "VP-2", "VP-1"])
@@ -103,7 +105,9 @@ def test_parent_sets_and_unparent_clears(workspace):
 def test_parent_invalid_hierarchy_exits_1(workspace):
     # task cannot parent a feature.
     item_service.create_item(workspace, title="Task", type="task", now=NOW)  # VP-1
-    item_service.create_item(workspace, title="Feature", type="feature", now=NOW)  # VP-2
+    item_service.create_item(
+        workspace, title="Feature", type="feature", now=NOW
+    )  # VP-2
     result = runner.invoke(app, ["item", "parent", "VP-2", "VP-1"])
     assert result.exit_code == 1
     assert "Error:" in result.output

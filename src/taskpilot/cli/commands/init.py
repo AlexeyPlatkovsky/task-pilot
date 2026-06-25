@@ -48,10 +48,20 @@ def derive_key(name: str) -> str:
 
 def init_command(
     ctx: typer.Context,
-    path: str = typer.Argument(".", help="Repository root to initialize (only this folder is inspected)."),
-    key: str = typer.Option(None, "--key", help="Project key used as the item-ID prefix. Derived from the folder name if omitted."),
-    name: str = typer.Option(None, "--name", help="Project display name. Defaults to the folder name."),
-    project_id: str = typer.Option(None, "--id", help="Project id. Derived from the name if omitted."),
+    path: str = typer.Argument(
+        ".", help="Repository root to initialize (only this folder is inspected)."
+    ),
+    key: str = typer.Option(
+        None,
+        "--key",
+        help="Project key used as the item-ID prefix. Derived from the folder name if omitted.",
+    ),
+    name: str = typer.Option(
+        None, "--name", help="Project display name. Defaults to the folder name."
+    ),
+    project_id: str = typer.Option(
+        None, "--id", help="Project id. Derived from the name if omitted."
+    ),
 ) -> None:
     """Initialize a TaskPilot workspace and register the project."""
     state = get_state(ctx)

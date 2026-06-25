@@ -11,7 +11,7 @@ JSON output dumps the item model in canonical field order for determinism
 from __future__ import annotations
 
 import getpass
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 
@@ -30,7 +30,10 @@ def _default_author() -> str:
     except Exception:  # pragma: no cover - getuser is environment-dependent
         return "unknown"
 
+
 __all__ = ["register"]
+
+_HUMAN_SKIP = frozenset({"schema_version"})
 
 item_app = typer.Typer(
     name="item",
@@ -40,7 +43,9 @@ item_app = typer.Typer(
 )
 
 
-def _emit_item(ctx: typer.Context, item: Item, *, human_prefix: str | None = None) -> None:
+def _emit_item(
+    ctx: typer.Context, item: Item, *, human_prefix: str | None = None
+) -> None:
     """Render a single item as JSON or a human key/value block (or a one-liner)."""
     if get_state(ctx).json:
         print_json(item.model_dump())
@@ -51,7 +56,7 @@ def _emit_item(ctx: typer.Context, item: Item, *, human_prefix: str | None = Non
     pairs = [
         (name, str(value))
         for name, value in item.model_dump().items()
-        if value is not None
+        if value is not None and name not in _HUMAN_SKIP
     ]
     print_line(render_key_values(pairs))
 
@@ -61,14 +66,22 @@ def item_list(
     ctx: typer.Context,
     status: Optional[str] = typer.Option(None, "--status", help="Filter by status."),
     type: Optional[str] = typer.Option(None, "--type", help="Filter by item type."),
-    project: Optional[str] = typer.Option(None, "--project", help="Filter by project key (id prefix)."),
-    include_deleted: bool = typer.Option(False, "--include-deleted", help="Include soft-deleted items."),
+    project: Optional[str] = typer.Option(
+        None, "--project", help="Filter by project key (id prefix)."
+    ),
+    include_deleted: bool = typer.Option(
+        False, "--include-deleted", help="Include soft-deleted items."
+    ),
 ) -> None:
     """List items in the current workspace."""
     with service_errors():
         paths = find_workspace()
         items = item_service.list_items(
-            paths, project=project, status=status, type=type, include_deleted=include_deleted
+            paths,
+            project=project,
+            status=status,
+            type=type,
+            include_deleted=include_deleted,
         )
 
     if get_state(ctx).json:
@@ -98,13 +111,21 @@ def item_show(
 def item_create(
     ctx: typer.Context,
     title: str = typer.Option(..., "--title", help="Item title (required)."),
-    type: str = typer.Option(..., "--type", help="Item type: epic|feature|task|bug (required)."),
-    priority: str = typer.Option("normal", "--priority", help="Priority: low|normal|high."),
+    type: str = typer.Option(
+        ..., "--type", help="Item type: epic|feature|task|bug (required)."
+    ),
+    priority: str = typer.Option(
+        "normal", "--priority", help="Priority: low|normal|high."
+    ),
     status: str = typer.Option("backlog", "--status", help="Initial status."),
-    description: Optional[str] = typer.Option(None, "--description", help="Item description."),
+    description: Optional[str] = typer.Option(
+        None, "--description", help="Item description."
+    ),
     parent: Optional[str] = typer.Option(None, "--parent", help="Parent item id."),
     tag: Optional[list[str]] = typer.Option(None, "--tag", help="Tag (repeatable)."),
-    created_by: Optional[str] = typer.Option(None, "--created-by", help="Author identity."),
+    created_by: Optional[str] = typer.Option(
+        None, "--created-by", help="Author identity."
+    ),
 ) -> None:
     """Create a new item and print its id."""
     with service_errors():
@@ -131,16 +152,20 @@ def item_update(
     type: Optional[str] = typer.Option(None, "--type", help="New type."),
     priority: Optional[str] = typer.Option(None, "--priority", help="New priority."),
     status: Optional[str] = typer.Option(None, "--status", help="New status."),
-    description: Optional[str] = typer.Option(None, "--description", help="New description."),
+    description: Optional[str] = typer.Option(
+        None, "--description", help="New description."
+    ),
     parent: Optional[str] = typer.Option(None, "--parent", help="New parent item id."),
-    tag: Optional[list[str]] = typer.Option(None, "--tag", help="Replace tags (repeatable)."),
+    tag: Optional[list[str]] = typer.Option(
+        None, "--tag", help="Replace tags (repeatable)."
+    ),
 ) -> None:
     """Update fields on an existing item.
 
     Only the options you pass are changed; ``--parent`` and ``--tag`` set new
     values (they do not merge). Every update refreshes ``updated_at``.
     """
-    fields: dict[str, object] = {}
+    fields: dict[str, Any] = {}
     if title is not None:
         fields["title"] = title
     if type is not None:
@@ -153,7 +178,7 @@ def item_update(
         fields["description"] = description
     if parent is not None:
         fields["parent_id"] = parent
-    if tag:
+    if tag is not None:
         fields["tags"] = tag
 
     with service_errors():
@@ -252,7 +277,9 @@ def item_comment(
     ctx: typer.Context,
     item_id: str = typer.Argument(..., help="Item id to comment on."),
     text: str = typer.Argument(..., help="Comment body."),
-    author: Optional[str] = typer.Option(None, "--author", help="Comment author (defaults to the local user)."),
+    author: Optional[str] = typer.Option(
+        None, "--author", help="Comment author (defaults to the local user)."
+    ),
 ) -> None:
     """Add a comment to an item and print the comment filename."""
     with service_errors():

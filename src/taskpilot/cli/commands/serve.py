@@ -21,8 +21,12 @@ __all__ = ["register"]
 
 def serve_command(
     ctx: typer.Context,
-    host: str = typer.Option("127.0.0.1", "--host", help="Host interface to bind (reserved for F004)."),
-    port: int = typer.Option(7152, "--port", help="Port to listen on (reserved for F004)."),
+    host: str = typer.Option(
+        "127.0.0.1", "--host", help="Host interface to bind (reserved for F004)."
+    ),
+    port: int = typer.Option(
+        7152, "--port", help="Port to listen on (reserved for F004)."
+    ),
 ) -> None:
     """Start the local REST API server (not yet available — see F004)."""
     typer.echo(

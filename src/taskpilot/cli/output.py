@@ -57,12 +57,12 @@ def render_table(headers: list[str], rows: list[list[str]]) -> str:
     header and rule are still returned so the column shape is visible.
     """
     columns = [headers] + rows
-    widths = [
-        max(len(str(row[i])) for row in columns) for i in range(len(headers))
-    ]
+    widths = [max(len(str(row[i])) for row in columns) for i in range(len(headers))]
 
     def _format(cells: list[str]) -> str:
-        return "  ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(cells)).rstrip()
+        return "  ".join(
+            str(cell).ljust(widths[i]) for i, cell in enumerate(cells)
+        ).rstrip()
 
     lines = [_format(headers), "  ".join("-" * w for w in widths).rstrip()]
     lines.extend(_format(row) for row in rows)

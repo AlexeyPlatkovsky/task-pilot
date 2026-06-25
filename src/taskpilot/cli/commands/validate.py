@@ -13,7 +13,7 @@ import typer
 
 from taskpilot.cli.context import get_state
 from taskpilot.cli.errors import service_errors
-from taskpilot.cli.exit_codes import EXIT_OK, EXIT_USER_ERROR
+from taskpilot.cli.exit_codes import EXIT_OK, EXIT_SYSTEM_ERROR, EXIT_USER_ERROR
 from taskpilot.cli.output import print_json, print_line
 from taskpilot.cli.workspace import find_workspace
 from taskpilot.core.validation import Finding, ValidationReport, validate_workspace
@@ -34,7 +34,11 @@ def validate_command(ctx: typer.Context) -> None:
     state = get_state(ctx)
     with service_errors():
         paths = find_workspace()
-    report: ValidationReport = validate_workspace(paths)
+        try:
+            report: ValidationReport = validate_workspace(paths)
+        except OSError as exc:
+            typer.echo(f"Error: {exc}", err=True)
+            raise typer.Exit(EXIT_SYSTEM_ERROR) from exc
 
     if state.json:
         print_json(report.to_dict())

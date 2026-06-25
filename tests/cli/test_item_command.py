@@ -31,7 +31,9 @@ def workspace(tmp_path: Path, monkeypatch) -> WorkspacePaths:
 
 
 def test_create_prints_id_and_writes_file(workspace):
-    result = runner.invoke(app, ["item", "create", "--title", "Benchmark task", "--type", "task"])
+    result = runner.invoke(
+        app, ["item", "create", "--title", "Benchmark task", "--type", "task"]
+    )
     assert result.exit_code == 0, result.output
     assert "VP-1" in result.output
     assert workspace.item_file("VP-1").is_file()
@@ -39,7 +41,18 @@ def test_create_prints_id_and_writes_file(workspace):
 
 def test_create_json_outputs_item(workspace):
     result = runner.invoke(
-        app, ["--json", "item", "create", "--title", "Task", "--type", "task", "--priority", "high"]
+        app,
+        [
+            "--json",
+            "item",
+            "create",
+            "--title",
+            "Task",
+            "--type",
+            "task",
+            "--priority",
+            "high",
+        ],
     )
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
@@ -102,7 +115,9 @@ def test_list_json_returns_created_items(workspace):
 
 def test_list_filters_by_status(workspace):
     item_service.create_item(workspace, title="A", type="task", status="done", now=NOW)
-    item_service.create_item(workspace, title="B", type="task", status="backlog", now=NOW)
+    item_service.create_item(
+        workspace, title="B", type="task", status="backlog", now=NOW
+    )
     result = runner.invoke(app, ["--json", "item", "list", "--status", "done"])
     payload = json.loads(result.output)
     assert [i["id"] for i in payload] == ["VP-1"]
@@ -119,7 +134,9 @@ def test_list_empty_human(workspace):
 
 def test_update_changes_field(workspace):
     item_service.create_item(workspace, title="Old", type="task", now=NOW)
-    result = runner.invoke(app, ["item", "update", "VP-1", "--title", "New", "--status", "ready"])
+    result = runner.invoke(
+        app, ["item", "update", "VP-1", "--title", "New", "--status", "ready"]
+    )
     assert result.exit_code == 0, result.output
     assert "Updated VP-1" in result.output
     assert item_service.read_item(workspace, "VP-1").title == "New"

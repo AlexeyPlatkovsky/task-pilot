@@ -23,7 +23,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-import yaml
 from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from typing_extensions import Annotated
 
@@ -131,7 +130,9 @@ def save_registry(registry_dir: Path, registry: Registry) -> None:
     """
     registry_dir.mkdir(parents=True, exist_ok=True)
     content = dump_yaml(registry.model_dump()).encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(registry_dir), prefix=".registry_", suffix=".tmp")
+    fd, tmp = tempfile.mkstemp(
+        dir=str(registry_dir), prefix=".registry_", suffix=".tmp"
+    )
     try:
         os.write(fd, content)
     except BaseException:
