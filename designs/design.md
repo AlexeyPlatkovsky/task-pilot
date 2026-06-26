@@ -175,7 +175,7 @@ Invariant across themes. Base-4 progression (4 → 6 → 8 → 12 → 16 → 24 
 | `--space-6` | `1.5rem` | 24 | Between sections |
 | `--space-8` | `2rem` | 32 | Major section gap |
 
-> `--space-1_5` not yet in `tokens.css`. Badge vertical padding (0.125rem / 2px) is component-specific — not a token.
+> Badge vertical padding (0.125rem / 2px) is component-specific — not a token.
 
 ---
 
@@ -189,7 +189,7 @@ Invariant across themes.
 | `--radius-md` | `6px` | Cards, inputs, buttons, comment threads |
 | `--radius-lg` | `8px` | Columns, modals, dialogs |
 
-> **Merge applied:** `tokens.css` has 4 levels (sm=3px, md=4px, lg=6px, xl=8px). sm+md merged (1px diff) → sm=4px; lg→md, xl→lg. Update needed in `tokens.css`.
+> **Merge applied (F009-T0):** `tokens.css` now declares three levels — sm=4px, md=6px, lg=8px. The former `--radius-xl` was removed and its usages renamed to `--radius-lg`; former `--radius-lg` usages renamed to `--radius-md`.
 
 ---
 
@@ -215,7 +215,7 @@ Invariant across themes.
 |---|---|
 | `--font-family-base` | `system-ui, -apple-system, sans-serif` |
 
-> Not yet in `tokens.css` — set directly on `html` in `index.css`.
+> In `tokens.css` and referenced by `html` in `index.css` (F009-T0).
 
 ### Font Size
 
@@ -227,7 +227,7 @@ Invariant across themes.
 | `--font-size-lg` | `1.25rem` | 20 | Modal titles, dialog headings |
 
 > **Merges:** 0.6875rem + 0.75rem → `--font-size-xs` (1px diff). 1.125rem + 1.25rem → `--font-size-lg` (2px diff, both heading contexts).
-> `--font-size-xs` and `--font-size-lg` not yet in `tokens.css`.
+> `--font-size-xs` and `--font-size-lg` are in `tokens.css` and applied in component CSS (F009-T0).
 
 ### Font Weight
 
@@ -236,7 +236,7 @@ Invariant across themes.
 | `--font-weight-normal` | `400` | Body text |
 | `--font-weight-semibold` | `600` | Labels, headings, emphasis |
 
-> Not yet in `tokens.css`. One `font-weight: bold` (700) in components should be unified to `600`.
+> In `tokens.css` (F009-T0). The former `font-weight: bold` (700) in `KanbanCard` was unified to `--font-weight-semibold`.
 
 ### Line Height
 
@@ -246,7 +246,7 @@ Invariant across themes.
 | `--line-height-base` | `1.5` | Body text, forms (global default) |
 | `--line-height-relaxed` | `1.6` | Modal reading text |
 
-> Not yet in `tokens.css`.
+> In `tokens.css` and applied in component CSS (F009-T0).
 
 ### Letter Spacing
 
@@ -254,7 +254,7 @@ Invariant across themes.
 |---|---|---|
 | `--letter-spacing-wide` | `0.05em` | Uppercase section labels |
 
-> Not yet in `tokens.css`.
+> In `tokens.css` and applied in component CSS (F009-T0).
 
 ---
 
@@ -338,18 +338,8 @@ with `Read` or `Grep` directly.
 
 ## Tokens Not Yet in tokens.css
 
-| Token | Value |
-|---|---|
-| `--space-1_5` | `0.375rem` |
-| `--font-family-base` | `system-ui, -apple-system, sans-serif` |
-| `--font-size-xs` | `0.75rem` |
-| `--font-size-lg` | `1.25rem` |
-| `--font-weight-normal` | `400` |
-| `--font-weight-semibold` | `600` |
-| `--line-height-tight` | `1.4` |
-| `--line-height-base` | `1.5` |
-| `--line-height-relaxed` | `1.6` |
-| `--letter-spacing-wide` | `0.05em` |
+All previously pending tokens were added to `tokens.css` in F009-T0. `tokens.css` is now in full
+sync with this document. New tokens go to `tokens.css` and this file together.
 
 ---
 
@@ -359,7 +349,7 @@ with `Read` or `Grep` directly.
   until List View and Tree View are implemented.
 - No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
   automatically; `[data-theme]` override requires manual JS until a toggle is built.
-- `tokens.css` radius levels need update: merge to sm=4px, md=6px, lg=8px and remove xl (see Merge Log).
-- Several typography and spacing tokens exist in this spec but not yet in `tokens.css` (see table above).
-- One `font-weight: bold` (700) in components should be unified to `--font-weight-semibold`.
+- Token sync complete (F009-T0): radius merged to sm=4px/md=6px/lg=8px with `--radius-xl` removed;
+  all typography and spacing tokens added; the stray `font-weight: bold` unified to
+  `--font-weight-semibold`; component CSS now references tokens rather than literals.
 - Update this file when an accepted specification or implemented UI establishes a durable pattern.

@@ -101,16 +101,20 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines all six spacing tokens", () => {
-    for (const n of [1, 2, 3, 4, 6, 8]) {
+  it("defines all seven spacing tokens", () => {
+    for (const n of ["1", "1_5", "2", "3", "4", "6", "8"]) {
       expect(css, `missing --space-${n}`).toContain(`--space-${n}:`);
     }
   });
 
-  it("defines all four radius tokens", () => {
-    for (const size of ["sm", "md", "lg", "xl"]) {
-      expect(css, `missing --radius-${size}`).toContain(`--radius-${size}:`);
-    }
+  it("defines the three merged radius tokens with correct values", () => {
+    expect(css).toContain("--radius-sm: 4px");
+    expect(css).toContain("--radius-md: 6px");
+    expect(css).toContain("--radius-lg: 8px");
+  });
+
+  it("no longer defines --radius-xl after the radius merge (F009-R10)", () => {
+    expect(css).not.toContain("--radius-xl");
   });
 
   it("defines all three shadow tokens", () => {
@@ -123,8 +127,20 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines both typography tokens", () => {
-    for (const name of ["--font-size-sm", "--font-size-base"]) {
+  it("defines the full typography token set (F009-R10)", () => {
+    for (const name of [
+      "--font-family-base",
+      "--font-size-xs",
+      "--font-size-sm",
+      "--font-size-base",
+      "--font-size-lg",
+      "--font-weight-normal",
+      "--font-weight-semibold",
+      "--line-height-tight",
+      "--line-height-base",
+      "--line-height-relaxed",
+      "--letter-spacing-wide",
+    ]) {
       expect(css, `missing ${name}`).toContain(`${name}:`);
     }
   });
