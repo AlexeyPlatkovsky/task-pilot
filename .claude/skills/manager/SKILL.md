@@ -65,7 +65,8 @@ Size definitions (choose the highest that applies):
   `.claude/pipelines/ui-change.md`.
 - Design-only work in Open Design (OD) through Open Design MCP without production code change:
   `.claude/pipelines/od-design.md`. OD design work is always non-trivial (UI contracts, generated
-  artifact review required). Before routing here, confirm the Open Design MCP is available.
+  artifact review required). The pipeline owns the OD availability gate (including daemon startup
+  fallback); route here without a pre-routing MCP check.
 - Converting an accepted OD artifact to tested React code: `.claude/pipelines/od-to-code.md`.
   Before routing here, confirm an OD project/artifact is available and an accepted spec or explicit
   acceptance criteria is present.
