@@ -36,7 +36,7 @@ risk as medium. Conditional gates in stages 4 and 9 apply based on this classifi
    - If Critical, High, or Major findings remain after 3 loops, stop with blockers.
 
 5. **Implementation.** Run `implement-change` using the component specification from stage 2 and
-   the Design Token Reference in `.claude/docs/design-book.md`. OD source CSS/HTML is design
+   the design token reference in `designs/design.md`. OD source CSS/HTML is design
    evidence, not production code to copy blindly.
    Require: `Skill: implement-change - output below`.
 

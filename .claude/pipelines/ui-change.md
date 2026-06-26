@@ -23,7 +23,7 @@ states, Kanban, tree, accessibility, responsive behavior, and visual-system chan
 1. Run `work-with-git` when the conditional gates require it.
 2. Run `spec-driven-development` unless an accepted specification already covers the requested
    behavior. Require `Skill: spec-driven-development - output below`.
-3. Run `design-ui`; create or update `.claude/docs/design-book.md`. Require
+3. Run `design-ui`; create or update `designs/design.md`. Require
    `Skill: design-ui - output below`.
 4. When implementation is requested, run `test-change` for tests-first coverage. Require
    `Skill: test-change - output below`.
@@ -45,6 +45,6 @@ maintenance and task-complete.
 
 ## Output Contract
 
-Begin with `Pipeline: ui-change - output below` and report status, design-book path, completed
+Begin with `Pipeline: ui-change - output below` and report status, design-system path, completed
 handoffs, artifact labels, visual evidence, skipped implementation steps, review-loop attempt count
 and repeated artifact labels, and blockers.

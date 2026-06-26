@@ -145,6 +145,7 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 
 ## Quality and Safety
 
+- Use emojis to signal status in output: ✅ for completed tasks/features, ❌ for failures, 🚧 for in-progress, ⏳ for blocked/pending.
 - Map each non-trivial change to explicit acceptance criteria.
 - Follow the testing pyramid defined in `.claude/conventions/testing.md`.
 - Cover failure paths, invalid files, deterministic output, and relevant cross-platform paths.

@@ -61,22 +61,22 @@ These constraints adapt current MCP and OD guidance:
 
 ### 1. Load Required Context
 
-- Read `.claude/docs/design-book.md` and `docs/design.md` before creating, generating, or editing
+- Read `designs/design.md` and `docs/design.md` before creating, generating, or editing
   an OD artifact.
 - Search `docs/specs/` for an accepted spec related to the work; read it when present.
 - If the OD project has an attached design system or the user names one, read the relevant
   `od://design-systems/<id>/DESIGN.md` resource before starting.
-- Enumerate the active "Do not" constraints from `.claude/docs/design-book.md` Principles or
-  Visual Direction before changing a design.
+- Enumerate the active "Do not" constraints from `designs/design.md` Visual Direction section
+  before changing a design.
 
 Stop and present 2-3 options with trade-offs when:
 
-- a token, component, spacing value, or layout rule needed for the task is not in the design book
-  or attached OD design system;
+- a token, component, spacing value, or layout rule needed for the task is not in `designs/design.md`
+  or the attached OD design system;
 - a hardcoded value is about to be introduced where a documented token exists;
 - a new component duplicates an existing reusable component or OD source module;
 - a frame/page requires a new interaction state, breakpoint behavior, or layout pattern not covered
-  by the design book.
+  by `designs/design.md`.
 
 For ambiguous decisions within the documented system, pick the nearest match, record it as an
 inferred decision, and continue.
@@ -113,7 +113,7 @@ For generation or broad refinement:
    setting `start_run.agent`; when it is unavailable, omit the agent override.
 3. Call `start_run()` with the selected project, skill/plugin, and a prompt that includes:
    - TaskPilot product context;
-   - relevant design-book constraints;
+   - relevant design-system constraints from `designs/design.md`;
    - required states;
    - accessibility baseline;
    - token and icon-library rules;

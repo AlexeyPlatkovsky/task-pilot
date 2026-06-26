@@ -12,14 +12,14 @@ emit `Pipeline: pen-design — blocked` and return control to the manager for re
 
 Before stage 1:
 - Confirm the Pencil MCP server is available (`mcp__pencil__get_editor_state`). Stop if unavailable.
-- Confirm `.claude/docs/design-book.md` is readable. Stop if unavailable.
+- Confirm `designs/design.md` is readable. Stop if unavailable.
 - Confirm the target `.pen` file exists in `designs/`. If it does not exist, create it with
   `Write` using the scaffold `{"version":"2.14","children":[]}`, then ask the user to open it in
   Pencil desktop so it becomes the active editor. Stop if the user cannot open it.
 
 ## Ordered Steps
 
-1. **Context load.** Read `.claude/docs/design-book.md` and `docs/design.md`. Search `docs/specs/`
+1. **Context load.** Read `designs/design.md` and `docs/design.md`. Search `docs/specs/`
    for a spec related to the work; if one exists, read it. Emit:
    `Pipeline: pen-design — stage 1 context loaded`
 

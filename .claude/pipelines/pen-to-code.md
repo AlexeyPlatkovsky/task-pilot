@@ -33,7 +33,7 @@ treat risk as medium. Conditional gates in stages 4 and 9 apply based on this cl
 
 5. **Implementation.** Run `implement-change`. All CSS must reference tokens from
    `web/src/tokens.css`; no hardcoded hex, rgba, rem spacing, px radius, or box-shadow values in
-   new `.module.css` files. See `.claude/docs/design-book.md` Design Token Reference.
+   new `.module.css` files. See `designs/design.md` for the token reference.
    Require: `Skill: implement-change - output below`.
 
 6. **Post-implementation tests.** Run `test-change` to execute the component tests written in

@@ -1,6 +1,6 @@
 # ADR-006: System Registry in the CLI Adapter for Alpha
 
-- **Status:** superseded — planned migration executed in F005 (see Amendment below)
+- **Status:** ❌ superseded — planned migration executed in F005 (see Amendment below)
 - **Date:** 2026-06-25
 - **Deciders:** TaskPilot project
 

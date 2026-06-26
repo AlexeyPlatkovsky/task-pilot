@@ -2,7 +2,7 @@
 
 ## Status
 
-accepted
+✅ accepted
 
 This specification is production-ready as the accepted product foundation. Later specifications may
 refine unresolved details, but product work must preserve the invariants and boundaries defined

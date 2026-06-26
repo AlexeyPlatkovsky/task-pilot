@@ -17,7 +17,7 @@ Before stage 1:
 
 - Confirm the Open Design MCP server is available (`mcp__open_design__get_active_context` or
   `mcp__open_design__list_projects`). Stop if unavailable.
-- Confirm `.claude/docs/design-book.md` is readable. Stop if unavailable.
+- Confirm `designs/design.md` is readable. Stop if unavailable.
 - For existing-design requests, confirm an active OD project exists. If none exists, ask the user to
   open the intended OD project and stop. For new design artifact requests, record that
   `open-design` must create the OD project; do not create it in this prerequisite gate.
@@ -26,7 +26,7 @@ Before stage 1:
 
 ## Ordered Steps
 
-1. **Context load.** Read `.claude/docs/design-book.md` and `docs/design.md`. Search `docs/specs/`
+1. **Context load.** Read `designs/design.md` and `docs/design.md`. Search `docs/specs/`
    for a spec related to the work; if one exists, read it. Confirm whether a relevant OD design
    system resource (`od://design-systems/<id>/DESIGN.md`) is attached or supplied. Emit:
    `Pipeline: od-design - output below` with status, stage `context-loaded`, scope, assumptions,

@@ -1,6 +1,6 @@
 # 0003: CSS Design Token System and Icon Library
 
-Status: accepted
+Status: ✅ accepted
 
 ## Outcome
 

@@ -27,8 +27,8 @@ Before executing:
 
 ## Execution Steps
 
-1. **Load design context.** Read `.claude/docs/design-book.md` (Required States, Accessibility
-   Baseline, Visual Direction, Design Token Reference, Icon Library sections) and `docs/design.md`.
+1. **Load design context.** Read `designs/design.md` (Required States, Accessibility
+   Baseline, Visual Direction, Color Tokens, Icon Library sections) and `docs/design.md`.
 
 2. **Read the design.** Call in order:
    - `mcp__pencil__get_editor_state(include_schema: true)` — load current schema.
@@ -48,7 +48,7 @@ Before executing:
    - Required Lucide icons with `aria-label` values.
 
 4. **Gap analysis.** Compare visible states against the Required States list from
-   `.claude/docs/design-book.md`. List every required state absent from the frame.
+   `designs/design.md`. List every required state absent from the frame.
    Also report any token gap (a visual value that has no mapping in `web/src/tokens.css`) with a
    proposed token name and value range.
    Stop and present both gap lists to the user before emitting the component specification. Await

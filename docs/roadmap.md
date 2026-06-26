@@ -2,9 +2,9 @@
 
 ## Release Levels
 
-- **Alpha**: MVP used to validate the concept. Core workflow works end-to-end.
-- **Beta**: Product-ready and releasable. Feature-complete with polished UX.
-- **Release**: All or almost all initial features implemented with documentation and tests.
+- **✅ Alpha**: MVP used to validate the concept. Core workflow works end-to-end.
+- **⏳ Beta**: Product-ready and releasable. Feature-complete with polished UX.
+- **⏳ Release**: All or almost all initial features implemented with documentation and tests.
 
 ## Alpha Scope
 
@@ -53,51 +53,59 @@ Adds over Beta:
 
 ## Implementation Phases
 
-### Phase 1 — File model and parser
+### ✅ Phase 1 — File model and parser
 
 Define workspace folder layout. Implement parser for item YAML files and comment Markdown files.
 Implement writer with deterministic formatting. Implement validation. Add basic tests.
 
 Serves: [F001: Task File Storage](features/F001_task-file-storage/)
 
-### Phase 2 — Domain/service layer
+### ✅ Phase 2 — Domain/service layer
 
 Project operations, item operations, comment operations, link operations, validation rules.
 No UI yet.
 
 Serves: [F002: Domain Services](features/F002_domain-services/)
 
-### Phase 3 — CLI
+### ✅ Phase 3 — CLI
 
 `init`, project list, item list/show/create/update, comments, JSON output, validation
 command.
 
 Serves: [F003: CLI Interface](features/F003_cli-interface/)
 
-### Phase 4 — Local WebUI
+### ✅ Phase 4 — Local WebUI
 
 Backend REST API, React app, project selector, Kanban board, item detail modal, read-only comments.
 
 Serves: [F004: WebUI Workspace](features/F004_webui-workspace/)
 Serves: [F005: REST API](features/F005_rest-api/)
 
-### Phase 5 — Better views
+### ⏳ Phase 5 — Better views
 
 Tree view, filters, sorting, and relation display.
 
 Serves: [F006: Advanced Views](features/F006_advanced-views/)
 
-### Phase 6 — Git helpers
+### ⏳ Phase 6 — Git helpers
 
 Sync status, changed task files summary, validation before commit, optional pull/push wrappers.
 
 Serves: [F007: Git Helpers](features/F007_git-helpers/)
 
-### Phase 7 — MCP adapter
+### ⏳ Phase 7 — MCP adapter
 
 Expose core operations as MCP tools. No separate logic. Only after CLI/API stabilizes.
 
 Serves: [F008: MCP Adapter](features/F008_mcp-adapter/)
+
+### ⏳ Phase 0 — Design gate (OD prototypes)
+
+Create an Open Design project with the design system, component library, and page prototypes
+for all screens in the Alpha and Beta scope. Prototypes must pass design review before the
+corresponding UI implementation phase begins.
+
+Serves: [F009: OD Design Prototypes](features/F009_od-design-prototypes/)
 
 ## Recommended First Usable Slice
 

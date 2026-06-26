@@ -1,6 +1,6 @@
 # ADR-005: Kanban Board as Primary Workspace Page
 
-- **Status:** accepted
+- **Status:** ✅ accepted
 - **Date:** 2026-06-23
 - **Deciders:** TaskPilot project
 

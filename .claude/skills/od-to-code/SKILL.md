@@ -30,8 +30,8 @@ Before executing:
 
 ## Execution Steps
 
-1. **Load design context.** Read `.claude/docs/design-book.md` (Required States, Accessibility
-   Baseline, Visual Direction, Design Token Reference, Icon Library sections) and `docs/design.md`.
+1. **Load design context.** Read `designs/design.md` (Required States, Accessibility
+   Baseline, Visual Direction, Color Tokens, Icon Library sections) and `docs/design.md`.
    Read a relevant OD design-system resource when attached or supplied.
 
 2. **Read the OD artifact.** Call in order:
@@ -56,7 +56,7 @@ Before executing:
    - Required Lucide icons through `web/src/components/ui/Icon.tsx` with `aria-label` strategy.
 
 4. **Gap analysis.** Compare visible states against the Required States list from
-   `.claude/docs/design-book.md`. List every required state absent from the OD artifact.
+   `designs/design.md`. List every required state absent from the OD artifact.
    Also report any token gap (a visual value that has no mapping in `web/src/tokens.css`) with a
    proposed token name and value range.
    Stop and present both gap lists to the user before emitting the component specification. Await

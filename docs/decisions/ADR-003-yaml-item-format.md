@@ -1,6 +1,6 @@
 # ADR-003: Pure YAML Item Files
 
-- **Status:** accepted
+- **Status:** ✅ accepted
 - **Date:** 2026-06-23
 - **Deciders:** TaskPilot project
 

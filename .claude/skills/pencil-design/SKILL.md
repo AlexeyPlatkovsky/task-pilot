@@ -48,7 +48,7 @@ data loss.
 
 ### 1. Load required context
 
-- Read `.claude/docs/design-book.md` and `docs/design.md` before opening any `.pen` file. These are the only visual policy sources for tokens, naming, components, panel order, and layout conventions.
+- Read `designs/design.md` and `docs/design.md` before opening any `.pen` file. These are the only visual policy sources for tokens, naming, components, panel order, and layout conventions.
 - Start Pencil work with:
 
 ```
@@ -61,13 +61,13 @@ get_editor_state(include_schema: true)
 
 **Constraints checkpoint — read these before touching the canvas:**
 
-Read `.claude/docs/design-book.md` § Principles and enumerate the active "Do not" constraints for this session. Do not proceed from memory; read the live source. Any design operation that would violate a Principles constraint must stop, present 2–3 options with trade-offs, and wait for approval.
+Read `designs/design.md` § Visual Direction and Core Patterns and enumerate the active "Do not" constraints for this session. Do not proceed from memory; read the live source. Any design operation that would violate these constraints must stop, present 2–3 options with trade-offs, and wait for approval.
 
 **Stop triggers — halt before executing any `batch_design` call, then present 2–3 options and wait for approval:**
-- A token, component, spacing value, or layout rule needed for the task is not in the design-book.
+- A token, component, spacing value, or layout rule needed for the task is not in `designs/design.md`.
 - A hardcoded value is about to be introduced where a documented token exists.
 - A new component would be created that duplicates an existing one in the library (return to the §3 decision gate first — check for variants before halting).
-- A frame requires a new interaction state, breakpoint behavior, or layout pattern not covered by the design-book.
+- A frame requires a new interaction state, breakpoint behavior, or layout pattern not covered by `designs/design.md`.
 
 For ambiguous decisions within the documented system (e.g., choosing between two valid token values), pick the nearest match, record it as an inferred decision, and continue.
 
@@ -85,7 +85,7 @@ batch_get({ reusable: true })
 
 ### 3. Shared component library
 
-The canonical shared component source is `designs/shared-components-lib.pen`. Read `.claude/docs/design-book.md` § "Component Library" for the current component inventory and their node IDs.
+The canonical shared component source is `designs/shared-components-lib.pen`. Read `designs/design.md` § "Icon Library" for the current icon inventory; component inventory is maintained in the `.pen` file itself.
 
 **Before creating any new component — work through this decision gate in order:**
 1. Search the open file for an existing reusable component (`batch_get({ reusable: true })`).
@@ -111,7 +111,7 @@ Never skip steps 1 and 2. Variant proliferation is the primary source of design-
 
 - Use documented tokens and existing Pencil variables for repeated color, type, spacing, radius, and surface values.
 - Reuse existing components before creating new structures; prefer component copies when an equivalent component exists.
-- Name meaningful nodes with business-semantic kebab-case and preserve panel reading order per `.claude/docs/design-book.md`.
+- Name meaningful nodes with business-semantic kebab-case and preserve panel reading order.
 - Name all significant nodes by purpose, not primitive type: "item-detail-modal" not "Frame 3".
 - Pencil renders siblings in reverse order in the Layers tab — order bottom-to-top, right-to-left when that matters.
 - Keep the tree navigable: no generic leftovers, duplicate ambiguous sibling names, meaningless wrappers, or avoidable nesting.
@@ -174,7 +174,7 @@ Then include:
 | Target | Document, page, frame, or node area changed |
 | Files changed | `.pen` files created or modified |
 | Changes made | Design elements created, updated, or deleted |
-| Guidelines used | Pencil guidelines, TaskPilot design-book patterns, or `docs/design.md` sections consulted |
+| Guidelines used | Pencil guidelines, `designs/design.md` sections, or `docs/design.md` sections consulted |
 | Verification | `snapshot_layout`, `batch_get`, screenshot path, or reason not run |
 | Assumptions / inferred decisions | Material assumptions or inferred design decisions (e.g., "used `space-xl` for section gap — task said 'generous spacing', nearest token was 24px"), or `none` |
 | Warnings / Errors | Tool warnings or errors, or `none` |
