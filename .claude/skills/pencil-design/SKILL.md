@@ -14,11 +14,33 @@ This skill is pure execution. It does not choose design directions (`brainstorm`
 
 ## What Is Pencil
 
-[Pencil](https://pencil.dev) is a UI/UX design tool for creating web and mobile mockups. Designs are stored as encrypted `.pen` files and can only be read or edited through the Pencil MCP server — never with standard file tools like Read or Grep.
+[Pencil](https://pencil.dev) is a UI/UX design tool for creating web and mobile mockups. Designs are stored as `.pen` files — JSON documents with a `"version": "2.14"` field. Read and editing of design content must go through Pencil MCP tools, not `Read` or `Grep`. New blank files can be created with `Write` using the minimal scaffold `{"version":"2.14","children":[]}`.
 
 ## Prerequisites
 
 The Pencil MCP server must be installed, configured, and running in your Claude Code settings. Verify availability by confirming Pencil MCP tools such as `get_editor_state` and `get_guidelines` are callable. If they are unavailable, stop and ask the user to configure the Pencil MCP server before continuing.
+
+## Hard MCP Limitations
+
+These are protocol-level constraints. Do not attempt to work around them; violations produce silent
+data loss.
+
+1. **File creation.** Pencil MCP cannot create `.pen` files. Use the `Write` tool with the minimal
+   scaffold `{"version":"2.14","children":[]}` to create new files on disk before populating them
+   via `batch_design`.
+
+2. **Active-editor-only writes.** `batch_design` writes to the file reported by `get_editor_state`,
+   not to `filePath`. The `filePath` parameter selects variable/import scope for reads only. To
+   populate a specific `.pen` file, the user must open it in Pencil desktop; then call
+   `get_editor_state` to confirm the active editor changed before writing.
+
+3. **Unified canvas.** All `.pen` files under `designs/` share one design space. Opening any file
+   reveals the same combined content. Individual files act as entry points, not isolated containers.
+   Do not rely on per-file isolation.
+
+4. **Before every multi-file task, check `get_editor_state`** to confirm which file is active.
+   If the active file does not match the intended target, report the mismatch and ask the user to
+   switch files in Pencil.
 
 ---
 

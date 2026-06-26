@@ -95,6 +95,54 @@ with `Read` or `Grep` directly.
 - Design-to-implementation sessions: governed by the `pen-to-code` pipeline (`.claude/pipelines/pen-to-code.md`).
 - The `pencil-design` skill governs all `.pen` file operations within those pipelines.
 
+### Pencil MCP Limitations
+
+These constraints are dictated by the Pencil MCP protocol:
+
+1. **File creation.** Pencil MCP cannot create `.pen` files. Use the `Write` tool with the minimal
+   scaffold `{"version":"2.14","children":[]}` to create new files on disk before populating them
+   via `batch_design`.
+
+2. **Active-editor writes.** All `batch_design` modifications land in the currently active editor
+   file (reported by `get_editor_state`), regardless of which `filePath` is passed. The `filePath`
+   parameter selects variable/import context for reads; it does not direct writes. To populate a
+   different `.pen` file, open it in Pencil desktop first, then verify the active editor changed
+   via `get_editor_state`.
+
+3. **Unified canvas.** Pencil reads all `.pen` files under `designs/` as one combined design space.
+   Individual files function as entry points, not isolated documents. Do not expect "one page per
+   file" container isolation for reading — batch_design writes DO land in the active editor file.
+
+4. **Screenshot vision.** Pencil `get_screenshot` returns an image that may not be processable by
+   all AI models. Rely on `snapshot_layout` and `batch_get` structural inspection for verification
+   when screenshots are unavailable. The `design-reviewer` agent in the pen-design pipeline requires
+   screenshot evidence; if the model cannot analyze images, skip design-reviewer and report it as
+   a skipped step with snapshot_layout as compensating evidence.
+
+## Open Design Artifacts
+
+Open Design (OD) stores browser-viewable design artifacts in local projects. An OD project can
+contain an entry artifact plus referenced HTML, JSX, CSS, SVG, image, and Markdown files.
+
+### Open Design MCP Constraints
+
+These constraints are dictated by the OD MCP project/artifact model:
+
+1. **Project context.** OD tools can default to an active project, and that active context expires.
+
+2. **Generation runs.** OD generation and refinement run asynchronously and can take several
+   minutes.
+
+3. **Artifact bundles.** OD artifacts are multi-file bundles; an entry artifact can reference
+   sibling source files and assets.
+
+4. **Design-system resources.** OD design systems are MCP resources such as
+   `od://design-systems/<id>/DESIGN.md`.
+
+5. **Production boundary.** OD HTML, JSX, CSS, and assets are design evidence, not production code
+   to copy wholesale. Implementation must still use TaskPilot components, tokens, accessibility
+   rules, REST boundaries, and tests.
+
 ## Icon Library
 
 `lucide-react` is the project icon library. All icon usage must go through

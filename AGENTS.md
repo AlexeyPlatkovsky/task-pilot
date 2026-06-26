@@ -105,6 +105,8 @@ Routing:
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
 - Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
+- Open Design pipeline: `.claude/pipelines/od-design.md`
+- Open Design-to-code pipeline: `.claude/pipelines/od-to-code.md`
 - Pencil design pipeline: `.claude/pipelines/pen-design.md`
 - Pencil-to-code pipeline: `.claude/pipelines/pen-to-code.md`
 - Browser verify pipeline: `.claude/pipelines/browser-verify.md`
@@ -120,6 +122,9 @@ Skills:
 - Implementation: `.claude/skills/implement-change/SKILL.md`
 - Testing: `.claude/skills/test-change/SKILL.md`
 - UI design: `.claude/skills/design-ui/SKILL.md`
+- Open Design execution: `.claude/skills/open-design/SKILL.md`
+- Open Design-to-code translation: `.claude/skills/od-to-code/SKILL.md`
+- Pencil design execution: `.claude/skills/pencil-design/SKILL.md`
 - Browser UI investigation: `.claude/skills/playwright-cli/SKILL.md`
 - Validation: `.claude/skills/validate-change/SKILL.md`
 - Documentation maintenance: `.claude/skills/maintain-docs/SKILL.md`

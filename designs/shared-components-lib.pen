@@ -654,11 +654,21 @@
                 "a2oxYS": {
                   "content": "TP-12"
                 },
+                "WRpRs/G0leO": {
+                  "icon": "check-square"
+                },
+                "WRpRs/a0B9i": {
+                  "content": "task"
+                },
                 "JaETG": {
                   "content": "Fix authentication race condition in login flow"
                 },
                 "b4yDG5": {
                   "fill": "$priority-high-bg"
+                },
+                "b4yDG5/D4TqW": {
+                  "content": "High",
+                  "fill": "$priority-high-fg"
                 }
               }
             },
@@ -671,11 +681,21 @@
                 "a2oxYS": {
                   "content": "TP-7"
                 },
+                "WRpRs/G0leO": {
+                  "icon": "bug"
+                },
+                "WRpRs/a0B9i": {
+                  "content": "bug"
+                },
                 "JaETG": {
                   "content": "Kanban drag-and-drop fails on touch devices"
                 },
                 "b4yDG5": {
                   "fill": "$priority-normal-bg"
+                },
+                "b4yDG5/D4TqW": {
+                  "content": "Normal",
+                  "fill": "$priority-normal-fg"
                 }
               }
             },
@@ -688,11 +708,21 @@
                 "a2oxYS": {
                   "content": "TP-1"
                 },
+                "WRpRs/G0leO": {
+                  "icon": "layers"
+                },
+                "WRpRs/a0B9i": {
+                  "content": "epic"
+                },
                 "JaETG": {
                   "content": "Design system and token migration"
                 },
                 "b4yDG5": {
                   "fill": "$priority-low-bg"
+                },
+                "b4yDG5/D4TqW": {
+                  "content": "Low",
+                  "fill": "$priority-low-fg"
                 }
               }
             }
@@ -927,6 +957,85 @@
               "fontFamily": "Inter",
               "fontSize": "$font-size-base",
               "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dB1jj",
+      "x": 0,
+      "y": 1320,
+      "name": "component/app-header",
+      "reusable": true,
+      "width": 1120,
+      "height": 56,
+      "fill": "$surface-base",
+      "stroke": "$border-subtle",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "padding": [
+        0,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "Cx4Mz",
+          "name": "logo",
+          "fill": "$text-primary",
+          "content": "TaskPilot",
+          "fontFamily": "Inter",
+          "fontSize": 16,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "kSREy",
+          "name": "page-title",
+          "fill": "$text-primary",
+          "content": "Validation",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "FOMPU",
+          "name": "project-selector",
+          "cornerRadius": "$radius-md",
+          "stroke": "$border-default",
+          "strokeWidth": 1,
+          "gap": 8,
+          "padding": [
+            6,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "wBPB4",
+              "name": "selector-text",
+              "fill": "$text-primary",
+              "content": "my-app (APP)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "icon",
+              "id": "Wy2st",
+              "name": "chevron",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-down",
+              "library": "lucide",
+              "fill": "$text-muted"
             }
           ]
         }
@@ -1521,6 +1630,10 @@
           }
         }
       ]
+    },
+    "placeholder": {
+      "type": "number",
+      "value": 0
     }
   },
   "fileToken": "770bdebe-63e9-4548-80ec-17313277ab7f"

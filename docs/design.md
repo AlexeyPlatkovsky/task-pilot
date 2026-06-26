@@ -1,6 +1,6 @@
 # Design
 
-> Design token reference, icon library, and Pencil design file conventions: see `.claude/docs/design-book.md`.
+> Design token reference, icon library, and Open Design/Pencil design file conventions: see `.claude/docs/design-book.md`.
 
 ## UX Principles
 
