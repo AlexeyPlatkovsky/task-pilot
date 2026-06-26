@@ -3,7 +3,7 @@
 | ID | Task | Implements | Status | Depends on |
 | --- | --- | --- | --- | --- |
 | F009-T0 | Sync `tokens.css` with `designs/design.md` in one PR: (a) add all ten missing tokens; (b) apply radius merge — set sm=4px, md=6px, lg=8px, remove `--radius-xl`, rename every `var(--radius-xl)` in component CSS to `var(--radius-lg)`, rename every `var(--radius-lg)` to `var(--radius-md)`; (c) replace every hardcoded `font-weight: 600`, `0.75rem`, `1.25rem`, `1.125rem`, `letter-spacing: 0.05em`, `line-height: 1.5`, and `line-height: 1.6` literal in `web/src/components/*.module.css` and `web/src/index.css` with the corresponding token reference | F009-R10 | ✅ done | — |
-| F009-T1 | Check for an existing OD project named `taskpilot-design` via `list_projects`; create it if absent. Define the design system resource with all token groups from `designs/design.md` as OD variables | F009-R1 | ⏳ todo | — |
+| F009-T1 | Check for an existing OD project named `taskpilot-design` via `list_projects`; create it if absent. Define the design system resource with all token groups from `designs/design.md` as OD variables | F009-R1 | ✅ done | — |
 | F009-T2 | Create component library artifact: StatusBadge, PriorityBadge, TypeBadge with all status/priority/type variants | F009-R2 | ⏳ todo | F009-T1 |
 | F009-T3 | Extend component library: ItemCard (Kanban), ItemRow (List), Button (primary/secondary/destructive), TextInput, SelectDropdown | F009-R2 | ⏳ todo | F009-T2 |
 | F009-T4 | Extend component library: Icon wrapper (labeled/decorative), EmptyState, FeedbackBanner, ValidationErrorRow (parse-failure and field-level error variants), ItemDetailModal shell states | F009-R2 | ⏳ todo | F009-T3 |
