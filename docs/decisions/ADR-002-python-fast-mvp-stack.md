@@ -1,6 +1,6 @@
 # ADR-002: Python Fast MVP Stack
 
-- **Status:** accepted
+- **Status:** ✅ accepted
 - **Date:** 2026-06-23
 - **Deciders:** TaskPilot project
 

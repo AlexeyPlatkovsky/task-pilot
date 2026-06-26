@@ -5,7 +5,7 @@ description: Designs accessible TaskPilot product UI flows and records accepted 
 
 # Design TaskPilot UI
 
-Read `.claude/docs/design-book.md`. This skill designs UI behavior and updates that book; production
+Read `designs/design.md`. This skill designs UI behavior and updates that file; production
 implementation belongs to `implement-change`.
 
 1. Identify the user job, displayed data, primary action, and loading/empty/error/invalid states.
@@ -16,7 +16,7 @@ implementation belongs to `implement-change`.
 4. Define keyboard behavior, focus order, accessible names, and narrow-screen behavior.
 5. Keep domain and persistence rules out of UI components.
 6. Define the component-test and critical E2E coverage required by the design.
-7. Create or update `.claude/docs/design-book.md` with accepted flows, patterns, states,
+7. Create or update `designs/design.md` with accepted flows, patterns, states,
    accessibility behavior, responsive behavior, and unresolved design debt.
 8. When a runnable UI already exists, render and inspect desktop and narrow widths to ground the
    design update in observed behavior.
@@ -29,4 +29,4 @@ missing context and mark affected design or visual checks blocked rather than in
 Do not modify production UI code while acting in this skill.
 
 The artifact begins with `Skill: design-ui - output below` and reports status, flow, layout, states,
-accessibility, design-book changes, visual evidence, assumptions, and blockers.
+accessibility, design-system changes, visual evidence, assumptions, and blockers.

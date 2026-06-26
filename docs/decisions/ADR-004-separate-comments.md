@@ -1,6 +1,6 @@
 # ADR-004: Separate Append-Only Comment Files
 
-- **Status:** accepted
+- **Status:** ✅ accepted
 - **Date:** 2026-06-19
 - **Deciders:** TaskPilot project
 

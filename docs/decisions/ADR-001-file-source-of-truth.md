@@ -1,6 +1,6 @@
 # ADR-001: Markdown/YAML Files as Canonical Source of Truth
 
-- **Status:** accepted
+- **Status:** ✅ accepted
 - **Date:** 2026-06-19
 - **Deciders:** TaskPilot project
 

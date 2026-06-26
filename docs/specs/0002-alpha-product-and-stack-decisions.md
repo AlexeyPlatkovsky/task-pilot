@@ -2,7 +2,7 @@
 
 ## Status
 
-accepted
+✅ accepted
 
 This specification is production-ready as the accepted Alpha product and stack contract. Feature
 requirements, ADRs, and implementation work must align with it unless a newer accepted

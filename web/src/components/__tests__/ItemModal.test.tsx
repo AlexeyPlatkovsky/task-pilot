@@ -155,4 +155,19 @@ describe("ItemModal", () => {
     });
     expect(screen.getByText(/Title is required/)).toBeInTheDocument();
   });
+
+  // AC-10: close button must render a Lucide SVG icon with aria-label="Close"
+  it("renders close button with an SVG icon labelled Close", async () => {
+    mockFetchItem.mockResolvedValueOnce(makeItem());
+    render(
+      <ItemModal projectId="VP" itemId="VP-1" onClose={vi.fn()} />,
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(screen.getByText("Task")).toBeInTheDocument();
+    });
+    // Radix Dialog uses a Portal that appends to document.body, outside the render container
+    const closeSvg = document.body.querySelector('svg[aria-label="Close"]');
+    expect(closeSvg).not.toBeNull();
+  });
 });

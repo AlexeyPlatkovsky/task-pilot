@@ -55,13 +55,26 @@ Size definitions (choose the highest that applies):
    - high-risk (data loss, contract break, security);
    - changes a public contract, persistence schema, or canonical format;
    - broad UI workflow crossing screens or browser state;
-  workflow, or work that needs multiple independent review gates.
+   - work that needs multiple independent review gates.
 
 ## Route Selection
 
 - Feature or non-trivial behavior-changing bug fix: `.claude/pipelines/feature-change.md`.
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
-- Product UI design or implementation: `.claude/pipelines/ui-change.md`.
+- Product UI implementation, or UI design work not explicitly handled by an MCP design route:
+  `.claude/pipelines/ui-change.md`.
+- Design-only work in Open Design (OD) through Open Design MCP without production code change:
+  `.claude/pipelines/od-design.md`. OD design work is always non-trivial (UI contracts, generated
+  artifact review required). Before routing here, confirm the Open Design MCP is available.
+- Converting an accepted OD artifact to tested React code: `.claude/pipelines/od-to-code.md`.
+  Before routing here, confirm an OD project/artifact is available and an accepted spec or explicit
+  acceptance criteria is present.
+- Design-only work in Pencil (`.pen` files in `designs/`) without production code change:
+  `.claude/pipelines/pen-design.md`. `.pen` file work is always non-trivial (UI contracts, design
+  review required). Before routing here, confirm the Pencil MCP is available.
+- Converting an accepted Pencil design to tested React code: `.claude/pipelines/pen-to-code.md`.
+  Before routing here, confirm the `.pen` file exists in `designs/` and an accepted spec or
+  explicit acceptance criteria is present.
 - Live browser investigation, WebUI verification, or business-logic confirmation without code
   changes: `.claude/pipelines/browser-verify.md`. When browser investigation is requested as a
   sub-step within a running feature-change, ui-change, test-change, or validate-change context,
@@ -94,6 +107,8 @@ Use conditional rigor:
   behavior.
 - UI work requires component coverage and browser evidence for major paths when a runnable UI
   exists, as defined in `.claude/conventions/testing.md`.
+- Open Design is the default MCP-backed design route for new design artifact work unless the user
+  explicitly asks for Pencil, `.pen` files, or an existing `.pen` design.
 
 For high-risk or system-level work, require independent review after validation. For medium-risk
 production work, require independent review unless the change is documentation-only. For

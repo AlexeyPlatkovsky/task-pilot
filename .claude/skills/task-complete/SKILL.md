@@ -11,7 +11,7 @@ Before closure, verify every planned routed handoff has its visible output artif
 does not qualify. If any artifact is missing, blocked, or failed, report closure blocked and name
 the artifact; do not declare completion.
 
-Begin with `Skill: task-complete - output below`.
+Begin with `✅ Skill: task-complete - output below`.
 
 Use exactly this three-column table:
 
