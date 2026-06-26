@@ -1,4 +1,6 @@
+import { Layers, Zap, CheckSquare, Bug, type LucideIcon } from "lucide-react";
 import type { ItemSummary, ItemType } from "../types";
+import { Icon } from "./ui/Icon";
 import styles from "./KanbanCard.module.css";
 
 interface Props {
@@ -6,11 +8,11 @@ interface Props {
   onClick?: (itemId: string) => void;
 }
 
-const TYPE_ICONS: Record<ItemType, string> = {
-  epic: "\u2B1B",
-  feature: "\u25B6",
-  task: "\u25A1",
-  bug: "\u26A0",
+const TYPE_ICON_COMPONENTS: Record<ItemType, LucideIcon> = {
+  epic: Layers,
+  feature: Zap,
+  task: CheckSquare,
+  bug: Bug,
 };
 
 export function KanbanCard({ item, onClick }: Props) {
@@ -40,7 +42,8 @@ export function KanbanCard({ item, onClick }: Props) {
       <div className={styles.header}>
         <span className={styles.id}>{item.id}</span>
         <span className={styles.type} title={item.type}>
-          {TYPE_ICONS[item.type]} {item.type}
+          <Icon icon={TYPE_ICON_COMPONENTS[item.type]} label={item.type} />
+          {item.type}
         </span>
       </div>
       <div className={styles.title}>{item.title}</div>

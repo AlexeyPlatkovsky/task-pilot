@@ -105,6 +105,8 @@ Routing:
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
 - Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
+- Pencil design pipeline: `.claude/pipelines/pen-design.md`
+- Pencil-to-code pipeline: `.claude/pipelines/pen-to-code.md`
 - Browser verify pipeline: `.claude/pipelines/browser-verify.md`
 - Review pipeline: `.claude/pipelines/code-review.md`
 - Instruction change pipeline: `.claude/pipelines/instruction-change.md`
@@ -122,6 +124,7 @@ Skills:
 - Validation: `.claude/skills/validate-change/SKILL.md`
 - Documentation maintenance: `.claude/skills/maintain-docs/SKILL.md`
 - Instruction maintenance: `.claude/skills/maintain-instruction-system/SKILL.md`
+- Pencil-to-code translation: `.claude/skills/pen-to-code/SKILL.md`
 - Completion: `.claude/skills/task-complete/SKILL.md`
 
 Agents:

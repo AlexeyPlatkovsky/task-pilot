@@ -62,6 +62,12 @@ Size definitions (choose the highest that applies):
 - Feature or non-trivial behavior-changing bug fix: `.claude/pipelines/feature-change.md`.
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
 - Product UI design or implementation: `.claude/pipelines/ui-change.md`.
+- Design-only work in Pencil (`.pen` files in `designs/`) without production code change:
+  `.claude/pipelines/pen-design.md`. `.pen` file work is always non-trivial (UI contracts, design
+  review required). Before routing here, confirm the Pencil MCP is available.
+- Converting an accepted Pencil design to tested React code: `.claude/pipelines/pen-to-code.md`.
+  Before routing here, confirm the `.pen` file exists in `designs/` and an accepted spec or
+  explicit acceptance criteria is present.
 - Live browser investigation, WebUI verification, or business-logic confirmation without code
   changes: `.claude/pipelines/browser-verify.md`. When browser investigation is requested as a
   sub-step within a running feature-change, ui-change, test-change, or validate-change context,

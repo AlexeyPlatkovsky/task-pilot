@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { marked } from "marked";
@@ -6,6 +7,7 @@ import DOMPurify from "dompurify";
 import { fetchItem } from "../api";
 import type { ItemDetail } from "../types";
 import { STATUS_LABELS, PRIORITY_LABELS, TYPE_LABELS } from "../types/labels";
+import { Icon } from "./ui/Icon";
 import { CommentThread } from "./CommentThread";
 import { ItemEditForm } from "./ItemEditForm";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -63,8 +65,8 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
               {isEditing ? "Edit item" : "Item detail view"}
             </Dialog.Description>
 
-            <Dialog.Close className={styles.closeButton} aria-label="Close">
-              &times;
+            <Dialog.Close className={styles.closeButton}>
+              <Icon icon={X} label="Close" size={20} />
             </Dialog.Close>
 
             {isLoading && <div className={styles.loading}>Loading item...</div>}

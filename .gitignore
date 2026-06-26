@@ -17,3 +17,4 @@ dist/
 # testing
 .playwright/
 .playwright/screenshots/
+web/test-results/

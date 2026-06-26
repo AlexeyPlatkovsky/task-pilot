@@ -1,5 +1,7 @@
 # Design
 
+> Design token reference, icon library, and Pencil design file conventions: see `.claude/docs/design-book.md`.
+
 ## UX Principles
 
 - **Local-first feel**: the WebUI should feel instant, with no loading spinners for normal
@@ -141,3 +143,4 @@ Every view and component handles:
 - Color is not the only indicator for priority — text labels accompany color badges.
 - Form fields have associated labels.
 - Error messages are announced to screen readers.
+- Color token pairs used in this product meet WCAG AA contrast for all text sizes defined in `web/src/tokens.css`.
