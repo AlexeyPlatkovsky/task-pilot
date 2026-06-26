@@ -32,6 +32,19 @@ def _paths(entry: RegistryEntry) -> WorkspacePaths:
     return WorkspacePaths.for_root(Path(entry.path))
 
 
+def _require_item_in_project(entry: RegistryEntry, item_id: str) -> None:
+    """Reject item ids that do not belong to the path project's key (404).
+
+    Item ids are project-key prefixed (e.g. ``VP-1``). Scoping the lookup to the
+    path ``project_id`` keeps the route honest if a workspace ever holds items
+    from more than one project key.
+    """
+    if not item_id.startswith(f"{entry.key}-"):
+        raise HTTPException(
+            status_code=404, detail=f"No item found with id {item_id!r}"
+        )
+
+
 def _item_summary(item) -> dict:
     d = item.model_dump()
     d["valid"] = True
@@ -77,7 +90,9 @@ def list_project_items(request: Request, project_id: str) -> list[ItemSummary]:
     entry = _registry_entry(request, project_id)
     ws = _paths(entry)
     items = item_svc.list_items(ws, project=entry.key, include_deleted=False)
-    valid_summaries: list[ItemSummary] = [ItemSummary(**_item_summary(i)) for i in items]
+    valid_summaries: list[ItemSummary] = [
+        ItemSummary(**_item_summary(i)) for i in items
+    ]
 
     invalid_stubs = item_svc.list_invalid_item_stubs(ws, project=entry.key)
     invalid_summaries: list[ItemSummary] = [
@@ -109,6 +124,7 @@ def list_project_items(request: Request, project_id: str) -> list[ItemSummary]:
 )
 def get_item_detail(request: Request, project_id: str, item_id: str) -> ItemDetail:
     entry = _registry_entry(request, project_id)
+    _require_item_in_project(entry, item_id)
     ws = _paths(entry)
     item = item_svc.read_item(ws, item_id)
     return ItemDetail(**_item_detail(item, ws))
@@ -125,6 +141,7 @@ def patch_item(
     body: ItemUpdateInput,
 ) -> ItemDetail:
     entry = _registry_entry(request, project_id)
+    _require_item_in_project(entry, item_id)
     ws = _paths(entry)
     fields = body.model_dump(exclude_unset=True)
     item = item_svc.update_item(ws, item_id, **fields)

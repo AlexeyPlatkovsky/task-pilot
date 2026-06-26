@@ -134,6 +134,11 @@ def update_item(
     """
     current = read_item(paths, item_id)
 
+    if not fields:
+        # No-op update: do not rewrite the file or bump updated_at (avoids a
+        # spurious Git diff on an empty change).
+        return current
+
     for immutable in ("id", "created_at"):
         if immutable in fields:
             raise ValidationFailed(f"Field {immutable!r} cannot be updated")

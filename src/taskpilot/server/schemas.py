@@ -35,7 +35,7 @@ class ItemSummary(BaseModel):
     status: str
     priority: str
     valid: bool = True
-    findings: list[ValidationFindingOut] | None = None
+    findings: list[ValidationFindingOut] = []
 
 
 class ItemDetail(Item):
@@ -46,11 +46,13 @@ class ItemDetail(Item):
     override drops extra=allow so unknown YAML fields never leak into responses.
     """
 
-    model_config = ConfigDict(extra="ignore", use_enum_values=True, validate_default=True)
+    model_config = ConfigDict(
+        extra="ignore", use_enum_values=True, validate_default=True
+    )
 
     comments: list[CommentOut] = []
     valid: bool = True
-    findings: list[ValidationFindingOut] | None = None
+    findings: list[ValidationFindingOut] = []
 
 
 class ItemUpdateInput(BaseModel):

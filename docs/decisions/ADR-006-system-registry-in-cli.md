@@ -66,3 +66,15 @@ Import sites updated: `cli/commands/init.py`, `cli/commands/project.py`,
 coupling (as designed), making the move a mechanical file-move plus import updates.
 A known adapter-to-adapter violation (`cli/commands/serve.py` importing `server.app`)
 is tracked as TP-4 for future extraction.
+
+## Amendment — TP-4 resolved (2026-06-26)
+
+The remaining `cli/commands/serve.py` → `server.app` adapter-to-adapter import was
+removed. `server/app.py` now exposes `create_app_from_env()` (reads
+`TASKPILOT_REGISTRY_DIR`); the `serve` command sets that variable and launches the
+server via uvicorn's import-string factory
+(`uvicorn.run("taskpilot.server.app:create_app_from_env", factory=True, ...)`) instead
+of importing the server module. The CLI no longer imports `taskpilot.server` at all — a
+source-level guard test (`test_serve_module_does_not_import_server_adapter`) locks this
+in. The architecture boundary ("one shared service layer; adapters do not import each
+other") is fully restored.

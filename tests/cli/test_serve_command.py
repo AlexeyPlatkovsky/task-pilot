@@ -65,3 +65,18 @@ def test_serve_autodetect_missing_project_yaml(tmp_path: Path, monkeypatch):
     result = runner.invoke(app, ["serve"])
     assert result.exit_code == 1
     assert "project.yaml" in result.stderr
+
+
+def test_serve_module_does_not_import_server_adapter():
+    """The CLI serve command must not statically import the REST API adapter (F-2 / TP-4).
+
+    Launching the server happens via uvicorn's import-string + env factory, so the
+    cli->server adapter-to-adapter import is removed at the source level.
+    """
+    import inspect
+
+    from taskpilot.cli.commands import serve as serve_module
+
+    source = inspect.getsource(serve_module)
+    assert "from taskpilot.server" not in source
+    assert "import taskpilot.server" not in source

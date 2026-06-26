@@ -7,6 +7,7 @@ matching the Vite dev proxy target in ``web/vite.config.ts``.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import typer
@@ -15,10 +16,13 @@ import uvicorn
 from taskpilot.cli.exit_codes import EXIT_USER_ERROR
 from taskpilot.cli.workspace import find_workspace
 from taskpilot.core.layout import WorkspacePaths
-# cli->server adapter import: tracked as TP-4 for future extraction to a service factory
-from taskpilot.server.app import create_app
 from taskpilot.services.errors import NotFound
 from taskpilot.services.registry import default_registry_dir
+
+#: Import-string for uvicorn's app factory. Passing a string (not an imported symbol)
+#: keeps the CLI adapter from importing the server adapter directly (TP-4).
+_APP_FACTORY = "taskpilot.server.app:create_app_from_env"
+_REGISTRY_DIR_ENV = "TASKPILOT_REGISTRY_DIR"
 
 __all__ = ["register"]
 
@@ -62,11 +66,11 @@ def serve_command(
         raise typer.Exit(EXIT_USER_ERROR)
 
     registry_dir = default_registry_dir()
-    app = create_app(registry_dir=str(registry_dir))
+    os.environ[_REGISTRY_DIR_ENV] = str(registry_dir)
 
     typer.echo(f"TaskPilot API server starting on http://{host}:{port}")
     typer.echo(f"OpenAPI docs at http://{host}:{port}/docs")
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(_APP_FACTORY, factory=True, host=host, port=port)
 
 
 def register(app: typer.Typer) -> None:

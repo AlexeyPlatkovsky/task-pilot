@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from taskpilot.server.routes import projects
 from taskpilot.services.errors import NotFound, ValidationFailed
+
+#: Environment variable carrying the registry directory for :func:`create_app_from_env`.
+REGISTRY_DIR_ENV = "TASKPILOT_REGISTRY_DIR"
 
 
 def create_app(*, registry_dir: str) -> FastAPI:
@@ -27,3 +32,16 @@ def create_app(*, registry_dir: str) -> FastAPI:
         return JSONResponse(status_code=400, content={"detail": str(exc)})
 
     return app
+
+
+def create_app_from_env() -> FastAPI:
+    """Build the app from the ``TASKPILOT_REGISTRY_DIR`` environment variable.
+
+    Used as a uvicorn import-string factory (``taskpilot.server.app:create_app_from_env``)
+    so adapters such as the CLI ``serve`` command can launch the server without importing
+    this module directly, keeping the cli/server adapter boundary intact (TP-4).
+    """
+    registry_dir = os.environ.get(REGISTRY_DIR_ENV)
+    if not registry_dir:
+        raise RuntimeError(f"{REGISTRY_DIR_ENV} is not set; cannot build the API app")
+    return create_app(registry_dir=registry_dir)

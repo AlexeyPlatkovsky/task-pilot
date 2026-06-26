@@ -116,7 +116,21 @@ class TestListItems:
         assert r.status_code == 200
         assert r.json() == []
 
-    def test_invalid_item_file_surfaces_as_invalid_summary(self, client, tmp_path, workspace):
+    def test_valid_summary_findings_is_empty_list(self, client, tmp_path, workspace):
+        """Valid item summaries serialize findings as [] (not null) for a stable contract (F-3)."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Good item", type="task", now="2026-06-25T10:00:00Z"
+        )
+        r = client.get("/api/projects/voice-pilot/items")
+        assert r.status_code == 200
+        summary = r.json()[0]
+        assert summary["valid"] is True
+        assert summary["findings"] == []
+
+    def test_invalid_item_file_surfaces_as_invalid_summary(
+        self, client, tmp_path, workspace
+    ):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
             workspace, title="Good item", type="task", now="2026-06-25T10:00:00Z"
@@ -169,6 +183,16 @@ class TestGetItem:
         assert len(data["comments"]) == 1
         assert data["comments"][0]["body"] == "First comment"
 
+    def test_valid_detail_findings_is_empty_list(self, client, tmp_path, workspace):
+        """Valid item details serialize findings as [] (not null) for a stable contract (F-3)."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="My item", type="task", now="2026-06-25T10:00:00Z"
+        )
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+        assert r.status_code == 200
+        assert r.json()["findings"] == []
+
     def test_404_for_unknown_item(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         r = client.get("/api/projects/voice-pilot/items/VP-999")
@@ -193,7 +217,9 @@ class TestGetItem:
     def test_malformed_comment_does_not_block_item(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="Item with bad comment", type="task",
+            workspace,
+            title="Item with bad comment",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         comment_dir = workspace.item_comments_dir("VP-1")
@@ -209,7 +235,9 @@ class TestGetItem:
     def test_malformed_comment_does_not_block_patch(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
-            workspace, title="Item with bad comment", type="task",
+            workspace,
+            title="Item with bad comment",
+            type="task",
             now="2026-06-25T10:00:00Z",
         )
         comment_dir = workspace.item_comments_dir("VP-1")
@@ -286,7 +314,8 @@ class TestPatchItem:
         )
         assert r.status_code == 404
 
-    def test_empty_body_succeeds(self, client, tmp_path, workspace):
+    def test_empty_body_is_noop_and_keeps_updated_at(self, client, tmp_path, workspace):
+        """An empty PATCH returns the item unchanged without bumping updated_at (F-5)."""
         _setup_registry(workspace, tmp_path)
         item_service.create_item(
             workspace,
@@ -299,6 +328,9 @@ class TestPatchItem:
             json={},
         )
         assert r.status_code == 200
+        assert r.json()["updated_at"] == "2026-06-25T10:00:00Z"
+        reloaded = item_service.read_item(workspace, "VP-1")
+        assert reloaded.updated_at == "2026-06-25T10:00:00Z"
 
     def test_updates_multiple_fields(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
@@ -365,3 +397,64 @@ class TestDeterministicJson:
         keys = list(r.json().keys())
         assert keys[0] == "schema_version"
         assert keys[1] == "id"
+
+
+def _write_foreign_item(workspace: WorkspacePaths, item_id: str) -> None:
+    """Write a syntactically valid item file whose id does not match the project key."""
+    workspace.items_dir.mkdir(parents=True, exist_ok=True)
+    (workspace.items_dir / f"{item_id}.yaml").write_text(
+        "schema_version: 1\n"
+        f"id: {item_id}\n"
+        "title: Foreign item\n"
+        "priority: normal\n"
+        "type: task\n"
+        "status: backlog\n"
+        "created_at: '2026-06-25T10:00:00Z'\n"
+        "updated_at: '2026-06-25T10:00:00Z'\n",
+        encoding="utf-8",
+    )
+
+
+class TestItemScoping:
+    """Item endpoints must reject ids that do not belong to the path project (F-4)."""
+
+    def test_get_404_for_foreign_key_item(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        _write_foreign_item(workspace, "XX-1")
+        r = client.get("/api/projects/voice-pilot/items/XX-1")
+        assert r.status_code == 404
+
+    def test_patch_404_for_foreign_key_item(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        _write_foreign_item(workspace, "XX-1")
+        r = client.patch(
+            "/api/projects/voice-pilot/items/XX-1",
+            json={"status": "done"},
+        )
+        assert r.status_code == 404
+        # The foreign file must be left untouched by the rejected write.
+        assert "status: backlog" in (workspace.items_dir / "XX-1.yaml").read_text(
+            encoding="utf-8"
+        )
+
+
+class TestAppFactory:
+    """The env-based factory lets the CLI launch the server without importing it (F-2)."""
+
+    def test_create_app_from_env_builds_working_app(self, tmp_path, monkeypatch):
+        from taskpilot.server.app import create_app_from_env
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_REGISTRY_DIR", str(registry_dir))
+
+        app = create_app_from_env()
+        c = TestClient(app)
+        assert c.get("/api/health").status_code == 200
+
+    def test_create_app_from_env_requires_env_var(self, monkeypatch):
+        from taskpilot.server.app import create_app_from_env
+
+        monkeypatch.delenv("TASKPILOT_REGISTRY_DIR", raising=False)
+        with pytest.raises(RuntimeError):
+            create_app_from_env()

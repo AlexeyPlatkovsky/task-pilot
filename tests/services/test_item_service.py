@@ -98,6 +98,21 @@ def test_update_item_changes_status_and_refreshes_updated_at(tmp_path: Path):
     assert item_service.read_item(paths, created.id).status == "in_progress"
 
 
+def test_update_item_noop_when_no_fields_keeps_updated_at(tmp_path: Path):
+    """A no-field update is a no-op: it must not rewrite updated_at (F-5)."""
+    paths = _workspace(tmp_path)
+    created = item_service.create_item(
+        paths, title="Add benchmark", type="task", now="2026-06-20T11:00:00Z"
+    )
+
+    unchanged = item_service.update_item(paths, created.id, now="2026-06-21T09:00:00Z")
+
+    assert unchanged.updated_at == "2026-06-20T11:00:00Z"
+    assert (
+        item_service.read_item(paths, created.id).updated_at == "2026-06-20T11:00:00Z"
+    )
+
+
 def test_update_item_rejects_invalid_value_and_preserves_file(tmp_path: Path):
     paths = _workspace(tmp_path)
     created = item_service.create_item(
@@ -192,7 +207,9 @@ class TestListInvalidItemStubs:
 
     def test_returns_stub_for_corrupt_yaml(self, tmp_path: Path):
         paths = _workspace(tmp_path)
-        item_service.create_item(paths, title="Good", type="task", now="2026-06-20T10:00:00Z")
+        item_service.create_item(
+            paths, title="Good", type="task", now="2026-06-20T10:00:00Z"
+        )
         bad = paths.items_dir / "VP-99.yaml"
         bad.write_text("not: valid: yaml: [\n", encoding="utf-8")
 

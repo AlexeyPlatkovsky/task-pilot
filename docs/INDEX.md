@@ -14,6 +14,7 @@
 | `roadmap.md` | Phases, milestones, release levels, sequencing, implementation phases | You need release plan or priorities |
 | `specs/` | Accepted product contracts, behavior, public interfaces, persistence decisions | You need governing product requirements |
 | `decisions/` | Architectural decision records | You need the rationale behind a choice |
+| `reviews/` | Implementation review & test reports | You need a point-in-time assessment of what was verified |
 
 ### Legacy Documents
 
@@ -28,9 +29,9 @@ under `docs/specs/` supersede them where they conflict.
 
 | ID | Feature | Status | Requirements | Tasks | Scenarios | Serves |
 | --- | --- | --- | --- | --- | --- | --- |
-| F001 | task-file-storage | planned | 7 | 8 | 7 | Phase 1 — File model and parser |
+| F001 | task-file-storage | implemented | 7 | 8 | 7 | Phase 1 — File model and parser |
 | F002 | domain-services | implemented | 8 | 8 | 8 | Phase 2 — Domain/service layer |
-| F003 | cli-interface | in progress | 8 | 8 | 9 | Phase 3 — CLI |
+| F003 | cli-interface | implemented | 8 | 8 | 9 | Phase 3 — CLI |
 | F004 | webui-workspace | implemented | 9 | 9 | 9 | Phase 4 — Local WebUI |
 | F005 | rest-api | implemented | 9 | 8 | 10 | Phase 4 — Local WebUI (Backend REST API) |
 | F006 | advanced-views | planned | 5 | 6 | 5 | Phase 5 — Better views |
