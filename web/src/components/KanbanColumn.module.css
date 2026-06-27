@@ -1,7 +1,7 @@
 .column {
-  flex: 1;
-  min-width: 240px;
-  max-width: 320px;
+  flex: 1 0 var(--kanban-column-min);
+  min-width: var(--kanban-column-min);
+  max-width: var(--kanban-column-max);
   display: flex;
   flex-direction: column;
   background: var(--surface-column);

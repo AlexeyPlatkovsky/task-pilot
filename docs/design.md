@@ -56,6 +56,9 @@ uses horizontal scrolling instead of switching to a mobile/tablet layout.
 Kanban columns use a readable width range of `248px` to `320px` with token-based spacing between
 columns.
 
+Runtime layout values are tokenized as `--viewport-min-width`, `--content-width-comfortable`,
+`--content-max-width`, `--kanban-column-min`, and `--kanban-column-max`.
+
 Within each column, cards are sorted by type order then numeric item ID:
 epic > feature > task > bug.
 

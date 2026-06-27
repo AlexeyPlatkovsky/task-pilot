@@ -14,6 +14,7 @@ html {
 }
 
 body {
+  min-width: var(--viewport-min-width);
   min-height: 100vh;
   background-color: var(--surface-app);
   color: var(--text-primary);

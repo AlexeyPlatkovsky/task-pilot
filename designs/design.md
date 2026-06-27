@@ -70,6 +70,18 @@ TaskPilot is a local-only desktop WebUI. It does not provide mobile or tablet la
 - Kanban columns stay readable by using a column width range of `248px` to `320px`, with gaps based
   on the spacing scale.
 
+### Layout Tokens
+
+Invariant across themes.
+
+| Token | Value | Usage |
+|---|---:|---|
+| `--viewport-min-width` | `1280px` | Minimum supported desktop app viewport |
+| `--content-width-comfortable` | `1440px` | Comfortable desktop working width |
+| `--content-max-width` | `1760px` | Maximum primary workspace content width |
+| `--kanban-column-min` | `248px` | Minimum readable Kanban column width |
+| `--kanban-column-max` | `320px` | Maximum readable Kanban column width |
+
 ---
 
 ## Visual Direction
@@ -367,11 +379,11 @@ sync with this document. New tokens go to `tokens.css` and this file together.
 ## Design Debt
 
 - Token system established (spec 0003) and later aligned to the Agent Manifesto parent design
-  system. Breakpoints and interaction behavior remain provisional
-  until List View and Tree View are implemented.
+  system. Desktop viewport and Kanban width tokens are established; List View and Tree View
+  interaction behavior remains provisional until those views are implemented.
 - No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
   automatically; `[data-theme]` override requires manual JS until a toggle is built.
 - Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use
-  sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography and spacing tokens are present;
-  component CSS references tokens rather than literals.
+  sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography, spacing, and desktop layout
+  tokens are present; component CSS references tokens rather than literals.
 - Update this file when an accepted specification or implemented UI establishes a durable pattern.

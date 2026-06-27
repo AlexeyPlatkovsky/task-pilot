@@ -1,7 +1,10 @@
 .board {
   display: flex;
   gap: var(--space-4);
+  width: 100%;
+  max-width: var(--content-max-width);
   height: calc(100vh - 100px);
+  margin-inline: auto;
   overflow-x: auto;
   padding-bottom: var(--space-4);
 }

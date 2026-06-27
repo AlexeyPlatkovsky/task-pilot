@@ -7,6 +7,9 @@ Status: ✅ accepted
 > 2026-06-27 amendment: TaskPilot now inherits base visual identity from the Agent Manifesto design
 > system. The token system remains the production source of truth, but the base accent, typography,
 > and radii now use the parent design system values plus TaskPilot-specific dark/status extensions.
+>
+> 2026-06-27 amendment: TaskPilot is desktop-only. The token system now includes five invariant
+> desktop layout tokens for app viewport, workspace width, and Kanban column readability.
 
 Replace all hardcoded color, spacing, radius, shadow, and typography values in the web frontend
 with a single CSS custom-property token file (`web/src/tokens.css`). Add light and dark themes that
@@ -21,13 +24,15 @@ The web frontend (`web/src/`) has ~50 hardcoded hex values scattered across 9 CS
 no dark-mode support. Item-type icons are Unicode glyphs embedded as string literals, which are
 inaccessible and visually inconsistent.
 
-This spec covers only the Alpha UI visual layer. It does not add a theme-toggle control, change
-layout or interaction behavior, or introduce new screens.
+This spec covers only the Alpha UI visual layer. It does not add a theme-toggle control or
+introduce new screens. The later desktop-layout amendment defines supported workspace sizing
+tokens without changing domain behavior.
 
 ## Scope
 
 **In scope:**
-- `web/src/tokens.css` — 57 semantic CSS custom properties, light defaults, dark overrides.
+- `web/src/tokens.css` — 74 semantic CSS custom properties, light defaults, dark overrides, and
+  invariant desktop layout values.
 - `web/src/index.css` — import tokens; replace 4 hardcoded values.
 - All 9 `web/src/components/*.module.css` files — replace hardcoded values with token references.
 - `web/package.json` — add `lucide-react` dependency.
@@ -37,7 +42,7 @@ layout or interaction behavior, or introduce new screens.
 
 **Out of scope:**
 - Theme-toggle UI control (no `ThemeProvider`, no toggle button in this spec).
-- New screens, layout changes, or interaction behavior changes.
+- New screens or interaction behavior changes.
 - Tailwind, CSS-in-JS, or any styling methodology change.
 - Changes to REST API, domain model, CLI, or canonical files.
 
@@ -45,8 +50,8 @@ layout or interaction behavior, or introduce new screens.
 
 ### Functional
 
-F1. `web/src/tokens.css` defines all 57 tokens in `:root` (light defaults) and overrides
-theme-sensitive tokens in `@media (prefers-color-scheme: dark) { :root { } }`.
+F1. `web/src/tokens.css` defines all 74 tokens in `:root` (light defaults plus invariant values)
+and overrides theme-sensitive tokens in `@media (prefers-color-scheme: dark) { :root { } }`.
 
 F2. Explicit `[data-theme="dark"]` on `<html>` applies dark tokens regardless of OS preference.
 Explicit `[data-theme="light"]` on `<html>` applies light tokens regardless of OS preference.
@@ -66,6 +71,10 @@ icon has an `aria-label` set to the type name.
 F6. `ItemModal.tsx` uses `<Icon icon={X} label="Close" />` for the modal close button.
 
 F7. All existing component tests pass without modification to test assertions.
+
+F8. The local-only desktop workspace uses `--viewport-min-width`, `--content-max-width`,
+`--kanban-column-min`, and `--kanban-column-max` for the app shell and Kanban board sizing. The
+board keeps tabular/column structure and uses overflow rather than mobile/tablet collapse.
 
 ### Quality
 
@@ -109,9 +118,9 @@ No new states are introduced.
 **AC-1 (token coverage):** After migration, running
 `grep -rn "#[0-9a-fA-F]\{3,6\}" web/src/components/ web/src/index.css` returns zero matches.
 
-**AC-2 (token count):** `web/src/tokens.css` defines exactly the 57 tokens listed in the approved
-plan, including `--brand-accent` and `--radius-pill`. Each token appears in `:root` and, for
-theme-sensitive tokens, in the dark override block.
+**AC-2 (token count):** `web/src/tokens.css` defines exactly the 74 tokens listed in the approved
+plan, including `--brand-accent`, `--radius-pill`, and the five desktop layout tokens. Each token
+appears in `:root` and, for theme-sensitive tokens, in the dark override block.
 
 **AC-3 (dark theme auto-switch):** When a Playwright test sets
 `page.emulateMedia({ colorScheme: 'dark' })` and navigates to the board, the computed value of
@@ -155,6 +164,7 @@ with `aria-label="Close"`.
 | Token CSS custom properties on `:root` | Component (Vitest + `getComputedStyle`) | Verify tokens load in jsdom document |
 | Dark theme token override | E2E (Playwright) | `prefers-color-scheme` emulation requires a real browser |
 | Explicit `data-theme` override | E2E (Playwright) | Same — requires computed style in real browser |
+| Desktop layout tokens | Component + E2E | CSS contract checks plus computed custom-property values |
 | KanbanCard type icons (no Unicode glyphs) | Component (Vitest) | Verify rendered SVG presence and aria-label |
 | ItemModal close icon | Component (Vitest) | Verify aria-label on close button icon |
 | No regressions | Component (Vitest) | Run full existing suite after each module migration |
@@ -166,7 +176,7 @@ screenshots as new evidence.
 ## Implementation Slices
 
 Slice 1 — Token file + index.css:
-- Create `web/src/tokens.css` with all 57 tokens (light + dark).
+- Create `web/src/tokens.css` with all 74 tokens (light + dark + invariant layout).
 - Add `@import './tokens.css';` as first line of `web/src/index.css`.
 - Replace 4 hardcoded values in `index.css`.
 - Observable: `getComputedStyle(document.documentElement).getPropertyValue('--accent')` returns a non-empty string in jsdom tests.

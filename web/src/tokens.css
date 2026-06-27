@@ -97,6 +97,13 @@
   --line-height-relaxed: 1.6;
 
   --letter-spacing-wide: 0.05em;
+
+  /* Desktop layout — invariant across themes */
+  --viewport-min-width: 1280px;
+  --content-width-comfortable: 1440px;
+  --content-max-width: 1760px;
+  --kanban-column-min: 248px;
+  --kanban-column-max: 320px;
 }
 
 /* Dark theme — auto via OS preference */

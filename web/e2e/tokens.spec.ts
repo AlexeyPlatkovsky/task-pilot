@@ -13,12 +13,20 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
         surfaceApp: style.getPropertyValue("--surface-app").trim(),
         surfaceBase: style.getPropertyValue("--surface-base").trim(),
         textPrimary: style.getPropertyValue("--text-primary").trim(),
+        viewportMinWidth: style.getPropertyValue("--viewport-min-width").trim(),
+        contentMaxWidth: style.getPropertyValue("--content-max-width").trim(),
+        kanbanColumnMin: style.getPropertyValue("--kanban-column-min").trim(),
+        kanbanColumnMax: style.getPropertyValue("--kanban-column-max").trim(),
       };
     });
 
     expect(tokens.surfaceApp).toBe("#f8fafc");
     expect(tokens.surfaceBase).toBe("#ffffff");
     expect(tokens.textPrimary).toBe("#102a43");
+    expect(tokens.viewportMinWidth).toBe("1280px");
+    expect(tokens.contentMaxWidth).toBe("1760px");
+    expect(tokens.kanbanColumnMin).toBe("248px");
+    expect(tokens.kanbanColumnMax).toBe("320px");
   });
 
   test("AC-4: data-theme=dark overrides apply dark tokens", async ({

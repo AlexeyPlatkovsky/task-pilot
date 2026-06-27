@@ -6,12 +6,35 @@ import { resolve } from "node:path";
 // Dark/light computed-value assertions require a real browser — see Playwright tests.
 
 const TOKENS_PATH = resolve(__dirname, "../tokens.css");
+const INDEX_CSS_PATH = resolve(__dirname, "../index.css");
+const KANBAN_BOARD_CSS_PATH = resolve(
+  __dirname,
+  "../components/KanbanBoard.module.css",
+);
+const KANBAN_COLUMN_CSS_PATH = resolve(
+  __dirname,
+  "../components/KanbanColumn.module.css",
+);
+const ROOT_TOKEN_COUNT = 74;
 
 describe("tokens.css — token definitions (AC-2)", () => {
   let css: string;
 
   beforeAll(() => {
     css = readFileSync(TOKENS_PATH, "utf-8");
+  });
+
+  it("defines exactly the approved root token count", () => {
+    const rootBlock = css.match(/:root\s*{(?<body>[\s\S]*?)\n}/)?.groups?.body;
+    expect(rootBlock, "missing :root token block").toBeDefined();
+
+    const tokenNames = new Set(
+      Array.from(rootBlock?.matchAll(/(--[a-z0-9_-]+)\s*:/g) ?? []).map(
+        ([, name]) => name,
+      ),
+    );
+
+    expect(tokenNames.size).toBe(ROOT_TOKEN_COUNT);
   });
 
   it("defines all six surface tokens", () => {
@@ -49,7 +72,7 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines all four accent tokens", () => {
+  it("defines all five accent tokens", () => {
     for (const name of [
       "--brand-accent",
       "--accent",
@@ -91,12 +114,14 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines all four feedback tokens", () => {
+  it("defines all six feedback tokens", () => {
     for (const name of [
       "--feedback-error",
       "--feedback-error-bg",
       "--feedback-warning",
       "--feedback-warning-bg",
+      "--feedback-success",
+      "--feedback-success-bg",
     ]) {
       expect(css, `missing ${name}`).toContain(`${name}:`);
     }
@@ -145,6 +170,26 @@ describe("tokens.css — token definitions (AC-2)", () => {
     ]) {
       expect(css, `missing ${name}`).toContain(`${name}:`);
     }
+  });
+
+  it("defines desktop layout tokens for the local-only workspace", () => {
+    expect(css).toContain("--viewport-min-width: 1280px");
+    expect(css).toContain("--content-width-comfortable: 1440px");
+    expect(css).toContain("--content-max-width: 1760px");
+    expect(css).toContain("--kanban-column-min: 248px");
+    expect(css).toContain("--kanban-column-max: 320px");
+  });
+
+  it("applies desktop layout tokens to the app shell and Kanban board", () => {
+    const indexCss = readFileSync(INDEX_CSS_PATH, "utf-8");
+    const boardCss = readFileSync(KANBAN_BOARD_CSS_PATH, "utf-8");
+    const columnCss = readFileSync(KANBAN_COLUMN_CSS_PATH, "utf-8");
+
+    expect(indexCss).toContain("min-width: var(--viewport-min-width)");
+    expect(boardCss).toContain("max-width: var(--content-max-width)");
+    expect(columnCss).toContain("flex: 1 0 var(--kanban-column-min)");
+    expect(columnCss).toContain("min-width: var(--kanban-column-min)");
+    expect(columnCss).toContain("max-width: var(--kanban-column-max)");
   });
 
   it("includes a dark theme via prefers-color-scheme media query", () => {
