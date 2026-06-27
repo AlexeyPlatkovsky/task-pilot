@@ -1,6 +1,8 @@
 # Design
 
 > Design token reference, icon library, accessibility rules, and MCP tool constraints: see `designs/design.md`.
+> TaskPilot inherits its base visual language from the Agent Manifesto design system and extends it
+> with local-first product UI states, dark theme, status, priority, and feedback tokens.
 
 ## UX Principles
 

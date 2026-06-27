@@ -2,7 +2,7 @@
 
 | ID | Task | Implements | Status | Depends on |
 | --- | --- | --- | --- | --- |
-| F009-T0 | Sync `tokens.css` with `designs/design.md` in one PR: (a) add all ten missing tokens; (b) apply radius merge — set sm=4px, md=6px, lg=8px, remove `--radius-xl`, rename every `var(--radius-xl)` in component CSS to `var(--radius-lg)`, rename every `var(--radius-lg)` to `var(--radius-md)`; (c) replace every hardcoded `font-weight: 600`, `0.75rem`, `1.25rem`, `1.125rem`, `letter-spacing: 0.05em`, `line-height: 1.5`, and `line-height: 1.6` literal in `web/src/components/*.module.css` and `web/src/index.css` with the corresponding token reference | F009-R10 | ✅ done | — |
+| F009-T0 | Sync `tokens.css` with `designs/design.md`: (a) add all ten missing tokens; (b) adopt Agent Manifesto parent tokens (`--brand-accent`, terracotta `--accent`, Inter, sm=10px/md=16px/lg=20px/999px pill radii); (c) keep `--radius-xl` removed; (d) replace every hardcoded `font-weight: 600`, `0.75rem`, `1.25rem`, `1.125rem`, `letter-spacing: 0.05em`, `line-height: 1.5`, and `line-height: 1.6` literal in `web/src/components/*.module.css` and `web/src/index.css` with the corresponding token reference | F009-R10 | ✅ done | — |
 | F009-T1 | Check for an existing OD project named `taskpilot-design` via `list_projects`; create it if absent. Define the design system resource with all token groups from `designs/design.md` as OD variables | F009-R1 | ✅ done | — |
 | F009-T2 | Create component library artifact: StatusBadge, PriorityBadge, TypeBadge with all status/priority/type variants | F009-R2 | ✅ done | F009-T1 |
 | F009-T3 | Extend component library: ItemCard (Kanban), ItemRow (List), Button (primary/secondary/destructive), TextInput, SelectDropdown | F009-R2 | ✅ done | F009-T2 |
@@ -23,6 +23,8 @@
 - F009-T0 (tokens.css sync) can run in parallel with F009-T1 (OD design system creation) because
   T1 reads `designs/design.md` directly, not `tokens.css`. However, T0 must be complete before any
   `od-to-code` pipeline runs, since the generated React code will reference the new token names.
+- F009-T0 was updated after Agent Manifesto became TaskPilot's parent design system. Existing OD
+  prototypes must include the synced token override block before they are treated as current.
 - Every task that runs `design-reviewer` must produce an `Agent: design-reviewer - output below`
   artifact before the task is considered done.
 - Tasks F009-T2 through F009-T4 may be batched into fewer OD runs if the OD skill can handle

@@ -3,7 +3,9 @@
 Implementation: `web/src/tokens.css`. This file is the single source of truth for all design
 decisions — tokens, principles, patterns, states, and MCP tool constraints. All AI agents and
 pipelines read this file; `docs/design.md` covers screen-level UX flows and is a companion, not
-a duplicate.
+a duplicate. TaskPilot inherits its base visual language from the Agent Manifesto design system
+and extends it with local-first product UI tokens for status, priority, feedback, dark theme, and
+dense developer workflows.
 
 ---
 
@@ -65,7 +67,8 @@ WCAG AA: 4.5:1 for normal text (< 18pt / 14pt bold), 3:1 for large text. See
 
 ## Visual Direction
 
-- Neutral surfaces, restrained borders, one functional accent, and clear type hierarchy.
+- Agent Manifesto base identity: slate canvas, navy text, terracotta accent, Inter typography,
+  explicit structure, restrained borders, and clear type hierarchy.
 - Consistent spacing and density suitable for developer tools.
 - Motion is limited to opacity and transforms that clarify state changes.
 - Avoid glass effects, decorative gradients, dashboard-card overload, and hidden hover-only state.
@@ -86,25 +89,26 @@ values from persisting in forced-light mode.
 ## Color Tokens
 
 Theme-aware. Light theme is the default; dark activates via `prefers-color-scheme: dark` or `[data-theme="dark"]`.
+Agent Manifesto is light-only; TaskPilot adds dark tokens as a product-specific extension.
 
 ### Surface
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| `--surface-app` | `#f5f5f5` | `#111113` | Page background |
+| `--surface-app` | `#f8fafc` | `#111113` | Page background — inherited Agent Manifesto background |
 | `--surface-base` | `#ffffff` | `#1c1c1e` | Card, panel background |
 | `--surface-raised` | `#ffffff` | `#2c2c2e` | Modal, popover (elevated) |
 | `--surface-overlay` | `rgba(0,0,0,0.5)` | `rgba(0,0,0,0.7)` | Modal backdrop |
-| `--surface-muted` | `#f8f9fa` | `#28282a` | Inset / de-emphasized area |
-| `--surface-column` | `#e9ecef` | `#2c2c2e` | Kanban column background |
+| `--surface-muted` | `#f1f5f9` | `#28282a` | Inset / de-emphasized area |
+| `--surface-column` | `#e5eaf0` | `#2c2c2e` | Kanban column background |
 
 ### Border
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| `--border-subtle` | `#dee2e6` | `#3a3a3c` | Dividers, row separators |
-| `--border-default` | `#ced4da` | `#48484a` | Input, card borders |
-| `--border-strong` | `#adb5bd` | `#636366` | Focus rings, emphasized edges |
+| `--border-subtle` | `#e5eaf0` | `#3a3a3c` | Dividers, row separators — inherited Agent Manifesto border |
+| `--border-default` | `#d9e2ec` | `#48484a` | Input, card borders |
+| `--border-strong` | `#9fb3c8` | `#636366` | Focus rings, emphasized edges |
 
 ### Text
 
@@ -112,20 +116,21 @@ All pairs verified WCAG AA (≥ 4.5:1) on `--surface-base` in both themes.
 
 | Token | Light | Dark | Contrast (light) | Usage |
 |---|---|---|---|---|
-| `--text-primary` | `#1a1a1a` | `#f5f5f7` | ≫ 10:1 | Body text, headings |
-| `--text-secondary` | `#495057` | `#aeaeb2` | ~8.6:1 | Secondary labels |
-| `--text-muted` | `#6c757d` | `#8e8e93` | ~4.7:1 | Timestamps, hints |
-| `--text-disabled` | `#adb5bd` | `#48484a` | decorative | Disabled controls (not content) |
+| `--text-primary` | `#102a43` | `#f5f5f7` | ≫ 10:1 | Body text, headings — inherited Agent Manifesto foreground |
+| `--text-secondary` | `#486581` | `#aeaeb2` | ~7.7:1 | Secondary labels — inherited Agent Manifesto muted |
+| `--text-muted` | `#5d7892` | `#8e8e93` | ~4.6:1 | Timestamps, hints |
+| `--text-disabled` | `#9fb3c8` | `#48484a` | decorative | Disabled controls (not content) |
 | `--text-inverse` | `#ffffff` | — | — | Text on dark/colored surfaces |
 
 ### Accent
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| `--accent` | `#0066cc` | `#3b8fe8` | Primary action, link |
-| `--accent-hover` | `#0056b3` | `#5aabff` | Hover/focus state |
-| `--accent-fg` | `#ffffff` | `#1a1a1a` | Text on accent bg (dark: dark text, AA ≈ 5.8:1) |
-| `--accent-subtle` | `#e8f0fb` | `#1a2e4a` | Selected state, accent tint |
+| `--brand-accent` | `#c65d2e` | `#c65d2e` | Agent Manifesto brand swatch; use for non-text marks and borders |
+| `--accent` | `#a94a22` | `#e08a5d` | Primary action, link, in-progress status; accessible terracotta action token |
+| `--accent-hover` | `#8c3d1c` | `#f2b08b` | Hover/focus state |
+| `--accent-fg` | `#ffffff` | `#1a1a1a` | Text on accent bg |
+| `--accent-subtle` | `#f6d6c6` | `#3a1d12` | Selected state, accent tint |
 
 ### Status
 
@@ -135,7 +140,7 @@ Each status has `-bg` / `-fg` pair. All pairs meet WCAG AA (≥ 4.5:1).
 |---|---|---|---|---|---|
 | `--status-backlog` | `#6c757d` | `#ffffff` | `#48484a` | `#f5f5f7` | |
 | `--status-ready` | `#0f7a8a` | `#ffffff` | `#0a7d8c` | `#ffffff` | Darkened from #17a2b8 for AA (≈ 4.6:1) |
-| `--status-inprogress` | `#0066cc` | `#ffffff` | `#3b8fe8` | `#1a1a1a` | Dark mode: accent bg needs dark text |
+| `--status-inprogress` | `#a94a22` | `#ffffff` | `#e08a5d` | `#1a1a1a` | Uses accessible terracotta action token |
 | `--status-done` | `#1e7d34` | `#ffffff` | `#1e7d34` | `#ffffff` | Darkened from #28a745 for AA (≈ 4.8:1) |
 | `--status-cancelled` | `#ffc107` | `#343a40` | `#b38600` | `#1a1a1a` | Yellow fails AA with white; dark text required |
 | `--status-deleted` | `#dc3545` | `#ffffff` | `#b02a37` | `#ffffff` | |
@@ -187,11 +192,14 @@ Invariant across themes.
 
 | Token | Value | Usage |
 |---|---|---|
-| `--radius-sm` | `4px` | Badges, pills, chips, small inline elements |
-| `--radius-md` | `6px` | Cards, inputs, buttons, comment threads |
-| `--radius-lg` | `8px` | Columns, modals, dialogs |
+| `--radius-sm` | `10px` | Badges, chips, small inline elements |
+| `--radius-md` | `16px` | Cards, inputs, buttons, comment threads |
+| `--radius-lg` | `20px` | Columns, modals, dialogs |
+| `--radius-pill` | `999px` | Full pills, CTAs, nav links, eyebrow labels |
 
-> **Merge applied (F009-T0):** `tokens.css` now declares three levels — sm=4px, md=6px, lg=8px. The former `--radius-xl` was removed and its usages renamed to `--radius-lg`; former `--radius-lg` usages renamed to `--radius-md`.
+> **Agent Manifesto adoption:** `tokens.css` now declares Agent Manifesto radii —
+> sm=10px, md=16px, lg=20px, pill=999px. The former compact 4px/6px/8px radii were replaced by
+> the parent design system.
 
 ---
 
@@ -215,10 +223,11 @@ Invariant across themes.
 
 | Token | Value | Usage |
 |---|---|---|
-| `--font-family-base` | `system-ui, -apple-system, sans-serif` | All UI text (body, headings, labels, inputs) |
+| `--font-family-base` | `Inter, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif` | All UI text (body, headings, labels, inputs) |
 | `--font-family-mono` | `ui-monospace, SFMono-Regular, Menlo, monospace` | File paths, code identifiers, terminal-style output |
 
-> In `tokens.css` and referenced by `html` in `index.css` (F009-T0). `--font-family-mono` added in F009-T6 for file-path display.
+> Inter is inherited from Agent Manifesto. System fallbacks keep the UI local-first when Inter is
+> unavailable. `--font-family-mono` is TaskPilot-specific for file-path display.
 
 ### Font Size
 
@@ -333,7 +342,9 @@ with `Read` or `Grep` directly.
 
 | Merged from | Into | Diff | Rationale |
 |---|---|---|---|
-| `--radius-sm: 3px` + `--radius-md: 4px` | `--radius-sm: 4px` | 1 px | Imperceptible difference; same semantic role (small surface) |
+| TaskPilot blue accent | Agent Manifesto terracotta accent | identity change | Shared parent brand language across projects |
+| TaskPilot compact radii `4px/6px/8px` | Agent Manifesto radii `10px/16px/20px/999px` | posture change | Shared parent component shape across projects |
+| TaskPilot system font | Agent Manifesto Inter stack | typography change | Shared parent type system with local fallbacks |
 | `0.6875rem` + `0.75rem` (hard-coded) | `--font-size-xs: 0.75rem` | 1 px | Both badge/label contexts in same component |
 | `1.125rem` + `1.25rem` (hard-coded) | `--font-size-lg: 1.25rem` | 2 px | Both modal/dialog heading contexts |
 
@@ -348,11 +359,12 @@ sync with this document. New tokens go to `tokens.css` and this file together.
 
 ## Design Debt
 
-- Token system established (spec 0003). Breakpoints and interaction behavior remain provisional
+- Token system established (spec 0003) and later aligned to the Agent Manifesto parent design
+  system. Breakpoints and interaction behavior remain provisional
   until List View and Tree View are implemented.
 - No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
   automatically; `[data-theme]` override requires manual JS until a toggle is built.
-- Token sync complete (F009-T0): radius merged to sm=4px/md=6px/lg=8px with `--radius-xl` removed;
-  all typography and spacing tokens added; the stray `font-weight: bold` unified to
-  `--font-weight-semibold`; component CSS now references tokens rather than literals.
+- Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use
+  sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography and spacing tokens are present;
+  component CSS references tokens rather than literals.
 - Update this file when an accepted specification or implemented UI establishes a durable pattern.

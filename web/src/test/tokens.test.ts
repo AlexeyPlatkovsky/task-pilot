@@ -51,6 +51,7 @@ describe("tokens.css — token definitions (AC-2)", () => {
 
   it("defines all four accent tokens", () => {
     for (const name of [
+      "--brand-accent",
       "--accent",
       "--accent-hover",
       "--accent-fg",
@@ -107,10 +108,11 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines the three merged radius tokens with correct values", () => {
-    expect(css).toContain("--radius-sm: 4px");
-    expect(css).toContain("--radius-md: 6px");
-    expect(css).toContain("--radius-lg: 8px");
+  it("defines the Agent Manifesto radius tokens with correct values", () => {
+    expect(css).toContain("--radius-sm: 10px");
+    expect(css).toContain("--radius-md: 16px");
+    expect(css).toContain("--radius-lg: 20px");
+    expect(css).toContain("--radius-pill: 999px");
   });
 
   it("no longer defines --radius-xl after the radius merge (F009-R10)", () => {

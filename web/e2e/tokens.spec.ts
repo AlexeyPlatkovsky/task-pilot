@@ -16,9 +16,9 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
       };
     });
 
-    expect(tokens.surfaceApp).toBe("#f5f5f5");
+    expect(tokens.surfaceApp).toBe("#f8fafc");
     expect(tokens.surfaceBase).toBe("#ffffff");
-    expect(tokens.textPrimary).toBe("#1a1a1a");
+    expect(tokens.textPrimary).toBe("#102a43");
   });
 
   test("AC-4: data-theme=dark overrides apply dark tokens", async ({
@@ -68,9 +68,9 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
       };
     });
 
-    expect(tokens.surfaceApp).toBe("#f5f5f5");
+    expect(tokens.surfaceApp).toBe("#f8fafc");
     expect(tokens.surfaceBase).toBe("#ffffff");
-    expect(tokens.textPrimary).toBe("#1a1a1a");
+    expect(tokens.textPrimary).toBe("#102a43");
     expect(tokens.accentFg).toBe("#ffffff");
     expect(tokens.statusInprogressFg).toBe("#ffffff");
   });

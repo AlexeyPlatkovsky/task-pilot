@@ -12,7 +12,8 @@ Scenario: OD design system matches canonical tokens
   When the design-system resource is read via `od://design-systems/<id>/DESIGN.md`
   Then the resource lists a variable for every token group in `designs/design.md`:
     surface, border, text, accent, status, priority, feedback, spacing, radius, shadow, typography
-  And the value of `--accent` in the resource matches `#0066cc`
+  And the value of `--brand-accent` in the resource matches `#c65d2e`
+  And the value of `--accent` in the resource matches `#a94a22`
   And the value of `--status-done-bg` in the resource matches `#1e7d34`
 ```
 
@@ -82,7 +83,7 @@ Scenario: tokens.css declares every canonical token and components use only toke
   Then the :root block includes --space-1_5, --font-family-base, --font-size-xs, --font-size-lg,
     --font-weight-normal, --font-weight-semibold, --line-height-tight, --line-height-base,
     --line-height-relaxed, and --letter-spacing-wide
-  And --radius-sm is 4px, --radius-md is 6px, --radius-lg is 8px
+  And --radius-sm is 10px, --radius-md is 16px, --radius-lg is 20px, and --radius-pill is 999px
   And --radius-xl does not appear anywhere in tokens.css or component CSS files
   And no file under web/src/components/ contains a hardcoded hex color, font-size literal,
     font-weight literal, letter-spacing literal, or line-height literal where a token exists

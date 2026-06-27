@@ -4,6 +4,10 @@ Status: ✅ accepted
 
 ## Outcome
 
+> 2026-06-27 amendment: TaskPilot now inherits base visual identity from the Agent Manifesto design
+> system. The token system remains the production source of truth, but the base accent, typography,
+> and radii now use the parent design system values plus TaskPilot-specific dark/status extensions.
+
 Replace all hardcoded color, spacing, radius, shadow, and typography values in the web frontend
 with a single CSS custom-property token file (`web/src/tokens.css`). Add light and dark themes that
 switch automatically by OS preference and can be overridden by a `data-theme` attribute on `<html>`.
@@ -23,7 +27,7 @@ layout or interaction behavior, or introduce new screens.
 ## Scope
 
 **In scope:**
-- `web/src/tokens.css` — 55 semantic CSS custom properties, light defaults, dark overrides.
+- `web/src/tokens.css` — 57 semantic CSS custom properties, light defaults, dark overrides.
 - `web/src/index.css` — import tokens; replace 4 hardcoded values.
 - All 9 `web/src/components/*.module.css` files — replace hardcoded values with token references.
 - `web/package.json` — add `lucide-react` dependency.
@@ -41,7 +45,7 @@ layout or interaction behavior, or introduce new screens.
 
 ### Functional
 
-F1. `web/src/tokens.css` defines all 55 tokens in `:root` (light defaults) and overrides
+F1. `web/src/tokens.css` defines all 57 tokens in `:root` (light defaults) and overrides
 theme-sensitive tokens in `@media (prefers-color-scheme: dark) { :root { } }`.
 
 F2. Explicit `[data-theme="dark"]` on `<html>` applies dark tokens regardless of OS preference.
@@ -105,8 +109,9 @@ No new states are introduced.
 **AC-1 (token coverage):** After migration, running
 `grep -rn "#[0-9a-fA-F]\{3,6\}" web/src/components/ web/src/index.css` returns zero matches.
 
-**AC-2 (token count):** `web/src/tokens.css` defines exactly the 55 tokens listed in the approved
-plan. Each token appears in `:root` and, for theme-sensitive tokens, in the dark override block.
+**AC-2 (token count):** `web/src/tokens.css` defines exactly the 57 tokens listed in the approved
+plan, including `--brand-accent` and `--radius-pill`. Each token appears in `:root` and, for
+theme-sensitive tokens, in the dark override block.
 
 **AC-3 (dark theme auto-switch):** When a Playwright test sets
 `page.emulateMedia({ colorScheme: 'dark' })` and navigates to the board, the computed value of
@@ -118,7 +123,7 @@ the media query value.
 
 **AC-5 (light theme explicit override):** When a Playwright test sets `data-theme="light"` on
 `document.documentElement` while OS preference is dark, the computed value of `--surface-app`
-equals `#f5f5f5`.
+equals `#f8fafc`.
 
 **AC-6 (icon accessibility — label present):** Rendering `<Icon icon={Layers} label="epic" />`
 produces an SVG element with `aria-label="epic"` and `aria-hidden="false"`.
@@ -161,7 +166,7 @@ screenshots as new evidence.
 ## Implementation Slices
 
 Slice 1 — Token file + index.css:
-- Create `web/src/tokens.css` with all 55 tokens (light + dark).
+- Create `web/src/tokens.css` with all 57 tokens (light + dark).
 - Add `@import './tokens.css';` as first line of `web/src/index.css`.
 - Replace 4 hardcoded values in `index.css`.
 - Observable: `getComputedStyle(document.documentElement).getPropertyValue('--accent')` returns a non-empty string in jsdom tests.
@@ -219,7 +224,7 @@ visual rhythm.
 A2. No JS theme-toggle control is in scope for this spec. The `data-theme` attribute is set
 manually in tests and can be wired to a future toggle without changing the token contract.
 
-A3. `#e0e0e0` in `index.css` (header `border-bottom`) maps to `--border-subtle` (`#dee2e6`). The
+A3. `#e0e0e0` in `index.css` (header `border-bottom`) maps to `--border-subtle` (`#e5eaf0`). The
 visual difference is imperceptible; no new token is added.
 
 A4. The `filter: brightness(0.9)` approach for delete-button hover state is acceptable CSS because
