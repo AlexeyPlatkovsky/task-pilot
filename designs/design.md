@@ -39,7 +39,7 @@ Every applicable product flow accounts for:
 - missing or broken relation;
 - unsaved or conflicting change;
 - completed success state;
-- narrow-screen layout.
+- constrained desktop window layout.
 
 ---
 
@@ -57,11 +57,18 @@ WCAG AA: 4.5:1 for normal text (< 18pt / 14pt bold), 3:1 for large text. See
 
 ---
 
-## Responsive Baseline
+## Desktop Layout Baseline
 
-- Desktop layouts optimize for scanning and side-by-side context.
-- Narrow layouts preserve the primary action and item identity before secondary metadata.
-- Tables may become stacked rows only when column meaning remains explicit.
+TaskPilot is a local-only desktop WebUI. It does not provide mobile or tablet layouts.
+
+- Supported app viewport starts at `1280px` wide.
+- Comfortable working width starts at `1440px` wide.
+- Primary workspace content should cap at `1760px` wide to keep scanning lines and board travel
+  readable on large displays.
+- Constrained desktop windows preserve dense table and board structure with horizontal scrolling
+  inside the workspace area. They do not collapse tables into stacked mobile rows.
+- Kanban columns stay readable by using a column width range of `248px` to `320px`, with gaps based
+  on the spacing scale.
 
 ---
 

@@ -8,6 +8,8 @@
 
 - **Local-first feel**: the WebUI should feel instant, with no loading spinners for normal
   operations. All data is on the local machine.
+- **Desktop-only workspace**: TaskPilot is a local desktop WebUI. It supports constrained desktop
+  windows, but does not provide mobile or tablet layouts.
 - **Kanban as home**: the primary workspace is a Kanban board. Users land there after project
   selection.
 - **Modal editing**: opening an item opens a modal on the current page. Users should not navigate
@@ -45,6 +47,14 @@ The primary workspace page for a selected project.
 
 Five columns fixed in Alpha: backlog, ready, in_progress, done, cancelled. Deleted items are hidden
 from the normal board.
+
+The board is designed for desktop use. The supported app viewport starts at `1280px`; `1440px` is
+the comfortable target, and the primary workspace caps at `1760px` to preserve readable scan
+distances on large displays. In narrower desktop windows, the board keeps its column structure and
+uses horizontal scrolling instead of switching to a mobile/tablet layout.
+
+Kanban columns use a readable width range of `248px` to `320px` with token-based spacing between
+columns.
 
 Within each column, cards are sorted by type order then numeric item ID:
 epic > feature > task > bug.
@@ -119,6 +129,9 @@ Supports sorting by any column, filtering by status, type, priority, and time ra
 days, last 14 days, last month). Uses TanStack Table.
 
 Clicking a row opens the item detail modal.
+
+Tables preserve their tabular structure in constrained desktop windows and use horizontal overflow
+when needed. They do not collapse into stacked mobile rows.
 
 ## Tree View
 

@@ -98,11 +98,14 @@ The component library artifact must include the following components with all vi
 - Icon usage must match the Icon Library in `designs/design.md`. No ad hoc glyphs.
 - Prototypes use light theme by default; dark theme variants are optional for Alpha, but the
   canonical token system includes dark theme values.
+- Prototypes target desktop-only local use. Kanban and table views keep their desktop structure in
+  constrained desktop windows and may use horizontal overflow; mobile and tablet layouts are not a
+  supported target.
 
 ## Out of Scope
 
 - Dedicated dark theme prototype pages (Beta).
-- Mobile/narrow layout variants (can be added once desktop layouts are accepted).
+- Mobile and tablet layout variants.
 - Drag-and-drop interaction simulation.
 - Validation panel prototype is now in scope (F009-R11).
 - Production code — `od-to-code` pipeline handles translation.
