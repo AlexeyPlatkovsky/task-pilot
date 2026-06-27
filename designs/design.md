@@ -158,6 +158,8 @@ All pairs verified WCAG AA.
 | `--feedback-error-bg` | `#f8d7da` | `#4a1a1f` | Error container |
 | `--feedback-warning` | `#856404` | `#ffc107` | Warning text / icon |
 | `--feedback-warning-bg` | `#fff3cd` | `#3d2e00` | Warning container |
+| `--feedback-success` | `#155724` | `#75b798` | Success text / icon (light ≈ 9.1:1 on bg, dark ≈ 6.7:1) |
+| `--feedback-success-bg` | `#d4edda` | `#0f2914` | Success container |
 
 ---
 
