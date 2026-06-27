@@ -7,7 +7,7 @@
 
 .content {
   background-color: var(--surface-raised);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-modal);
   position: fixed;
   top: 50%;
@@ -23,8 +23,8 @@
 
 .title {
   margin: 0 0 var(--space-4);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   padding-right: var(--space-8);
 }
 
@@ -110,8 +110,8 @@
 .badge {
   padding: var(--space-1) 0.625rem;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
 }
 
@@ -183,15 +183,15 @@
 .section h4 {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-base);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .description {
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
 }
 
 .fields {
@@ -202,7 +202,7 @@
 }
 
 .fields dt {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
 }
 

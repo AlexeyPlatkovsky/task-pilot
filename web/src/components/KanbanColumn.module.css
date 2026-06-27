@@ -1,11 +1,10 @@
 .column {
-  flex: 1;
-  min-width: 240px;
-  max-width: 320px;
+  flex: 1 1 var(--kanban-column-min);
+  min-width: var(--kanban-column-min);
   display: flex;
   flex-direction: column;
   background: var(--surface-column);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   transition: background-color 0.2s;
 }
@@ -20,13 +19,14 @@
   justify-content: space-between;
   padding: var(--space-3);
   background: var(--border-subtle);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .title {
+  padding-inline-start: var(--space-2);
   font-size: var(--font-size-base);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--letter-spacing-wide);
   color: var(--text-secondary);
 }
 
@@ -34,8 +34,8 @@
   background: var(--text-muted);
   color: var(--text-inverse);
   padding: 0.125rem 0.5rem;
-  border-radius: var(--radius-xl);
-  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
 }
 
 .list {

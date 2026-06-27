@@ -18,3 +18,4 @@ dist/
 .playwright/
 .playwright/screenshots/
 web/test-results/
+.DS_Store

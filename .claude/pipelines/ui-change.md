@@ -2,13 +2,15 @@
 
 ## Trigger
 
-Use for TaskPilot product UI design or implementation, including list/detail, forms, validation
-states, Kanban, tree, accessibility, responsive behavior, and visual-system changes.
+Use for TaskPilot product UI design or implementation, including existing-page changes, local WebUI
+component-library work, list/detail, forms, validation states, Kanban, tree, accessibility,
+responsive behavior, and visual-system changes.
 
 ## Conditional Gates
 
 - Product UI implementation follows the feature pipeline's conditional rigor for branch, task,
   tests-first, validation, and review gates when behavior changes.
+- Local WebUI component-library work follows `.claude/conventions/ui-component-library.md`.
 - Component coverage is required for changed React behavior, using the testing standard in
   `.claude/conventions/testing.md`.
 - Browser validation and E2E scope are governed by `.claude/conventions/testing.md`.
@@ -47,4 +49,6 @@ maintenance and task-complete.
 
 Begin with `Pipeline: ui-change - output below` and report status, design-system path, completed
 handoffs, artifact labels, visual evidence, skipped implementation steps, review-loop attempt count
-and repeated artifact labels, and blockers.
+and repeated artifact labels, blockers, and whether the change affected reusable local components,
+page-only composition, design tokens, local docs, or OD references. If OD was not used, state that
+the local WebUI component library was the implementation source of truth.

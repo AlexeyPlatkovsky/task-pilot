@@ -24,9 +24,21 @@ available for explicit `.pen` file work.
 
 ## Prerequisites
 
-The Open Design MCP server must be installed, configured, and running. Verify availability with
-`mcp__open_design__get_active_context` or `mcp__open_design__list_projects`. If OD tools are
-unavailable, stop and ask the user to configure or open Open Design.
+The Open Design MCP server must be installed, configured, and running. Call
+`mcp__open_design__get_active_context` or `mcp__open_design__list_projects` to verify.
+
+If the call returns a connection-refused or "cannot reach the Open Design daemon" error on port
+7456, auto-start the daemon (this action is pre-authorized by the project owner):
+```
+cd /Users/aleksei.platkovskii/Documents/IdeaProjects/open-design && pnpm tools-dev run web --daemon-port 7456
+```
+Run in background (the trailing `&` ensures the AI does not block on process completion). Wait exactly 15 seconds, then retry the availability check once. If the retry
+succeeds, continue. If the retry fails or the original error is anything other than
+connection-refused / daemon-unreachable (e.g., auth failure, wrong port config, MCP transport
+error), emit `Skill: open-design - output below` with `Status: blocked`, then stop and ask the
+user to confirm the Open Design project is set up correctly.
+
+Note: the path above is machine-specific. Update it if the Open Design project lives elsewhere.
 
 ## Best-Practice Constraints
 

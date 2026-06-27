@@ -12,7 +12,7 @@
 
 .label {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
 }
 
@@ -24,7 +24,7 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-family: inherit;
-  line-height: 1.5;
+  line-height: var(--line-height-base);
   background: var(--surface-base);
   color: var(--text-primary);
 }
@@ -60,7 +60,7 @@
 }
 
 .error {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--feedback-error);
 }
 

@@ -34,9 +34,7 @@ export function KanbanCard({ item, onClick }: Props) {
       className={`${styles.card} ${!item.valid ? styles.invalid : ""}`}
       data-item-id={item.id}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      role={item.valid ? "button" : undefined}
-      tabIndex={item.valid ? 0 : undefined}
+      onKeyDown={item.valid && onClick ? handleKeyDown : undefined}
       aria-label={`${item.id}: ${item.title}`}
     >
       <div className={styles.header}>

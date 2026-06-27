@@ -22,9 +22,11 @@ describe("KanbanCard", () => {
     expect(screen.getByText("Test Item")).toBeInTheDocument();
   });
 
-  it("is keyboard accessible with button role when valid", () => {
+  it("has aria-label for accessibility", () => {
     render(<KanbanCard item={makeItem()} onClick={() => {}} />);
-    expect(screen.getByRole("button", { name: /VP-1/ })).toBeInTheDocument();
+    const card = screen.getByLabelText("VP-1: Test Item");
+    expect(card).toBeInTheDocument();
+    expect(card.tagName).toBe("DIV");
   });
 
   it("shows invalid badge for invalid items", () => {

@@ -15,12 +15,16 @@ emit `Pipeline: od-design - output below` with status `blocked`, reason, scope, 
 
 Before stage 1:
 
-- Confirm the Open Design MCP server is available (`mcp__open_design__get_active_context` or
-  `mcp__open_design__list_projects`). Stop if unavailable.
+- OD availability — including any daemon startup fallback — is owned by the `open-design` skill
+  (stage 2). Do not perform a separate MCP availability check here. If the `open-design` skill
+  reports `blocked` due to OD being unavailable, stop, emit `Pipeline: od-design - output below`
+  with status `blocked`, and return control to the manager.
 - Confirm `designs/design.md` is readable. Stop if unavailable.
-- For existing-design requests, confirm an active OD project exists. If none exists, ask the user to
-  open the intended OD project and stop. For new design artifact requests, record that
-  `open-design` must create the OD project; do not create it in this prerequisite gate.
+- For existing-design requests, note whether the user's request or conversation context names or
+  implies a target OD project; if not, `open-design` will resolve or stop in stage 2. Do not make
+  an OD MCP call here; project-context resolution (including checking whether an active project
+  exists) is handled by the `open-design` skill in stage 2. For new design artifact requests,
+  record that `open-design` must create the OD project; do not create it in this prerequisite gate.
 - For ambiguous document-format requests such as "deck", "slides", "PDF", or "doc", ask whether
   the desired output is browser-viewable OD HTML/SVG or a real binary export before starting OD.
 

@@ -55,5 +55,5 @@ TypeScript, CSS Modules, and Radix UI primitives.
 - Filters and sorting controls (F006).
 - Validation/errors panel (F006).
 - Real-time updates (no WebSocket).
-- Mobile/responsive layout (future).
+- Mobile and tablet layouts; TaskPilot is a desktop-only local WebUI.
 - Dark mode (future).

@@ -4,37 +4,38 @@
 
 :root {
   /* Surface */
-  --surface-app:     #f5f5f5;
+  --surface-app:     #f8fafc;
   --surface-base:    #ffffff;
   --surface-raised:  #ffffff;
   --surface-overlay: rgba(0, 0, 0, 0.5);
-  --surface-muted:   #f8f9fa;
-  --surface-column:  #e9ecef;
+  --surface-muted:   #f1f5f9;
+  --surface-column:  #e5eaf0;
 
   /* Border */
-  --border-subtle:  #dee2e6;
-  --border-default: #ced4da;
-  --border-strong:  #adb5bd;
+  --border-subtle:  #e5eaf0;
+  --border-default: #d9e2ec;
+  --border-strong:  #9fb3c8;
 
   /* Text — all pairs verified WCAG AA on surface-base */
-  --text-primary:   #1a1a1a;
-  --text-secondary: #495057;
-  --text-muted:     #6c757d;
-  --text-disabled:  #adb5bd;
+  --text-primary:   #102a43;
+  --text-secondary: #486581;
+  --text-muted:     #5d7892;
+  --text-disabled:  #9fb3c8;
   --text-inverse:   #ffffff;
 
   /* Accent */
-  --accent:        #0066cc;
-  --accent-hover:  #0056b3;
+  --brand-accent:  #c65d2e;
+  --accent:        #a94a22;
+  --accent-hover:  #8c3d1c;
   --accent-fg:     #ffffff;
-  --accent-subtle: #e8f0fb;
+  --accent-subtle: #f6d6c6;
 
   /* Status */
   --status-backlog-bg:    #6c757d;
   --status-backlog-fg:    #ffffff;
   --status-ready-bg:      #0f7a8a; /* darkened from #17a2b8 for WCAG AA: #fff on #0f7a8a ≈ 4.6:1 */
   --status-ready-fg:      #ffffff;
-  --status-inprogress-bg: #0066cc;
+  --status-inprogress-bg: #a94a22;
   --status-inprogress-fg: #ffffff;
   --status-done-bg:       #1e7d34; /* darkened from #28a745 for WCAG AA: #fff on #1e7d34 ≈ 4.8:1 */
   --status-done-fg:       #ffffff;
@@ -52,13 +53,16 @@
   --priority-high-fg:   #721c24;
 
   /* Feedback */
-  --feedback-error:      #dc3545;
-  --feedback-error-bg:   #f8d7da;
-  --feedback-warning:    #856404;
-  --feedback-warning-bg: #fff3cd;
+  --feedback-error:       #dc3545;
+  --feedback-error-bg:    #f8d7da;
+  --feedback-warning:     #856404;
+  --feedback-warning-bg:  #fff3cd;
+  --feedback-success:     #155724; /* #155724 on #d4edda ≈ 9.1:1 — WCAG AA */
+  --feedback-success-bg:  #d4edda;
 
   /* Spacing — invariant across themes */
-  --space-1: 0.25rem;
+  --space-1:   0.25rem;
+  --space-1_5: 0.375rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
@@ -66,10 +70,10 @@
   --space-8: 2rem;
 
   /* Radius — invariant across themes */
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
 
   /* Shadow — invariant across themes */
   --shadow-card:       0 1px 3px rgba(0, 0, 0, 0.1);
@@ -77,8 +81,29 @@
   --shadow-modal:      0 10px 40px rgba(0, 0, 0, 0.2);
 
   /* Typography — invariant across themes */
+  --font-family-base: Inter, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --font-size-xs:   0.75rem;
   --font-size-sm:   0.8125rem;
   --font-size-base: 0.875rem;
+  --font-size-lg:   1.25rem;
+
+  --font-weight-normal:   400;
+  --font-weight-semibold: 600;
+
+  --line-height-tight:   1.4;
+  --line-height-base:    1.5;
+  --line-height-relaxed: 1.6;
+
+  --letter-spacing-wide: 0.05em;
+
+  /* Desktop layout — invariant across themes */
+  --viewport-min-width: 1280px;
+  --content-width-comfortable: 1440px;
+  --content-max-width: 1760px;
+  --kanban-column-min: 248px;
+  --kanban-column-max: 320px;
 }
 
 /* Dark theme — auto via OS preference */
@@ -100,16 +125,17 @@
     --text-muted:     #8e8e93;
     --text-disabled:  #48484a;
 
-    --accent:        #3b8fe8;
-    --accent-hover:  #5aabff;
-    --accent-fg:     #1a1a1a; /* dark mode: #3b8fe8 bg fails WCAG AA with #fff (3.34:1); #1a1a1a ≈ 5.8:1 */
-    --accent-subtle: #1a2e4a;
+    --brand-accent:  #c65d2e;
+    --accent:        #e08a5d;
+    --accent-hover:  #f2b08b;
+    --accent-fg:     #1a1a1a;
+    --accent-subtle: #3a1d12;
 
     --status-backlog-bg:    #48484a;
     --status-backlog-fg:    #f5f5f7;
     --status-ready-bg:      #0a7d8c;
-    --status-inprogress-bg: #3b8fe8;
-    --status-inprogress-fg: #1a1a1a; /* same bg as accent; dark text required for AA */
+    --status-inprogress-bg: #e08a5d;
+    --status-inprogress-fg: #1a1a1a;
     --status-done-bg:       #1e7d34;
     --status-cancelled-bg:  #b38600;
     --status-cancelled-fg:  #1a1a1a; /* #fff on #b38600 = 3.09:1, fails AA; dark text ≈ 5.9:1 */
@@ -122,41 +148,44 @@
     --priority-high-bg:   #4a1a1f;
     --priority-high-fg:   #f28b95;
 
-    --feedback-error:      #f28b95;
-    --feedback-error-bg:   #4a1a1f;
-    --feedback-warning:    #ffc107;
-    --feedback-warning-bg: #3d2e00;
+    --feedback-error:       #f28b95;
+    --feedback-error-bg:    #4a1a1f;
+    --feedback-warning:     #ffc107;
+    --feedback-warning-bg:  #3d2e00;
+    --feedback-success:     #75b798; /* #75b798 on #0f2914 ≈ 6.7:1 — WCAG AA */
+    --feedback-success-bg:  #0f2914;
   }
 }
 
 /* Explicit light override — beats prefers-color-scheme: dark */
 [data-theme="light"] {
-  --surface-app:     #f5f5f5;
+  --surface-app:     #f8fafc;
   --surface-base:    #ffffff;
   --surface-raised:  #ffffff;
   --surface-overlay: rgba(0, 0, 0, 0.5);
-  --surface-muted:   #f8f9fa;
-  --surface-column:  #e9ecef;
+  --surface-muted:   #f1f5f9;
+  --surface-column:  #e5eaf0;
 
-  --border-subtle:  #dee2e6;
-  --border-default: #ced4da;
-  --border-strong:  #adb5bd;
+  --border-subtle:  #e5eaf0;
+  --border-default: #d9e2ec;
+  --border-strong:  #9fb3c8;
 
-  --text-primary:   #1a1a1a;
-  --text-secondary: #495057;
-  --text-muted:     #6c757d;
-  --text-disabled:  #adb5bd;
+  --text-primary:   #102a43;
+  --text-secondary: #486581;
+  --text-muted:     #5d7892;
+  --text-disabled:  #9fb3c8;
 
-  --accent:        #0066cc;
-  --accent-hover:  #0056b3;
-  --accent-fg:     #ffffff; /* must be explicit: dark @media sets this to #1a1a1a */
-  --accent-subtle: #e8f0fb;
+  --brand-accent:  #c65d2e;
+  --accent:        #a94a22;
+  --accent-hover:  #8c3d1c;
+  --accent-fg:     #ffffff;
+  --accent-subtle: #f6d6c6;
 
   --status-backlog-bg:    #6c757d;
   --status-backlog-fg:    #ffffff;
   --status-ready-bg:      #0f7a8a;
-  --status-inprogress-bg: #0066cc;
-  --status-inprogress-fg: #ffffff; /* must be explicit: dark @media sets this to #1a1a1a */
+  --status-inprogress-bg: #a94a22;
+  --status-inprogress-fg: #ffffff;
   --status-done-bg:       #1e7d34;
   --status-cancelled-bg:  #ffc107;
   --status-cancelled-fg:  #343a40;
@@ -169,10 +198,12 @@
   --priority-high-bg:   #f8d7da;
   --priority-high-fg:   #721c24;
 
-  --feedback-error:      #dc3545;
-  --feedback-error-bg:   #f8d7da;
-  --feedback-warning:    #856404;
-  --feedback-warning-bg: #fff3cd;
+  --feedback-error:       #dc3545;
+  --feedback-error-bg:    #f8d7da;
+  --feedback-warning:     #856404;
+  --feedback-warning-bg:  #fff3cd;
+  --feedback-success:     #155724;
+  --feedback-success-bg:  #d4edda;
 }
 
 /* Explicit dark override — beats prefers-color-scheme: light */
@@ -193,15 +224,16 @@
   --text-muted:     #8e8e93;
   --text-disabled:  #48484a;
 
-  --accent:        #3b8fe8;
-  --accent-hover:  #5aabff;
+  --brand-accent:  #c65d2e;
+  --accent:        #e08a5d;
+  --accent-hover:  #f2b08b;
   --accent-fg:     #1a1a1a;
-  --accent-subtle: #1a2e4a;
+  --accent-subtle: #3a1d12;
 
   --status-backlog-bg:    #48484a;
   --status-backlog-fg:    #f5f5f7;
   --status-ready-bg:      #0a7d8c;
-  --status-inprogress-bg: #3b8fe8;
+  --status-inprogress-bg: #e08a5d;
   --status-inprogress-fg: #1a1a1a;
   --status-done-bg:       #1e7d34;
   --status-cancelled-bg:  #b38600;
@@ -215,8 +247,10 @@
   --priority-high-bg:   #4a1a1f;
   --priority-high-fg:   #f28b95;
 
-  --feedback-error:      #f28b95;
-  --feedback-error-bg:   #4a1a1f;
-  --feedback-warning:    #ffc107;
-  --feedback-warning-bg: #3d2e00;
+  --feedback-error:       #f28b95;
+  --feedback-error-bg:    #4a1a1f;
+  --feedback-warning:     #ffc107;
+  --feedback-warning-bg:  #3d2e00;
+  --feedback-success:     #75b798;
+  --feedback-success-bg:  #0f2914;
 }

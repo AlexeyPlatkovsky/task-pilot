@@ -10,6 +10,13 @@ function App() {
   return (
     <div className="app">
       <header>
+        <img
+          className="logo"
+          src="/task-pilot-compass-board.svg"
+          alt="TaskPilot"
+          width={32}
+          height={32}
+        />
         <h1>TaskPilot</h1>
         <ProjectSelector
           selectedProjectId={selectedProjectId}

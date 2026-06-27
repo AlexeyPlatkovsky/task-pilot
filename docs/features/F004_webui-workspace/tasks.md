@@ -15,6 +15,7 @@
 ## Notes
 
 - Review-fix pass 2026-06-25: fixed drag/drop mutation timing (handleDragEnd only), added Markdown rendering with DOMPurify, added KanbanBoard error/loading/retry states, added ItemModal retry button, extracted shared label constants, tightened Zod schema with EDITABLE_STATUSES, added Vitest component test suite (25 tests).
+- 2026-06-27: Added TaskPilot compass board logo to header and favicon. Fixed drag-and-drop to resolve card-to-card drops via `resolveDropTarget` utility. Extracted `sortItems`, `groupByStatus`, `resolveDropTarget` into `kanban-utils.ts`. Expanded test coverage to 32 tests (KanbanBoard: 12, KanbanCard: 7, KanbanColumn: 6, SortableKanbanCard: 5). Removed duplicate `role="button"` from KanbanCard (sortable wrapper now provides it). Added mutation error banner.
 - TanStack Query manages server state with cache invalidation on mutations.
 - CSS Modules naming: `ComponentName.module.css` co-located with component files.
 - Type definitions shared between frontend and backend through OpenAPI schema or a shared types package (future).

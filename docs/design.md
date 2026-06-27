@@ -1,11 +1,15 @@
 # Design
 
 > Design token reference, icon library, accessibility rules, and MCP tool constraints: see `designs/design.md`.
+> TaskPilot inherits its base visual language from the Agent Manifesto design system and extends it
+> with local-first product UI states, dark theme, status, priority, and feedback tokens.
 
 ## UX Principles
 
 - **Local-first feel**: the WebUI should feel instant, with no loading spinners for normal
   operations. All data is on the local machine.
+- **Desktop-only workspace**: TaskPilot is a local desktop WebUI. It supports constrained desktop
+  windows, but does not provide mobile or tablet layouts.
 - **Kanban as home**: the primary workspace is a Kanban board. Users land there after project
   selection.
 - **Modal editing**: opening an item opens a modal on the current page. Users should not navigate
@@ -25,6 +29,10 @@
 | Item detail modal | View and edit a single item | view mode, edit mode, save error, delete confirm |
 | Validation panel | Show items/files with validation errors | empty (all valid), list of errors |
 
+## Application Header
+
+The header appears on every screen. It displays the TaskPilot compass board logo (`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot", and the project selector dropdown. The header is styled with `--surface-base` background, a `--border-subtle` bottom border, and rounded corners.
+
 ## Project Selector
 
 The first screen after `taskpilot serve`. Shows a list of registered projects with their display
@@ -43,6 +51,22 @@ The primary workspace page for a selected project.
 
 Five columns fixed in Alpha: backlog, ready, in_progress, done, cancelled. Deleted items are hidden
 from the normal board.
+
+The board is designed for desktop use. The supported app viewport starts at `1280px`; `1440px` is
+the comfortable target, and the primary workspace caps at `1760px` to preserve readable scan
+distances on large displays. In narrower desktop windows, the board keeps its column structure and
+uses horizontal scrolling instead of switching to a mobile/tablet layout.
+
+Kanban columns use a minimum readable width of `248px` with token-based spacing between columns.
+Columns stretch with `1fr` to fill the board up to the primary workspace cap instead of using a
+fixed maximum column width.
+
+Runtime layout values are tokenized as `--viewport-min-width`, `--content-width-comfortable`,
+`--content-max-width`, and `--kanban-column-min`. `--kanban-column-max` is deprecated and should
+not be used for active Kanban layout.
+
+The column title/code block aligns with card text inside the same lane. The count badge remains
+aligned to the header edge.
 
 Within each column, cards are sorted by type order then numeric item ID:
 epic > feature > task > bug.
@@ -117,6 +141,9 @@ Supports sorting by any column, filtering by status, type, priority, and time ra
 days, last 14 days, last month). Uses TanStack Table.
 
 Clicking a row opens the item detail modal.
+
+Tables preserve their tabular structure in constrained desktop windows and use horizontal overflow
+when needed. They do not collapse into stacked mobile rows.
 
 ## Tree View
 

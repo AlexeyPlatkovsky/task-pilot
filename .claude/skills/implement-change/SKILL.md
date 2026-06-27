@@ -9,6 +9,8 @@ Prerequisites: an accepted specification or explicit behavior, known success cri
 planned validation route.
 
 1. Read affected code, tests, conventions, and decisions.
+   For WebUI component-library or existing-page UI work, include
+   `.claude/conventions/ui-component-library.md`.
 2. For every requirement in scope, enumerate boundary conditions:
    - null / empty / missing / unrecognized inputs (in PATCH semantics
      ``null`` = explicitly cleared field, ``missing`` = not sent — distinct);

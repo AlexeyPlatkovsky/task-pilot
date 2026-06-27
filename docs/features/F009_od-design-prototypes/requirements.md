@@ -31,7 +31,7 @@ TaskPilot tokens, REST boundaries, and tests per `AGENTS.md` and the relevant sp
 | F009-R11 | A page prototype must exist for the Validation Panel screen, covering the empty state (all items valid) and the populated state (list of validation errors with file path and message) | should |
 | F009-R8 | All prototypes must pass `design-reviewer` with no Critical or High findings before the corresponding feature proceeds to `od-to-code` | must |
 | F009-R9 | All prototype states must cover the Required States defined in `designs/design.md` | must |
-| F009-R10 | `web/src/tokens.css` must declare every token listed in `designs/design.md` before any component that uses it is implemented. Missing tokens must be added, the radius levels must be merged (sm=4px, md=6px, lg=8px, remove xl and rename existing usages), and all hardcoded values in `web/src/components/*.module.css` that have a canonical token must be replaced with token references | must |
+| F009-R10 | `web/src/tokens.css` must declare every token listed in `designs/design.md` before any component that uses it is implemented. Missing tokens must be added, Agent Manifesto parent tokens must be reflected locally (`--brand-accent`, terracotta `--accent`, Inter, sm=10px/md=16px/lg=20px/999px pill radii), and all hardcoded values in `web/src/components/*.module.css` that have a canonical token must be replaced with token references | must |
 
 ## Component Library Scope (R2)
 
@@ -82,10 +82,10 @@ The component library artifact must include the following components with all vi
 - **F009-R10:** `tokens.css` :root includes all ten previously missing tokens
   (`--space-1_5`, `--font-family-base`, `--font-size-xs`, `--font-size-lg`,
   `--font-weight-normal`, `--font-weight-semibold`, `--line-height-tight`,
-  `--line-height-base`, `--line-height-relaxed`, `--letter-spacing-wide`); radius tokens are
-  sm=4px/md=6px/lg=8px with `--radius-xl` removed; all four component files previously using
-  `--radius-xl` (KanbanColumn, ItemModal, DeleteConfirmDialog, and any others found) have been
-  updated to `--radius-lg`; and hardcoded `font-weight: 600`, `0.75rem`, `1.25rem`,
+  `--line-height-base`, `--line-height-relaxed`, `--letter-spacing-wide`); Agent Manifesto parent
+  tokens are present (`--brand-accent: #c65d2e`, `--accent: #a94a22`, Inter font stack, and
+  sm=10px/md=16px/lg=20px plus `--radius-pill: 999px`); `--radius-xl` remains removed; and
+  hardcoded `font-weight: 600`, `0.75rem`, `1.25rem`,
   `1.125rem`, `letter-spacing: 0.05em`, and `line-height` literals in component CSS files are
   replaced with the corresponding token references.
 
@@ -96,12 +96,16 @@ The component library artifact must include the following components with all vi
 - WCAG AA contrast must be maintained for all component state pairings (see `designs/design.md`
   Accessibility Baseline).
 - Icon usage must match the Icon Library in `designs/design.md`. No ad hoc glyphs.
-- Prototypes use light theme by default; dark theme variants are out of scope for Alpha.
+- Prototypes use light theme by default; dark theme variants are optional for Alpha, but the
+  canonical token system includes dark theme values.
+- Prototypes target desktop-only local use. Kanban and table views keep their desktop structure in
+  constrained desktop windows and may use horizontal overflow; mobile and tablet layouts are not a
+  supported target.
 
 ## Out of Scope
 
-- Dark theme prototypes (Beta).
-- Mobile/narrow layout variants (can be added once desktop layouts are accepted).
+- Dedicated dark theme prototype pages (Beta).
+- Mobile and tablet layout variants.
 - Drag-and-drop interaction simulation.
 - Validation panel prototype is now in scope (F009-R11).
 - Production code — `od-to-code` pipeline handles translation.

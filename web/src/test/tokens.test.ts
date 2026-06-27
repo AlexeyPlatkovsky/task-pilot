@@ -6,12 +6,35 @@ import { resolve } from "node:path";
 // Dark/light computed-value assertions require a real browser — see Playwright tests.
 
 const TOKENS_PATH = resolve(__dirname, "../tokens.css");
+const INDEX_CSS_PATH = resolve(__dirname, "../index.css");
+const KANBAN_BOARD_CSS_PATH = resolve(
+  __dirname,
+  "../components/KanbanBoard.module.css",
+);
+const KANBAN_COLUMN_CSS_PATH = resolve(
+  __dirname,
+  "../components/KanbanColumn.module.css",
+);
+const ROOT_TOKEN_COUNT = 74;
 
 describe("tokens.css — token definitions (AC-2)", () => {
   let css: string;
 
   beforeAll(() => {
     css = readFileSync(TOKENS_PATH, "utf-8");
+  });
+
+  it("defines exactly the approved root token count", () => {
+    const rootBlock = css.match(/:root\s*{(?<body>[\s\S]*?)\n}/)?.groups?.body;
+    expect(rootBlock, "missing :root token block").toBeDefined();
+
+    const tokenNames = new Set(
+      Array.from(rootBlock?.matchAll(/(--[a-z0-9_-]+)\s*:/g) ?? []).map(
+        ([, name]) => name,
+      ),
+    );
+
+    expect(tokenNames.size).toBe(ROOT_TOKEN_COUNT);
   });
 
   it("defines all six surface tokens", () => {
@@ -49,8 +72,9 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines all four accent tokens", () => {
+  it("defines all five accent tokens", () => {
     for (const name of [
+      "--brand-accent",
       "--accent",
       "--accent-hover",
       "--accent-fg",
@@ -90,27 +114,34 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines all four feedback tokens", () => {
+  it("defines all six feedback tokens", () => {
     for (const name of [
       "--feedback-error",
       "--feedback-error-bg",
       "--feedback-warning",
       "--feedback-warning-bg",
+      "--feedback-success",
+      "--feedback-success-bg",
     ]) {
       expect(css, `missing ${name}`).toContain(`${name}:`);
     }
   });
 
-  it("defines all six spacing tokens", () => {
-    for (const n of [1, 2, 3, 4, 6, 8]) {
+  it("defines all seven spacing tokens", () => {
+    for (const n of ["1", "1_5", "2", "3", "4", "6", "8"]) {
       expect(css, `missing --space-${n}`).toContain(`--space-${n}:`);
     }
   });
 
-  it("defines all four radius tokens", () => {
-    for (const size of ["sm", "md", "lg", "xl"]) {
-      expect(css, `missing --radius-${size}`).toContain(`--radius-${size}:`);
-    }
+  it("defines the Agent Manifesto radius tokens with correct values", () => {
+    expect(css).toContain("--radius-sm: 10px");
+    expect(css).toContain("--radius-md: 16px");
+    expect(css).toContain("--radius-lg: 20px");
+    expect(css).toContain("--radius-pill: 999px");
+  });
+
+  it("no longer defines --radius-xl after the radius merge (F009-R10)", () => {
+    expect(css).not.toContain("--radius-xl");
   });
 
   it("defines all three shadow tokens", () => {
@@ -123,10 +154,43 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines both typography tokens", () => {
-    for (const name of ["--font-size-sm", "--font-size-base"]) {
+  it("defines the full typography token set (F009-R10)", () => {
+    for (const name of [
+      "--font-family-base",
+      "--font-size-xs",
+      "--font-size-sm",
+      "--font-size-base",
+      "--font-size-lg",
+      "--font-weight-normal",
+      "--font-weight-semibold",
+      "--line-height-tight",
+      "--line-height-base",
+      "--line-height-relaxed",
+      "--letter-spacing-wide",
+    ]) {
       expect(css, `missing ${name}`).toContain(`${name}:`);
     }
+  });
+
+  it("defines desktop layout tokens for the local-only workspace", () => {
+    expect(css).toContain("--viewport-min-width: 1280px");
+    expect(css).toContain("--content-width-comfortable: 1440px");
+    expect(css).toContain("--content-max-width: 1760px");
+    expect(css).toContain("--kanban-column-min: 248px");
+    expect(css).toContain("--kanban-column-max: 320px");
+  });
+
+  it("applies active desktop layout tokens to the app shell and Kanban board", () => {
+    const indexCss = readFileSync(INDEX_CSS_PATH, "utf-8");
+    const boardCss = readFileSync(KANBAN_BOARD_CSS_PATH, "utf-8");
+    const columnCss = readFileSync(KANBAN_COLUMN_CSS_PATH, "utf-8");
+
+    expect(indexCss).toContain("min-width: var(--viewport-min-width)");
+    expect(boardCss).toContain("max-width: var(--content-max-width)");
+    expect(columnCss).toContain("flex: 1 1 var(--kanban-column-min)");
+    expect(columnCss).toContain("min-width: var(--kanban-column-min)");
+    expect(columnCss).not.toContain("max-width: var(--kanban-column-max)");
+    expect(columnCss).toContain("padding-inline-start: var(--space-2)");
   });
 
   it("includes a dark theme via prefers-color-scheme media query", () => {
