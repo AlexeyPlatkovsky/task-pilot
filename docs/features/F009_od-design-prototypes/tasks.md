@@ -6,7 +6,7 @@
 | F009-T1 | Check for an existing OD project named `taskpilot-design` via `list_projects`; create it if absent. Define the design system resource with all token groups from `designs/design.md` as OD variables | F009-R1 | ✅ done | — |
 | F009-T2 | Create component library artifact: StatusBadge, PriorityBadge, TypeBadge with all status/priority/type variants | F009-R2 | ✅ done | F009-T1 |
 | F009-T3 | Extend component library: ItemCard (Kanban), ItemRow (List), Button (primary/secondary/destructive), TextInput, SelectDropdown | F009-R2 | ✅ done | F009-T2 |
-| F009-T4 | Extend component library: Icon wrapper (labeled/decorative), EmptyState, FeedbackBanner, ValidationErrorRow (parse-failure and field-level error variants), ItemDetailModal shell states | F009-R2 | ⏳ todo | F009-T3 |
+| F009-T4 | Extend component library: Icon wrapper (labeled/decorative), EmptyState, FeedbackBanner, ValidationErrorRow (parse-failure and field-level error variants), ItemDetailModal shell states | F009-R2 | ✅ done | F009-T3 |
 | F009-T5 | Design-review component library with `design-reviewer`; fix Critical/High findings | F009-R2, F009-R8 | ⏳ todo | F009-T4 |
 | F009-T6 | Create page prototype: Project Selector (empty, populated, error states) | F009-R3 | ⏳ todo | F009-T5 |
 | F009-T7 | Create page prototype: Kanban Board (five columns, empty columns, populated columns, at least one card with all fields) | F009-R4 | ⏳ todo | F009-T5 |
