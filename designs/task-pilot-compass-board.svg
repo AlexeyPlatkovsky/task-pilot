@@ -1,0 +1,16 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">TaskPilot compass board icon</title>
+  <desc id="desc">Dark blue circular icon with an orange pilot compass and task board symbol.</desc>
+
+  <circle cx="64" cy="64" r="58" fill="#061B33"/>
+
+  <!-- Minimal compass / pilot pointer -->
+  <path d="M64 22L80 63L64 57L48 63L64 22Z" fill="#c65d2e"/>
+  <path d="M64 106L48 65L64 71L80 65L64 106Z" fill="#a94a22"/>
+
+  <!-- Kanban board strokes inside the mark -->
+  <rect x="42" y="52" width="44" height="28" rx="8" fill="#ffffff"/>
+  <rect x="50" y="58" width="7" height="16" rx="3" fill="#c65d2e"/>
+  <rect x="61" y="58" width="7" height="16" rx="3" fill="#a94a22"/>
+  <rect x="72" y="58" width="7" height="16" rx="3" fill="#8c3d1c"/>
+</svg>

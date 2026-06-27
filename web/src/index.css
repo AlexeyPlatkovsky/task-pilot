@@ -8,6 +8,11 @@
   padding: 0;
 }
 
+header, main {
+  width: 100%;
+  max-width: var(--content-max-width);
+}
+
 html {
   font-family: var(--font-family-base);
   line-height: var(--line-height-base);
@@ -22,6 +27,7 @@ body {
 
 .app {
   display: flex;
+  align-items: center;
   flex-direction: column;
   min-height: 100vh;
 }
@@ -30,12 +36,13 @@ header {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4);
+  padding: var(--space-3);
   background-color: var(--surface-base);
   border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 main {
   flex: 1;
-  padding: var(--space-4);
+  padding-top: var(--space-3);
 }
