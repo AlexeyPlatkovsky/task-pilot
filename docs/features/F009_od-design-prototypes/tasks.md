@@ -10,7 +10,7 @@
 | F009-T5 | Design-review component library with `design-reviewer`; fix Critical/High findings | F009-R2, F009-R8 | ✅ done | F009-T4 |
 | F009-T6 | Create page prototype: Project Selector (empty, populated, error states) | F009-R3 | ✅ done | F009-T5 |
 | F009-T7 | Create page prototype: Kanban Board (five columns, empty columns, populated columns, at least one card with all fields) | F009-R4 | ✅ done | F009-T5 |
-| F009-T8 | Create page prototype: Item Detail Modal (view mode, edit mode, inline validation error, save error banner) | F009-R5 | ⏳ todo | F009-T5 |
+| F009-T8 | Create page prototype: Item Detail Modal (view mode, edit mode, inline validation error, save error banner) | F009-R5 | ✅ done | F009-T5 |
 | F009-T9 | Design-review Project Selector, Kanban Board, and Item Detail Modal prototypes; fix Critical/High findings | F009-R3, F009-R4, F009-R5, F009-R8, F009-R9 | ⏳ todo | F009-T6, F009-T7, F009-T8 |
 | F009-T10 | Create page prototype: List View (header row, populated rows, empty state, sort indicator) | F009-R6 | ⏳ todo | F009-T5 |
 | F009-T11 | Create page prototype: Tree View (two-level hierarchy, expand/collapse, empty state) | F009-R7 | ⏳ todo | F009-T5 |
