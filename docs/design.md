@@ -29,6 +29,10 @@
 | Item detail modal | View and edit a single item | view mode, edit mode, save error, delete confirm |
 | Validation panel | Show items/files with validation errors | empty (all valid), list of errors |
 
+## Application Header
+
+The header appears on every screen. It displays the TaskPilot compass board logo (`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot", and the project selector dropdown. The header is styled with `--surface-base` background, a `--border-subtle` bottom border, and rounded corners.
+
 ## Project Selector
 
 The first screen after `taskpilot serve`. Shows a list of registered projects with their display

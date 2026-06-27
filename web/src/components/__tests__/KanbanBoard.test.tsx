@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KanbanBoard } from "../KanbanBoard";
+import { resolveDropTarget } from "../kanban-utils";
 import type { ItemSummary } from "../../types";
 
 const mockFetchItems = vi.fn();
@@ -26,7 +27,7 @@ function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
 }
@@ -112,5 +113,62 @@ describe("KanbanBoard", () => {
       expect(screen.getByText("No items yet.")).toBeInTheDocument();
     });
     expect(screen.queryByText("Deleted Item")).not.toBeInTheDocument();
+  });
+
+  it("does not allow dragging invalid items", async () => {
+    mockFetchItems.mockResolvedValueOnce([
+      makeItem({ id: "VP-1", status: "backlog", valid: false }),
+      makeItem({ id: "VP-2", status: "ready" }),
+    ]);
+    render(<KanbanBoard projectId="VP" />, { wrapper });
+    await waitFor(() => {
+      expect(screen.getByText("VP-1")).toBeInTheDocument();
+    });
+
+    const allButtons = screen.getAllByRole("button");
+    const vp1Sortables = allButtons.filter((el) =>
+      el.getAttribute("aria-roledescription") === "sortable" &&
+      el.textContent?.includes("VP-1"),
+    );
+    const disabledOnes = vp1Sortables.filter(
+      (el) => el.getAttribute("aria-disabled") === "true",
+    );
+    expect(disabledOnes.length).toBe(1);
+    expect(vp1Sortables.length).toBe(1);
+  });
+
+  describe("resolveDropTarget", () => {
+    it("resolves a column status ID directly", () => {
+      const items: ItemSummary[] = [];
+      expect(resolveDropTarget("backlog", items)).toBe("backlog");
+      expect(resolveDropTarget("done", items)).toBe("done");
+    });
+
+    it("resolves a card ID to the card's column status", () => {
+      const items = [
+        makeItem({ id: "VP-1", status: "backlog" }),
+        makeItem({ id: "VP-2", status: "ready" }),
+        makeItem({ id: "VP-3", status: "done" }),
+      ];
+      expect(resolveDropTarget("VP-1", items)).toBe("backlog");
+      expect(resolveDropTarget("VP-2", items)).toBe("ready");
+      expect(resolveDropTarget("VP-3", items)).toBe("done");
+    });
+
+    it("returns undefined for unknown overId", () => {
+      const items = [makeItem({ id: "VP-1", status: "backlog" })];
+      expect(resolveDropTarget("nonexistent", items)).toBeUndefined();
+    });
+
+    it("returns undefined for empty items array", () => {
+      expect(resolveDropTarget("VP-1", [])).toBeUndefined();
+    });
+
+    it("prefers status match over item match when both exist", () => {
+      const items = [
+        makeItem({ id: "backlog", status: "done" }),
+      ];
+      expect(resolveDropTarget("backlog", items)).toBe("backlog");
+    });
   });
 });

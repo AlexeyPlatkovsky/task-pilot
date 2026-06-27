@@ -42,6 +42,12 @@ header {
   border-radius: var(--radius-lg);
 }
 
+header .logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
 main {
   flex: 1;
   padding-top: var(--space-3);
