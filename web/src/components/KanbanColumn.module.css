@@ -1,7 +1,6 @@
 .column {
-  flex: 1 0 var(--kanban-column-min);
+  flex: 1 1 var(--kanban-column-min);
   min-width: var(--kanban-column-min);
-  max-width: var(--kanban-column-max);
   display: flex;
   flex-direction: column;
   background: var(--surface-column);
@@ -24,6 +23,7 @@
 }
 
 .title {
+  padding-inline-start: var(--space-2);
   font-size: var(--font-size-base);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide);

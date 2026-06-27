@@ -61,15 +61,18 @@ Size definitions (choose the highest that applies):
 
 - Feature or non-trivial behavior-changing bug fix: `.claude/pipelines/feature-change.md`.
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
-- Product UI implementation, or UI design work not explicitly handled by an MCP design route:
-  `.claude/pipelines/ui-change.md`.
+- Product UI implementation, existing-page UI changes, or local WebUI component-library work not
+  explicitly handled by an MCP design route: `.claude/pipelines/ui-change.md`.
 - Design-only work in Open Design (OD) through Open Design MCP without production code change:
-  `.claude/pipelines/od-design.md`. OD design work is always non-trivial (UI contracts, generated
-  artifact review required). The pipeline owns the OD availability gate (including daemon startup
-  fallback); route here without a pre-routing MCP check.
+  `.claude/pipelines/od-design.md`. Use this route only when the user explicitly asks for OD
+  prototype exploration, OD visual alternatives, or OD design-system synchronization. OD design work
+  is always non-trivial (UI contracts, generated artifact review required). The pipeline owns the
+  OD availability gate (including daemon startup fallback); route here without a pre-routing MCP
+  check.
 - Converting an accepted OD artifact to tested React code: `.claude/pipelines/od-to-code.md`.
-  Before routing here, confirm an OD project/artifact is available and an accepted spec or explicit
-  acceptance criteria is present.
+  Use this route only when the user explicitly asks to translate an OD prototype into production
+  code. Before routing here, confirm an OD project/artifact is available and an accepted spec or
+  explicit acceptance criteria is present.
 - Design-only work in Pencil (`.pen` files in `designs/`) without production code change:
   `.claude/pipelines/pen-design.md`. `.pen` file work is always non-trivial (UI contracts, design
   review required). Before routing here, confirm the Pencil MCP is available.
@@ -108,8 +111,10 @@ Use conditional rigor:
   behavior.
 - UI work requires component coverage and browser evidence for major paths when a runnable UI
   exists, as defined in `.claude/conventions/testing.md`.
-- Open Design is the default MCP-backed design route for new design artifact work unless the user
-  explicitly asks for Pencil, `.pen` files, or an existing `.pen` design.
+- The local WebUI component library is the default implementation source for TaskPilot UI changes.
+  Open Design may be used as reference only; use it for exploration only when the user explicitly
+  asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,
+  `.pen` files, or an existing `.pen` design.
 
 For high-risk or system-level work, require independent review after validation. For medium-risk
 production work, require independent review unless the change is documentation-only. For

@@ -97,6 +97,15 @@ canonical task files
 - Filesystem and SQLite details do not leak into the domain model.
 - Prefer direct file access until measured needs justify indexing.
 
+## Local WebUI Component Library
+
+The canonical TaskPilot component library for production UI lives in the local WebUI
+implementation. OD artifacts are not production implementation source of truth unless the manager
+routes an explicit OD request.
+
+Detailed local component-library standards are in `.claude/conventions/ui-component-library.md`;
+route selection remains owned by `.claude/skills/manager/SKILL.md`.
+
 ## Capability Registry
 
 Routing:

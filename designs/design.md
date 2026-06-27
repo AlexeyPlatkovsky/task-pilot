@@ -67,8 +67,12 @@ TaskPilot is a local-only desktop WebUI. It does not provide mobile or tablet la
   readable on large displays.
 - Constrained desktop windows preserve dense table and board structure with horizontal scrolling
   inside the workspace area. They do not collapse tables into stacked mobile rows.
-- Kanban columns stay readable by using a column width range of `248px` to `320px`, with gaps based
-  on the spacing scale.
+- Kanban columns stay readable by using a minimum column width of `248px`, with gaps based on the
+  spacing scale. Columns stretch with `1fr` to fill the board up to `--content-max-width` rather
+  than leaving unused space at wide desktop widths.
+- Column title/code text aligns vertically with card text inside the same lane. The title block uses
+  an inset derived from the card padding and border; the count badge stays anchored to the header
+  edge.
 
 ### Layout Tokens
 
@@ -79,8 +83,8 @@ Invariant across themes.
 | `--viewport-min-width` | `1280px` | Minimum supported desktop app viewport |
 | `--content-width-comfortable` | `1440px` | Comfortable desktop working width |
 | `--content-max-width` | `1760px` | Maximum primary workspace content width |
-| `--kanban-column-min` | `248px` | Minimum readable Kanban column width |
-| `--kanban-column-max` | `320px` | Maximum readable Kanban column width |
+| `--kanban-column-min` | `248px` | Minimum readable Kanban column width; used as `minmax(var(--kanban-column-min), 1fr)` |
+| `--kanban-column-max` | `320px` | Deprecated compatibility token; do not use for active Kanban layout |
 
 ---
 

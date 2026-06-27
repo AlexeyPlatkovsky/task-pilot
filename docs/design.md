@@ -53,11 +53,16 @@ the comfortable target, and the primary workspace caps at `1760px` to preserve r
 distances on large displays. In narrower desktop windows, the board keeps its column structure and
 uses horizontal scrolling instead of switching to a mobile/tablet layout.
 
-Kanban columns use a readable width range of `248px` to `320px` with token-based spacing between
-columns.
+Kanban columns use a minimum readable width of `248px` with token-based spacing between columns.
+Columns stretch with `1fr` to fill the board up to the primary workspace cap instead of using a
+fixed maximum column width.
 
 Runtime layout values are tokenized as `--viewport-min-width`, `--content-width-comfortable`,
-`--content-max-width`, `--kanban-column-min`, and `--kanban-column-max`.
+`--content-max-width`, and `--kanban-column-min`. `--kanban-column-max` is deprecated and should
+not be used for active Kanban layout.
+
+The column title/code block aligns with card text inside the same lane. The count badge remains
+aligned to the header edge.
 
 Within each column, cards are sorted by type order then numeric item ID:
 epic > feature > task > bug.

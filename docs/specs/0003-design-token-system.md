@@ -8,8 +8,10 @@ Status: ✅ accepted
 > system. The token system remains the production source of truth, but the base accent, typography,
 > and radii now use the parent design system values plus TaskPilot-specific dark/status extensions.
 >
-> 2026-06-27 amendment: TaskPilot is desktop-only. The token system now includes five invariant
+> 2026-06-27 amendment: TaskPilot is desktop-only. The token system now includes invariant
 > desktop layout tokens for app viewport, workspace width, and Kanban column readability.
+> `--kanban-column-max` is retained as a deprecated compatibility token; active Kanban layout uses
+> `--kanban-column-min` with flexible `1fr` columns.
 
 Replace all hardcoded color, spacing, radius, shadow, and typography values in the web frontend
 with a single CSS custom-property token file (`web/src/tokens.css`). Add light and dark themes that
@@ -72,9 +74,11 @@ F6. `ItemModal.tsx` uses `<Icon icon={X} label="Close" />` for the modal close b
 
 F7. All existing component tests pass without modification to test assertions.
 
-F8. The local-only desktop workspace uses `--viewport-min-width`, `--content-max-width`,
-`--kanban-column-min`, and `--kanban-column-max` for the app shell and Kanban board sizing. The
-board keeps tabular/column structure and uses overflow rather than mobile/tablet collapse.
+F8. The local-only desktop workspace uses `--viewport-min-width`, `--content-max-width`, and
+`--kanban-column-min` for the app shell and Kanban board sizing. Kanban columns use
+`minmax(var(--kanban-column-min), 1fr)` so they fill available workspace up to
+`--content-max-width` and overflow only when the minimum readable width cannot fit. The deprecated
+`--kanban-column-max` token is not used for active Kanban layout.
 
 ### Quality
 
@@ -119,8 +123,9 @@ No new states are introduced.
 `grep -rn "#[0-9a-fA-F]\{3,6\}" web/src/components/ web/src/index.css` returns zero matches.
 
 **AC-2 (token count):** `web/src/tokens.css` defines exactly the 74 tokens listed in the approved
-plan, including `--brand-accent`, `--radius-pill`, and the five desktop layout tokens. Each token
-appears in `:root` and, for theme-sensitive tokens, in the dark override block.
+plan, including `--brand-accent`, `--radius-pill`, active desktop layout tokens, and deprecated
+compatibility tokens. Each token appears in `:root` and, for theme-sensitive tokens, in the dark
+override block.
 
 **AC-3 (dark theme auto-switch):** When a Playwright test sets
 `page.emulateMedia({ colorScheme: 'dark' })` and navigates to the board, the computed value of

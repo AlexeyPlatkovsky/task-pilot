@@ -180,16 +180,17 @@ describe("tokens.css — token definitions (AC-2)", () => {
     expect(css).toContain("--kanban-column-max: 320px");
   });
 
-  it("applies desktop layout tokens to the app shell and Kanban board", () => {
+  it("applies active desktop layout tokens to the app shell and Kanban board", () => {
     const indexCss = readFileSync(INDEX_CSS_PATH, "utf-8");
     const boardCss = readFileSync(KANBAN_BOARD_CSS_PATH, "utf-8");
     const columnCss = readFileSync(KANBAN_COLUMN_CSS_PATH, "utf-8");
 
     expect(indexCss).toContain("min-width: var(--viewport-min-width)");
     expect(boardCss).toContain("max-width: var(--content-max-width)");
-    expect(columnCss).toContain("flex: 1 0 var(--kanban-column-min)");
+    expect(columnCss).toContain("flex: 1 1 var(--kanban-column-min)");
     expect(columnCss).toContain("min-width: var(--kanban-column-min)");
-    expect(columnCss).toContain("max-width: var(--kanban-column-max)");
+    expect(columnCss).not.toContain("max-width: var(--kanban-column-max)");
+    expect(columnCss).toContain("padding-inline-start: var(--space-2)");
   });
 
   it("includes a dark theme via prefers-color-scheme media query", () => {

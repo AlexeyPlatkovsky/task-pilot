@@ -5,8 +5,9 @@ description: Designs accessible TaskPilot product UI flows and records accepted 
 
 # Design TaskPilot UI
 
-Read `designs/design.md`. This skill designs UI behavior and updates that file; production
-implementation belongs to `implement-change`.
+Read `designs/design.md`. For WebUI component-library or existing-page work, also read
+`.claude/conventions/ui-component-library.md`. This skill designs UI behavior and updates design
+docs; production implementation belongs to `implement-change`.
 
 1. Identify the user job, displayed data, primary action, and loading/empty/error/invalid states.
 2. Reuse existing components and tokens. Without them, use neutral surfaces, one accent, explicit
