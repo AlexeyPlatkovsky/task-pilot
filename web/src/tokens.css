@@ -80,6 +80,7 @@
 
   /* Typography — invariant across themes */
   --font-family-base: system-ui, -apple-system, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --font-size-xs:   0.75rem;
   --font-size-sm:   0.8125rem;

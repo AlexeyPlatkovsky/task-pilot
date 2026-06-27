@@ -213,11 +213,12 @@ Invariant across themes.
 
 ### Font Family
 
-| Token | Value |
-|---|---|
-| `--font-family-base` | `system-ui, -apple-system, sans-serif` |
+| Token | Value | Usage |
+|---|---|---|
+| `--font-family-base` | `system-ui, -apple-system, sans-serif` | All UI text (body, headings, labels, inputs) |
+| `--font-family-mono` | `ui-monospace, SFMono-Regular, Menlo, monospace` | File paths, code identifiers, terminal-style output |
 
-> In `tokens.css` and referenced by `html` in `index.css` (F009-T0).
+> In `tokens.css` and referenced by `html` in `index.css` (F009-T0). `--font-family-mono` added in F009-T6 for file-path display.
 
 ### Font Size
 
