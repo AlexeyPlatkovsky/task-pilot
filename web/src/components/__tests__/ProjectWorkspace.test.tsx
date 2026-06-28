@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ItemSummary } from "../../types";
-import { ProjectWorkspace } from "../ProjectWorkspace";
+import { ProjectWorkspace, type ViewMode } from "../ProjectWorkspace";
 
 const mockFetchItems = vi.fn();
 const mockFetchValidationReport = vi.fn();
@@ -33,15 +33,22 @@ function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
   };
 }
 
-function renderWorkspace(projectId = "voice-pilot") {
-  const qc = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+function renderWorkspace(
+  projectId = "voice-pilot",
+  activeView: ViewMode = "board",
+) {
+  const qc = createQueryClient();
   return render(
     <QueryClientProvider client={qc}>
-      <ProjectWorkspace projectId={projectId} />
+      <ProjectWorkspace projectId={projectId} activeView={activeView} />
     </QueryClientProvider>,
   );
+}
+
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
 }
 
 describe("ProjectWorkspace", () => {
@@ -64,21 +71,32 @@ describe("ProjectWorkspace", () => {
   });
 
   it("switches between Board, List, and Tree views for the same project", async () => {
-    const user = userEvent.setup();
-    renderWorkspace();
+    const view = renderWorkspace();
 
     expect(screen.getByText("Board view for voice-pilot")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "List" }));
+    view.rerender(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectWorkspace projectId="voice-pilot" activeView="list" />
+      </QueryClientProvider>,
+    );
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Open VP-1" })).toBeInTheDocument();
     });
     expect(mockFetchItems).toHaveBeenCalledWith("voice-pilot");
 
-    await user.click(screen.getByRole("tab", { name: "Tree" }));
+    view.rerender(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectWorkspace projectId="voice-pilot" activeView="tree" />
+      </QueryClientProvider>,
+    );
     expect(screen.getByRole("tree", { name: "Item hierarchy" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Board" }));
+    view.rerender(
+      <QueryClientProvider client={createQueryClient()}>
+        <ProjectWorkspace projectId="voice-pilot" activeView="board" />
+      </QueryClientProvider>,
+    );
     expect(screen.getByText("Board view for voice-pilot")).toBeInTheDocument();
   });
 
@@ -94,9 +112,8 @@ describe("ProjectWorkspace", () => {
       ]),
     );
 
-    const view = renderWorkspace("alpha");
+    const view = renderWorkspace("alpha", "list");
 
-    await user.click(screen.getByRole("tab", { name: "List" }));
     await waitFor(() => {
       expect(screen.getByText("Alpha backlog")).toBeInTheDocument();
     });
@@ -107,17 +124,12 @@ describe("ProjectWorkspace", () => {
 
     view.rerender(
       <QueryClientProvider
-        client={
-          new QueryClient({
-            defaultOptions: { queries: { retry: false } },
-          })
-        }
+        client={createQueryClient()}
       >
-        <ProjectWorkspace projectId="beta" />
+        <ProjectWorkspace projectId="beta" activeView="list" />
       </QueryClientProvider>,
     );
 
-    await user.click(screen.getByRole("tab", { name: "List" }));
     await waitFor(() => {
       expect(screen.getByText("Beta backlog")).toBeInTheDocument();
     });

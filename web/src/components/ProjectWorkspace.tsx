@@ -8,10 +8,11 @@ import { KanbanBoard } from "./KanbanBoard";
 import { ValidationPanel } from "./ValidationPanel";
 import styles from "./ProjectWorkspace.module.css";
 
-type ViewMode = "board" | "list" | "tree";
+export type ViewMode = "board" | "list" | "tree";
 
 interface Props {
   projectId: string;
+  activeView: ViewMode;
 }
 
 const VIEW_LABELS: Record<ViewMode, string> = {
@@ -20,7 +21,7 @@ const VIEW_LABELS: Record<ViewMode, string> = {
   tree: "Tree",
 };
 
-function ViewTabs({
+export function ViewTabs({
   activeView,
   onChange,
 }: {
@@ -46,8 +47,7 @@ function ViewTabs({
   );
 }
 
-export function ProjectWorkspace({ projectId }: Props) {
-  const [activeView, setActiveView] = useState<ViewMode>("board");
+export function ProjectWorkspace({ projectId, activeView }: Props) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   const {
@@ -110,7 +110,6 @@ export function ProjectWorkspace({ projectId }: Props) {
 
   return (
     <section className={styles.workspace}>
-      <ViewTabs activeView={activeView} onChange={setActiveView} />
       <ValidationPanel projectId={projectId} onItemClick={setSelectedItemId} />
       {renderActiveView()}
       <ItemModal
