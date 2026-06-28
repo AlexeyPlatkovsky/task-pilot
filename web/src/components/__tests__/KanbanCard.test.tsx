@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import { KanbanCard } from "../KanbanCard";
 import type { ItemSummary, ItemType } from "../../types";
+
+const cardCss = readFileSync("src/components/KanbanCard.module.css", "utf8");
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
   return {
@@ -20,6 +23,12 @@ describe("KanbanCard", () => {
     render(<KanbanCard item={makeItem()} />);
     expect(screen.getByText("VP-1")).toBeInTheDocument();
     expect(screen.getByText("Test Item")).toBeInTheDocument();
+  });
+
+  it("reserves two title lines so cards keep a consistent height", () => {
+    expect(cardCss).toContain("min-block-size: 2lh;");
+    expect(cardCss).toContain("max-block-size: 2lh;");
+    expect(cardCss).toContain("-webkit-line-clamp: 2;");
   });
 
   it("has aria-label for accessibility", () => {

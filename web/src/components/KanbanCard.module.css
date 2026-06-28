@@ -49,6 +49,8 @@
 .title {
   font-size: var(--font-size-base);
   line-height: var(--line-height-tight);
+  min-block-size: 2lh;
+  max-block-size: 2lh;
   margin-bottom: var(--space-2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
