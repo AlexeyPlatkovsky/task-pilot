@@ -27,7 +27,7 @@ function App() {
         {selectedProjectId ? (
           <ProjectWorkspace key={selectedProjectId} projectId={selectedProjectId} />
         ) : (
-          <div>Select a project to view tasks</div>
+          <div className="empty-state">Select a project to view tasks</div>
         )}
       </main>
     </div>
