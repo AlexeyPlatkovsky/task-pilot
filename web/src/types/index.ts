@@ -99,6 +99,15 @@ export interface ValidationFinding {
   message: string;
 }
 
+export interface ValidationReport {
+  ok: boolean;
+  summary: {
+    errors: number;
+    warnings: number;
+  };
+  findings: ValidationFinding[];
+}
+
 export interface ItemUpdateInput {
   title?: string;
   description?: string;

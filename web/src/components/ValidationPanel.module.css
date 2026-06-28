@@ -1,0 +1,96 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  color: var(--text-primary);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.panel[role="alert"] {
+  color: var(--feedback-error);
+}
+
+.panel button {
+  align-self: flex-start;
+}
+
+.validState {
+  color: var(--feedback-success);
+  font-weight: var(--font-weight-semibold);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.summary strong {
+  color: var(--text-primary);
+}
+
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.finding {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--feedback-error-bg);
+  border-radius: var(--radius-md);
+}
+
+.findingMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.severity {
+  color: var(--feedback-error);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.path {
+  font-family: var(--font-family-mono);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.openButton {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--accent-fg);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  font: inherit;
+  cursor: pointer;
+}
+
+.openButton:hover {
+  background: var(--accent-hover);
+}
+
+.openButton:focus-visible {
+  outline: thin solid var(--accent-hover);
+  outline-offset: var(--space-1);
+}

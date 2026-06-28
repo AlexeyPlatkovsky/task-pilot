@@ -28,6 +28,17 @@ class ValidationFindingOut(BaseModel):
     message: str
 
 
+class ValidationSummaryOut(BaseModel):
+    errors: int
+    warnings: int
+
+
+class ValidationReportOut(BaseModel):
+    ok: bool
+    summary: ValidationSummaryOut
+    findings: list[ValidationFindingOut]
+
+
 class ItemSummary(BaseModel):
     id: str
     title: str

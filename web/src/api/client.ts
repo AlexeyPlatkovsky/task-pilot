@@ -4,6 +4,7 @@ import type {
   ItemSummary,
   ItemUpdateInput,
   ProjectSummary,
+  ValidationReport,
 } from "../types";
 
 const BASE_URL = "/api";
@@ -54,6 +55,12 @@ export async function fetchItem(
   itemId: string,
 ): Promise<ItemDetail> {
   return request<ItemDetail>(`/projects/${projectId}/items/${itemId}`);
+}
+
+export async function fetchValidationReport(
+  projectId: string,
+): Promise<ValidationReport> {
+  return request<ValidationReport>(`/projects/${projectId}/validate`);
 }
 
 export async function updateItem(
