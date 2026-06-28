@@ -34,6 +34,8 @@ class ItemSummary(BaseModel):
     type: str
     status: str
     priority: str
+    created_at: str | None = None
+    updated_at: str | None = None
     valid: bool = True
     findings: list[ValidationFindingOut] = []
 

@@ -383,8 +383,22 @@ sync with this document. New tokens go to `tokens.css` and this file together.
 ## Design Debt
 
 - Token system established (spec 0003) and later aligned to the Agent Manifesto parent design
-  system. Desktop viewport and Kanban width tokens are established; List View and Tree View
-  interaction behavior remains provisional until those views are implemented.
+  system. Desktop viewport and Kanban width tokens are established.
+- F006 advanced views use the existing workspace shell. Board/List/Tree are exposed as tabs for the
+  same selected project, with the active view kept in React session state and reset only by page
+  reload. Switching views does not clear the selected project.
+- The List view is a dense TanStack Table scanning surface with ID, title, type, status, priority,
+  created date, and updated date columns. Column headers are buttons with explicit sort state in the
+  accessible name. Rows open the existing item modal and preserve status/priority text labels.
+- The List filter bar uses native selects for status, type, priority, and a time-range selector for
+  updated date windows. Filters combine with AND semantics, reset when the selected project changes,
+  and show a filtered-empty state when no rows match.
+- The Tree view is derived from `parent_id` in loaded item data. Root rows include epics and any
+  item without a known parent. Expand/collapse controls are native buttons, carry `aria-expanded`,
+  and never rely on indentation alone; node labels include type and status text.
+- The Validation panel is a compact workspace panel above the active view. It lists validation
+  findings with severity, item/file path, and message, links item findings to the existing modal,
+  and shows an all-valid state when there are no findings.
 - No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
   automatically; `[data-theme]` override requires manual JS until a toggle is built.
 - Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use

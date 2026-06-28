@@ -59,6 +59,8 @@ export interface ItemSummary {
   type: ItemType;
   status: Status;
   priority: Priority;
+  created_at?: string | null;
+  updated_at?: string | null;
   valid: boolean;
   findings?: ValidationFinding[];
 }

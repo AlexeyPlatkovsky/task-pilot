@@ -2,7 +2,7 @@
 
 | ID | Task | Implements | Status | Depends on |
 | --- | --- | --- | --- | --- |
-| F006-T1 | Implement list view component with TanStack Table: columns for ID, title, type, status, priority, dates | F006-R1 | ⏳ todo | F004-T3, API for item list |
+| F006-T1 | Implement list view component with TanStack Table: columns for ID, title, type, status, priority, dates | F006-R1 | ✅ done | F004-T3, API for item list |
 | F006-T2 | Implement sorting in list view: click column header to sort asc/desc | F006-R1 | ⏳ todo | F006-T1 |
 | F006-T3 | Implement filter bar for list view: dropdowns for status, type, priority; preset time ranges | F006-R2 | ⏳ todo | F006-T1 |
 | F006-T4 | Implement tree view component: build tree from parent_id, expand/collapse nodes | F006-R3 | ⏳ todo | F004-T3, API for items |

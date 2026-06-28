@@ -1,0 +1,81 @@
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ItemSummary } from "../../types";
+import { ItemListView } from "../ItemListView";
+
+function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
+  return {
+    id: "VP-1",
+    title: "Test Item",
+    type: "task",
+    status: "backlog",
+    priority: "normal",
+    created_at: "2026-06-25T10:00:00Z",
+    updated_at: "2026-06-25T11:00:00Z",
+    valid: true,
+    findings: [],
+    ...overrides,
+  };
+}
+
+describe("ItemListView", () => {
+  it("renders the required list view columns and item rows", () => {
+    render(
+      <ItemListView
+        items={[
+          makeItem({ id: "VP-1", title: "Build table", type: "task" }),
+          makeItem({
+            id: "VP-2",
+            title: "Fix parser",
+            type: "bug",
+            status: "done",
+            priority: "high",
+          }),
+        ]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("columnheader", { name: /ID/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Title/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Type/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Status/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Priority/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Created/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /Updated/ }),
+    ).toBeInTheDocument();
+
+    const rows = screen.getAllByRole("row");
+    expect(within(rows[1]).getByText("VP-1")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Build table")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("VP-2")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Fix parser")).toBeInTheDocument();
+  });
+
+  it("opens an item when a valid row is clicked", async () => {
+    const user = userEvent.setup();
+    const onItemClick = vi.fn();
+    render(
+      <ItemListView
+        items={[makeItem({ id: "VP-8", title: "Open row" })]}
+        onItemClick={onItemClick}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open VP-8" }));
+
+    expect(onItemClick).toHaveBeenCalledWith("VP-8");
+  });
+});

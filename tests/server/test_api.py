@@ -128,6 +128,20 @@ class TestListItems:
         assert summary["valid"] is True
         assert summary["findings"] == []
 
+    def test_summary_includes_dates_for_list_view(self, client, tmp_path, workspace):
+        """F006 list view needs stable date fields without fetching item details."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Dated item", type="task", now="2026-06-25T10:00:00Z"
+        )
+
+        r = client.get("/api/projects/voice-pilot/items")
+
+        assert r.status_code == 200
+        summary = r.json()[0]
+        assert summary["created_at"] == "2026-06-25T10:00:00Z"
+        assert summary["updated_at"] == "2026-06-25T10:00:00Z"
+
     def test_invalid_item_file_surfaces_as_invalid_summary(
         self, client, tmp_path, workspace
     ):

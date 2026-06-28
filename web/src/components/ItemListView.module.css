@@ -1,0 +1,83 @@
+.tableFrame {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  overflow-x: auto;
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  width: 100%;
+  min-width: var(--content-width-comfortable);
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th,
+.table td {
+  padding: var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+.table tbody tr:hover {
+  background: var(--surface-muted);
+}
+
+.idCell {
+  font-family: var(--font-family-mono);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.titleButton {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  text-align: left;
+}
+
+.titleButton:hover {
+  color: var(--accent);
+}
+
+.titleButton:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.titleButton:focus-visible {
+  outline: thin solid var(--accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: calc(100vh - (var(--space-8) * 5));
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.emptyState code {
+  background: var(--surface-column);
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+}
