@@ -142,6 +142,28 @@ class TestListItems:
         assert summary["created_at"] == "2026-06-25T10:00:00Z"
         assert summary["updated_at"] == "2026-06-25T10:00:00Z"
 
+    def test_summary_includes_parent_id_for_tree_view(
+        self, client, tmp_path, workspace
+    ):
+        """F006 tree view derives hierarchy from the already-loaded item list."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Epic", type="epic", now="2026-06-25T10:00:00Z"
+        )
+        item_service.create_item(
+            workspace,
+            title="Feature",
+            type="feature",
+            parent_id="VP-1",
+            now="2026-06-25T10:01:00Z",
+        )
+
+        r = client.get("/api/projects/voice-pilot/items")
+
+        assert r.status_code == 200
+        child = next(item for item in r.json() if item["id"] == "VP-2")
+        assert child["parent_id"] == "VP-1"
+
     def test_invalid_item_file_surfaces_as_invalid_summary(
         self, client, tmp_path, workspace
     ):
