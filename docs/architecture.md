@@ -20,7 +20,7 @@ The system does not integrate with hosted services, issue trackers, or authentic
 | Domain services | Business rules for projects, items, comments, links. All adapters call this layer. | Python core under `src/taskpilot/services/`, shared across all surfaces |
 | CLI adapter | Translates command-line input to domain operations. Supports human-readable and JSON output. | `src/taskpilot/cli/`, uses Typer |
 | REST API server | Exposes domain operations over HTTP for the WebUI. FastAPI. | `src/taskpilot/server/`; see [F005](features/F005_rest-api/) |
-| WebUI | React browser application. Calls REST API. Kanban board, item modal, project selector. | `web/`, Vite + TypeScript |
+| WebUI | React browser application. Calls REST API. Board/list/tree workspace views, validation panel, item modal, project selector. | `web/`, Vite + TypeScript |
 | Local system registry | Machine-specific state: active/inactive project roots, preferences, cache paths. Not committed to Git. | OS app data directory |
 | MCP adapter (future) | Thin adapter exposing domain operations as MCP tools. | Same domain layer, no separate logic |
 
@@ -117,6 +117,7 @@ are hidden from the normal WebUI but remain visible to validation and direct loo
 - **UI primitives**: Radix UI (modal, dialog)
 - **Drag and drop**: dnd-kit (future)
 - **Server state**: TanStack Query
+- **Tables**: TanStack Table
 - **Forms**: React Hook Form
 
 ### Repository structure
