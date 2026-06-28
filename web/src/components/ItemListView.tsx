@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import type { ItemSummary } from "../types";
+import { ITEM_TYPES, PRIORITIES, WORKFLOW_STATUSES } from "../types";
 import {
   PRIORITY_LABELS,
   STATUS_LABELS,
@@ -18,7 +19,23 @@ import styles from "./ItemListView.module.css";
 interface Props {
   items: ItemSummary[];
   onItemClick: (itemId: string) => void;
+  now?: Date;
 }
+
+type TimeRange = "all" | "last_7_days" | "last_14_days" | "last_30_days";
+
+interface Filters {
+  status: string;
+  type: string;
+  priority: string;
+  timeRange: TimeRange;
+}
+
+const TIME_RANGE_DAYS: Record<Exclude<TimeRange, "all">, number> = {
+  last_7_days: 7,
+  last_14_days: 14,
+  last_30_days: 30,
+};
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
@@ -37,8 +54,56 @@ function labelFor(
   return labels[value] ?? value;
 }
 
-export function ItemListView({ items, onItemClick }: Props) {
+function isWithinTimeRange(
+  item: ItemSummary,
+  timeRange: TimeRange,
+  now: Date,
+): boolean {
+  if (timeRange === "all") {
+    return true;
+  }
+  if (!item.updated_at) {
+    return false;
+  }
+  const updated = new Date(item.updated_at);
+  if (Number.isNaN(updated.getTime())) {
+    return false;
+  }
+  const days = TIME_RANGE_DAYS[timeRange];
+  const earliest = now.getTime() - days * 24 * 60 * 60 * 1000;
+  return updated.getTime() >= earliest && updated.getTime() <= now.getTime();
+}
+
+export function ItemListView({
+  items,
+  onItemClick,
+  now = new Date(),
+}: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [filters, setFilters] = useState<Filters>({
+    status: "",
+    type: "",
+    priority: "",
+    timeRange: "all",
+  });
+
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) => {
+        if (filters.status && item.status !== filters.status) {
+          return false;
+        }
+        if (filters.type && item.type !== filters.type) {
+          return false;
+        }
+        if (filters.priority && item.priority !== filters.priority) {
+          return false;
+        }
+        return isWithinTimeRange(item, filters.timeRange, now);
+      }),
+    [filters, items, now],
+  );
+
   const columns = useMemo<ColumnDef<ItemSummary>[]>(
     () => [
       {
@@ -93,7 +158,7 @@ export function ItemListView({ items, onItemClick }: Props) {
   );
 
   const table = useReactTable({
-    data: items,
+    data: filteredItems,
     columns,
     state: {
       sorting,
@@ -115,54 +180,148 @@ export function ItemListView({ items, onItemClick }: Props) {
   }
 
   return (
-    <div className={styles.tableFrame}>
-      <table className={styles.table}>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} scope="col">
-                  {header.isPlaceholder ? null : (
-                    <button
-                      className={styles.headerButton}
-                      type="button"
-                      onClick={header.column.getToggleSortingHandler()}
-                      aria-label={`Sort by ${String(
-                        header.column.columnDef.header,
-                      )} (${header.column.getIsSorted() || "not sorted"})`}
-                    >
-                      <span>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                      </span>
-                      <span aria-hidden="true" className={styles.sortIndicator}>
-                        {header.column.getIsSorted() === "asc"
-                          ? "asc"
-                          : header.column.getIsSorted() === "desc"
-                            ? "desc"
-                            : ""}
-                      </span>
-                    </button>
-                  )}
-                </th>
+    <>
+      <div className={styles.filterBar} aria-label="List filters">
+        <label>
+          <span>Status</span>
+          <select
+            value={filters.status}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                status: event.target.value,
+              }))
+            }
+          >
+            <option value="">All statuses</option>
+            {WORKFLOW_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Type</span>
+          <select
+            value={filters.type}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                type: event.target.value,
+              }))
+            }
+          >
+            <option value="">All types</option>
+            {ITEM_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {TYPE_LABELS[type]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Priority</span>
+          <select
+            value={filters.priority}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                priority: event.target.value,
+              }))
+            }
+          >
+            <option value="">All priorities</option>
+            {PRIORITIES.map((priority) => (
+              <option key={priority} value={priority}>
+                {PRIORITY_LABELS[priority]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Updated</span>
+          <select
+            value={filters.timeRange}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                timeRange: event.target.value as TimeRange,
+              }))
+            }
+          >
+            <option value="all">Any time</option>
+            <option value="last_7_days">Last 7 days</option>
+            <option value="last_14_days">Last 14 days</option>
+            <option value="last_30_days">Last 30 days</option>
+          </select>
+        </label>
+      </div>
+
+      {filteredItems.length === 0 ? (
+        <div className={styles.filteredEmptyState}>
+          No items match the selected filters.
+        </div>
+      ) : (
+        <div className={styles.tableFrame}>
+          <table className={styles.table}>
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id} scope="col">
+                      {header.isPlaceholder ? null : (
+                        <button
+                          className={styles.headerButton}
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          aria-label={`Sort by ${String(
+                            header.column.columnDef.header,
+                          )} (${header.column.getIsSorted() || "not sorted"})`}
+                        >
+                          <span>
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className={styles.sortIndicator}
+                          >
+                            {header.column.getIsSorted() === "asc"
+                              ? "asc"
+                              : header.column.getIsSorted() === "desc"
+                                ? "desc"
+                                : ""}
+                          </span>
+                        </button>
+                      )}
+                    </th>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} data-item-id={row.original.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} data-item-id={row.original.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }

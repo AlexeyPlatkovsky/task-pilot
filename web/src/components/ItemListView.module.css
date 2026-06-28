@@ -1,3 +1,41 @@
+.filterBar {
+  display: flex;
+  align-items: end;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.filterBar label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.filterBar select {
+  min-width: calc(var(--space-8) * 5);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font: inherit;
+}
+
+.filterBar select:focus-visible {
+  outline: thin solid var(--accent);
+  outline-offset: var(--space-1);
+}
+
 .tableFrame {
   width: 100%;
   max-width: var(--content-max-width);
@@ -108,4 +146,16 @@
   padding: 0.125rem var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
+}
+
+.filteredEmptyState {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding: var(--space-6);
+  color: var(--text-muted);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-align: center;
 }

@@ -106,4 +106,71 @@ describe("ItemListView", () => {
     expect(within(rows[2]).getByText("Feature")).toBeInTheDocument();
     expect(within(rows[3]).getByText("Bug")).toBeInTheDocument();
   });
+
+  it("filters rows by type, status, and priority together", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Completed bug",
+            type: "bug",
+            status: "done",
+            priority: "high",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Backlog bug",
+            type: "bug",
+            status: "backlog",
+            priority: "high",
+          }),
+          makeItem({
+            id: "VP-3",
+            title: "Completed task",
+            type: "task",
+            status: "done",
+            priority: "normal",
+          }),
+        ]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await user.selectOptions(screen.getByLabelText("Type"), "bug");
+    await user.selectOptions(screen.getByLabelText("Status"), "done");
+    await user.selectOptions(screen.getByLabelText("Priority"), "high");
+
+    expect(screen.getByText("Completed bug")).toBeInTheDocument();
+    expect(screen.queryByText("Backlog bug")).not.toBeInTheDocument();
+    expect(screen.queryByText("Completed task")).not.toBeInTheDocument();
+  });
+
+  it("filters rows by updated time range", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Recent item",
+            updated_at: "2026-06-24T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Old item",
+            updated_at: "2026-05-20T10:00:00Z",
+          }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await user.selectOptions(screen.getByLabelText("Updated"), "last_7_days");
+
+    expect(screen.getByText("Recent item")).toBeInTheDocument();
+    expect(screen.queryByText("Old item")).not.toBeInTheDocument();
+  });
 });
