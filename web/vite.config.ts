@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:7152",
+        target: process.env.TASKPILOT_API_TARGET ?? "http://127.0.0.1:7152",
         changeOrigin: true,
       },
     },

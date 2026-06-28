@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -29,6 +29,7 @@ interface Props {
 export function KanbanBoard({ projectId }: Props) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
+  const [droppedItemId, setDroppedItemId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -51,12 +52,18 @@ export function KanbanBoard({ projectId }: Props) {
       status: Status;
     }) => updateItem(projectId, itemId, { status }),
     onSuccess: () => {
+      setActiveItem(null);
+      setDroppedItemId(null);
       void queryClient.invalidateQueries({ queryKey: ["items", projectId] });
       if (selectedItemId) {
         void queryClient.invalidateQueries({
           queryKey: ["item", projectId, selectedItemId],
         });
       }
+    },
+    onError: () => {
+      setActiveItem(null);
+      setDroppedItemId(null);
     },
   });
 
@@ -82,21 +89,29 @@ export function KanbanBoard({ projectId }: Props) {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      setActiveItem(null);
 
-      if (!over) return;
+      if (!over) {
+        setActiveItem(null);
+        return;
+      }
 
       const activeId = active.id as string;
       const overId = over.id as string;
 
       const activeItem = items?.find((i) => i.id === activeId);
-      if (!activeItem || !activeItem.valid) return;
+      if (!activeItem || !activeItem.valid) {
+        setActiveItem(null);
+        return;
+      }
 
       const targetStatus = items
         ? resolveDropTarget(overId, items)
         : undefined;
       if (targetStatus && activeItem.status !== targetStatus) {
+        setDroppedItemId(activeId);
         mutate({ itemId: activeId, status: targetStatus });
+      } else {
+        setActiveItem(null);
       }
     },
     [items, mutate],
@@ -128,7 +143,7 @@ export function KanbanBoard({ projectId }: Props) {
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
@@ -142,6 +157,8 @@ export function KanbanBoard({ projectId }: Props) {
                 label={STATUS_LABELS[status]}
                 items={columnItems}
                 onItemClick={setSelectedItemId}
+                droppedItemId={droppedItemId}
+                activeDraggedItemId={activeItem?.id ?? null}
               />
             );
           })}

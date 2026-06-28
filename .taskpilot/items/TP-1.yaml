@@ -3,6 +3,6 @@ id: TP-1
 title: REST API is live
 priority: high
 type: task
-status: done
+status: backlog
 created_at: '2026-06-25T16:24:30Z'
-updated_at: '2026-06-27T20:30:47Z'
+updated_at: '2026-06-28T18:08:46Z'

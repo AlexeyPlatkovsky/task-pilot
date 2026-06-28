@@ -34,7 +34,8 @@ Read `references/test-strategy.md` and `.claude/conventions/testing.md`.
 9. Run narrow tests, then the affected suite, including the required component, functional E2E, and
    browser contract commands when those levels are selected by the matrix.
 10. Inspect for false positives, brittle mocks, timing assumptions, over-broad E2E coverage,
-   misplaced style/token assertions in functional E2E, and redundant coverage.
+   misplaced style/token assertions in functional E2E, hidden shared state, over-engineered helper
+   extraction, and redundant coverage.
 
 Do not change production behavior unless the active route assigns that scope.
 

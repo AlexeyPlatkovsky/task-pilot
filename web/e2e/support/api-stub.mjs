@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
 
+const port = Number(process.env.TASKPILOT_E2E_API_PORT ?? "7152");
+
 createServer((request, response) => {
   response.setHeader("Content-Type", "application/json");
 
@@ -15,4 +17,4 @@ createServer((request, response) => {
 
   response.statusCode = 404;
   response.end(JSON.stringify({ detail: "Not found" }));
-}).listen(7152, "127.0.0.1");
+}).listen(port, "127.0.0.1");

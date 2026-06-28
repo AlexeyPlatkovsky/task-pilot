@@ -12,9 +12,11 @@ interface Props {
   label: string;
   items: ItemSummary[];
   onItemClick?: (itemId: string) => void;
+  droppedItemId?: string | null;
+  activeDraggedItemId?: string | null;
 }
 
-export function KanbanColumn({ status, label, items, onItemClick }: Props) {
+export function KanbanColumn({ status, label, items, onItemClick, droppedItemId, activeDraggedItemId }: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -23,6 +25,7 @@ export function KanbanColumn({ status, label, items, onItemClick }: Props) {
 
   return (
     <div
+      ref={setNodeRef}
       className={`${styles.column} ${isOver ? styles.dropTarget : ""}`}
       data-status={status}
     >
@@ -30,7 +33,7 @@ export function KanbanColumn({ status, label, items, onItemClick }: Props) {
         <h3 className={styles.title}>{label}</h3>
         <span className={styles.count}>{items.length}</span>
       </div>
-      <div ref={setNodeRef} className={styles.list} role="list">
+      <div className={styles.list} role="list">
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
           {items.length === 0 ? (
             <div className={styles.empty}>No items</div>
@@ -40,6 +43,8 @@ export function KanbanColumn({ status, label, items, onItemClick }: Props) {
                 key={item.id}
                 item={item}
                 onClick={onItemClick}
+                droppedItemId={droppedItemId}
+                activeDraggedItemId={activeDraggedItemId}
               />
             ))
           )}

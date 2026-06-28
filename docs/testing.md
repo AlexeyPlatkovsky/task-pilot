@@ -7,6 +7,8 @@ cross. Core domain logic is covered by unit tests. File parsing, serialization, 
 contracts are covered by integration tests. The REST API is validated through API tests.
 The WebUI is tested through component tests, focused functional Playwright E2E tests for major
 browser journeys, and separate browser contract tests for style or browser-only behavior.
+Functional E2E uses TaskPilot-specific helpers and deterministic local workspaces rather than a
+generic copied browser framework.
 
 Failure paths, invalid inputs, cross-platform path behavior, and deterministic output are
 treated as first-class test concerns alongside happy paths.
@@ -40,6 +42,11 @@ Run these from `web/`:
 | `npm run test:e2e` | Functional E2E suite |
 | `npm run test:e2e:functional` | Functional E2E suite explicitly |
 | `npm run test:browser-contract` | Browser-only token/theme/visual contract suite |
+
+Functional E2E support code lives under `web/e2e/support`. Keep it lightweight: prefer helpers for
+fixture setup and repeated domain locators, and add page-object or custom assertion layers only
+after the same setup, navigation, or assertion pattern appears in at least three committed
+functional specs or a flaky/false-positive E2E failure shows the missing layer would prevent it.
 
 ## Coverage Expectations
 

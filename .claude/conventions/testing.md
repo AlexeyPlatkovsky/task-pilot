@@ -50,6 +50,18 @@
 - UI tests use accessible roles, labels, and visible text.
 - UI implementation should be proven primarily by component tests, with Playwright evidence for
   major browser paths, responsive behavior, drag/drop, keyboard navigation, and API-backed flows.
+- Functional E2E authoring should stay TaskPilot-native. Start with small helpers under
+  `web/e2e/support` for deterministic workspaces, project opening, and repeated domain locators.
+  Do not introduce a copied browser framework, custom locator proxy, page-object DSL, reporting
+  stack, or lint plugin until the same setup, navigation, or assertion pattern appears in at least
+  three committed functional specs, or validation records a flaky or false-positive failure caused
+  by missing helper structure.
+- Functional E2E helpers may expose stable domain selectors such as item IDs and workflow statuses
+  when no accessible role cleanly scopes a board region. When a test uses a domain selector, it
+  must also include a user-visible role, label, text, or REST-backed assertion for the same workflow,
+  or record why the UI exposes no accessible control for that interaction.
+- Review functional E2E additions for flakiness, hidden shared state, over-broad coverage,
+  implementation-only selectors, sleeps, false positives, and over-engineered helper extraction.
 - CSS token and theme correctness should be tested as unit/component CSS-contract checks when the
   runtime can prove them, or browser contract tests when a real browser is required. Do not place
   token-only or computed-style-only checks in functional E2E.

@@ -7,9 +7,11 @@ import styles from "./SortableKanbanCard.module.css";
 interface Props {
   item: ItemSummary;
   onClick?: (itemId: string) => void;
+  droppedItemId?: string | null;
+  activeDraggedItemId?: string | null;
 }
 
-export function SortableKanbanCard({ item, onClick }: Props) {
+export function SortableKanbanCard({ item, onClick, droppedItemId, activeDraggedItemId }: Props) {
   const {
     attributes,
     listeners,
@@ -22,10 +24,12 @@ export function SortableKanbanCard({ item, onClick }: Props) {
     disabled: !item.valid,
   });
 
+  const isHidden = isDragging || item.id === droppedItemId || item.id === activeDraggedItemId;
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
+    transition: isHidden ? undefined : transition,
+    opacity: isHidden ? 0 : 1,
   };
 
   return (

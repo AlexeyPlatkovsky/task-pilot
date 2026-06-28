@@ -1,11 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-async function openFixtureProject(page: import("@playwright/test").Page) {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "TaskPilot" })).toBeVisible();
-  await page.getByRole("combobox").selectOption("taskpilot-e2e");
-  await expect(page.getByText("All items valid")).toBeVisible();
-}
+import { openFixtureProject } from "../support/workspace";
 
 test.describe("F006 advanced workspace views", () => {
   test("switches views, filters and sorts the list, and opens a tree item", async ({

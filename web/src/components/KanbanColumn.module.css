@@ -10,7 +10,7 @@
 }
 
 .column.dropTarget {
-  background: var(--accent-subtle);
+  background: var(--feedback-success-bg);
 }
 
 .header {
