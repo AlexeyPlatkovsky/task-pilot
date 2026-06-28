@@ -78,4 +78,32 @@ describe("ItemListView", () => {
 
     expect(onItemClick).toHaveBeenCalledWith("VP-8");
   });
+
+  it("sorts rows ascending and descending when a column header is clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({ id: "VP-1", title: "Second", type: "task" }),
+          makeItem({ id: "VP-2", title: "First", type: "bug" }),
+          makeItem({ id: "VP-3", title: "Third", type: "feature" }),
+        ]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Sort by Type/ }));
+
+    let rows = screen.getAllByRole("row");
+    expect(within(rows[1]).getByText("Bug")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Feature")).toBeInTheDocument();
+    expect(within(rows[3]).getByText("Task")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Sort by Type/ }));
+
+    rows = screen.getAllByRole("row");
+    expect(within(rows[1]).getByText("Task")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Feature")).toBeInTheDocument();
+    expect(within(rows[3]).getByText("Bug")).toBeInTheDocument();
+  });
 });

@@ -1,10 +1,12 @@
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type SortingState,
 } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { ItemSummary } from "../types";
 import {
   PRIORITY_LABELS,
@@ -36,6 +38,7 @@ function labelFor(
 }
 
 export function ItemListView({ items, onItemClick }: Props) {
+  const [sorting, setSorting] = useState<SortingState>([]);
   const columns = useMemo<ColumnDef<ItemSummary>[]>(
     () => [
       {
@@ -92,7 +95,12 @@ export function ItemListView({ items, onItemClick }: Props) {
   const table = useReactTable({
     data: items,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   if (items.length === 0) {
@@ -114,12 +122,30 @@ export function ItemListView({ items, onItemClick }: Props) {
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th key={header.id} scope="col">
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
+                  {header.isPlaceholder ? null : (
+                    <button
+                      className={styles.headerButton}
+                      type="button"
+                      onClick={header.column.getToggleSortingHandler()}
+                      aria-label={`Sort by ${String(
                         header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                      )} (${header.column.getIsSorted() || "not sorted"})`}
+                    >
+                      <span>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </span>
+                      <span aria-hidden="true" className={styles.sortIndicator}>
+                        {header.column.getIsSorted() === "asc"
+                          ? "asc"
+                          : header.column.getIsSorted() === "desc"
+                            ? "desc"
+                            : ""}
+                      </span>
+                    </button>
+                  )}
                 </th>
               ))}
             </tr>

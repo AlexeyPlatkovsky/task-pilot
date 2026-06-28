@@ -29,6 +29,34 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.headerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.headerButton:hover {
+  color: var(--accent);
+}
+
+.headerButton:focus-visible {
+  outline: thin solid var(--accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.sortIndicator {
+  min-width: var(--space-8);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
 .table tbody tr:hover {
   background: var(--surface-muted);
 }
