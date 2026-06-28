@@ -45,7 +45,12 @@ export function KanbanCard({ item, onClick }: Props) {
           {item.type}
         </span>
       </div>
-      <div className={styles.title}>{item.title}</div>
+      <div
+        className={styles.title}
+        data-test-id={`kanban-card-title-${item.id}`}
+      >
+        {item.title}
+      </div>
       <div className={styles.footer}>
         <span className={`${styles.priority} ${styles[item.priority]}`}>
           {item.priority}
