@@ -33,17 +33,23 @@ describe("ValidationPanel", () => {
     vi.resetAllMocks();
   });
 
-  it("shows all-valid state when no findings exist", async () => {
+  it("renders nothing when no findings exist", async () => {
     mockFetchValidationReport.mockResolvedValueOnce(report());
 
-    render(
+    const { container } = render(
       <ValidationPanel projectId="voice-pilot" onItemClick={vi.fn()} />,
       { wrapper },
     );
 
+    // Wait for loading to finish and all-valid state to be absent
     await waitFor(() => {
-      expect(screen.getByText("All items valid")).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-test-id="validation-loading"]'),
+      ).toBeNull();
     });
+
+    const sections = container.querySelectorAll("section");
+    expect(sections.length).toBe(0);
   });
 
   it("shows validation findings and opens linked items", async () => {

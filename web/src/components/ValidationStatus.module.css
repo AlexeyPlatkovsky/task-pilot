@@ -1,0 +1,15 @@
+.status {
+  text-align: center;
+}
+
+.valid {
+  color: var(--feedback-success);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.issues {
+  color: var(--feedback-error);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}

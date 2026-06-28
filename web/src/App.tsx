@@ -1,5 +1,7 @@
 import { ProjectSelector } from "./components/ProjectSelector";
 import { ProjectWorkspace } from "./components/ProjectWorkspace";
+import { ValidationStatus } from "./components/ValidationStatus";
+import { ThemeSwitcher } from "./components/ThemeSwitcher";
 import { useState } from "react";
 
 function App() {
@@ -10,18 +12,24 @@ function App() {
   return (
     <div className="app">
       <header>
-        <img
-          className="logo"
-          src="/task-pilot-compass-board.svg"
-          alt="TaskPilot"
-          width={32}
-          height={32}
-        />
-        <h1 data-test-id="app-title">TaskPilot</h1>
-        <ProjectSelector
-          selectedProjectId={selectedProjectId}
-          onSelect={setSelectedProjectId}
-        />
+        <div className="header-left">
+          <img
+            className="logo"
+            src="/task-pilot-compass-board.svg"
+            alt="TaskPilot"
+            width={32}
+            height={32}
+          />
+          <h1 data-test-id="app-title">TaskPilot</h1>
+          <ProjectSelector
+            selectedProjectId={selectedProjectId}
+            onSelect={setSelectedProjectId}
+          />
+        </div>
+        <ValidationStatus projectId={selectedProjectId} />
+        <div className="header-right">
+          <ThemeSwitcher />
+        </div>
       </header>
       <main>
         {selectedProjectId ? (

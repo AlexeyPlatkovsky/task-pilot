@@ -34,6 +34,17 @@ export class TaskPilotPage {
     );
   }
 
+  async selectTheme(theme: "light" | "dark") {
+    await this.byTestId("theme-switcher").selectOption(theme);
+  }
+
+  async expectTheme(theme: "light" | "dark") {
+    await expect(this.page.locator("html")).toHaveAttribute(
+      "data-theme",
+      theme,
+    );
+  }
+
   async expectBoardTabSelected() {
     await expect(this.byTestId("workspace-tab-board")).toHaveAttribute(
       "aria-selected",

@@ -397,10 +397,11 @@ sync with this document. New tokens go to `tokens.css` and this file together.
   item without a known parent. Expand/collapse controls are native buttons, carry `aria-expanded`,
   and never rely on indentation alone; node labels include type and status text.
 - The Validation panel is a compact workspace panel above the active view. It lists validation
-  findings with severity, item/file path, and message, links item findings to the existing modal,
-  and shows an all-valid state when there are no findings.
-- No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
-  automatically; `[data-theme]` override requires manual JS until a toggle is built.
+  findings with severity, item/file path, and message, and links item findings to the existing
+  modal. The all-valid state ("All items valid") is displayed in the header center via
+  `ValidationStatus`, not in the panel itself — the panel is hidden when there are no findings.
+- Theme toggle in header: a `ThemeSwitcher` select with Light/Dark options sets `data-theme` on
+  `<html>`. OS preference is respected on initial load; the toggle overrides it explicitly.
 - Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use
   sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography, spacing, and desktop layout
   tokens are present; component CSS references tokens rather than literals.

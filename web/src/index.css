@@ -42,6 +42,21 @@ header {
   border-radius: var(--radius-lg);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  justify-content: flex-end;
+}
+
 header .logo {
   width: 48px;
   height: 48px;

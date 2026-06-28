@@ -236,8 +236,9 @@ usage. The `0.6875rem`, `0.75rem`, `1.25rem`, and `1.125rem` values used for bad
 headings remain as literals because they appear in one place each and are not part of the shared
 visual rhythm.
 
-A2. No JS theme-toggle control is in scope for this spec. The `data-theme` attribute is set
-manually in tests and can be wired to a future toggle without changing the token contract.
+A2. Theme-toggle control was added in a later change: a `ThemeSwitcher` select in the header with
+Light/Dark options sets the `data-theme` attribute on `<html>`. No additional token changes were
+required — the existing `[data-theme="light"]` and `[data-theme="dark"]` blocks cover both options.
 
 A3. `#e0e0e0` in `index.css` (header `border-bottom`) maps to `--border-subtle` (`#e5eaf0`). The
 visual difference is imperceptible; no new token is added.

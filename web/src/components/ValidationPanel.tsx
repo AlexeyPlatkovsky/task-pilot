@@ -66,13 +66,7 @@ export function ValidationPanel({ projectId, onItemClick }: Props) {
   }
 
   if (!data || data.findings.length === 0) {
-    return (
-      <section className={styles.panel}>
-        <div className={styles.validState} data-test-id="validation-valid-state">
-          All items valid
-        </div>
-      </section>
-    );
+    return null;
   }
 
   return (

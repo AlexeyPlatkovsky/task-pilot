@@ -21,11 +21,6 @@
   align-self: flex-start;
 }
 
-.validState {
-  color: var(--feedback-success);
-  font-weight: var(--font-weight-semibold);
-}
-
 .summary {
   display: flex;
   align-items: center;
