@@ -3,6 +3,6 @@ id: TP-2
 title: Fix code review findings
 priority: high
 type: task
-status: backlog
+status: ready
 created_at: '2026-06-25T16:24:30Z'
-updated_at: '2026-06-27T20:30:26Z'
+updated_at: '2026-06-28T15:58:16Z'

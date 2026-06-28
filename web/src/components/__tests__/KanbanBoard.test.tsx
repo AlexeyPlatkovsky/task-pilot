@@ -37,10 +37,11 @@ describe("KanbanBoard", () => {
     vi.resetAllMocks();
   });
 
-  it("shows loading state while items are being fetched", () => {
+  it("shows a loading spinner while items are being fetched", () => {
     mockFetchItems.mockReturnValue(new Promise(() => {}));
     render(<KanbanBoard projectId="VP" />, { wrapper });
-    expect(screen.getByText("Loading items...")).toBeInTheDocument();
+    const spinner = screen.getByRole("status", { name: "Loading items..." });
+    expect(spinner).toBeInTheDocument();
   });
 
   it("shows error state with retry button when fetch fails", async () => {

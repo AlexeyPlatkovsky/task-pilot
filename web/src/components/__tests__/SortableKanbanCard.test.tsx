@@ -72,6 +72,34 @@ describe("SortableKanbanCard", () => {
     expect(wrapper).not.toBeNull();
   });
 
+  it("does not render a ghost card with reduced opacity when not dragging", () => {
+    const item = makeItem();
+    const { container } = render(
+      <Wrapper itemIds={[item.id]}>
+        <SortableKanbanCard item={item} />
+      </Wrapper>,
+    );
+
+    const wrapper = container.querySelector("[class*='wrapper']");
+    expect(wrapper).not.toBeNull();
+    const styleAttr = wrapper!.getAttribute("style") ?? "";
+    expect(styleAttr).not.toContain("opacity: 0.5");
+  });
+
+  it("renders with full opacity when not dragging", () => {
+    const item = makeItem();
+    const { container } = render(
+      <Wrapper itemIds={[item.id]}>
+        <SortableKanbanCard item={item} />
+      </Wrapper>,
+    );
+
+    const wrapper = container.querySelector("[class*='wrapper']");
+    expect(wrapper).not.toBeNull();
+    const styleAttr = wrapper!.getAttribute("style") ?? "";
+    expect(styleAttr).toContain("opacity: 1");
+  });
+
   it("creates a sortable wrapper with button role for valid items", () => {
     const item = makeItem();
     render(

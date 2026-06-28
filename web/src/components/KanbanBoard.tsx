@@ -18,6 +18,7 @@ import { STATUS_LABELS } from "../types/labels";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
 import { ItemModal } from "./ItemModal";
+import { LoadingSpinner } from "./ui/LoadingSpinner";
 import { resolveDropTarget, groupByStatus } from "./kanban-utils";
 import styles from "./KanbanBoard.module.css";
 
@@ -105,7 +106,11 @@ export function KanbanBoard({ projectId }: Props) {
   const isEmpty = Array.from(groups.values()).every((g) => g.length === 0);
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading items...</div>;
+    return (
+      <div className={styles.loading}>
+        <LoadingSpinner label="Loading items..." />
+      </div>
+    );
   }
 
   if (error) {
