@@ -74,6 +74,28 @@ function isWithinTimeRange(
   return updated.getTime() >= earliest && updated.getTime() <= now.getTime();
 }
 
+function sortStateLabel(sortState: false | "asc" | "desc"): string {
+  if (sortState === "asc") {
+    return "ascending";
+  }
+  if (sortState === "desc") {
+    return "descending";
+  }
+  return "not sorted";
+}
+
+function sortAriaValue(
+  sortState: false | "asc" | "desc",
+): "ascending" | "descending" | "none" {
+  if (sortState === "asc") {
+    return "ascending";
+  }
+  if (sortState === "desc") {
+    return "descending";
+  }
+  return "none";
+}
+
 export function ItemListView({
   items,
   onItemClick,
@@ -167,6 +189,7 @@ export function ItemListView({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableSortingRemoval: false,
   });
 
   if (items.length === 0) {
@@ -284,7 +307,11 @@ export function ItemListView({
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <th key={header.id} scope="col">
+                    <th
+                      key={header.id}
+                      scope="col"
+                      aria-sort={sortAriaValue(header.column.getIsSorted())}
+                    >
                       {header.isPlaceholder ? null : (
                         <button
                           className={styles.headerButton}
@@ -293,7 +320,7 @@ export function ItemListView({
                           onClick={header.column.getToggleSortingHandler()}
                           aria-label={`Sort by ${String(
                             header.column.columnDef.header,
-                          )} (${header.column.getIsSorted() || "not sorted"})`}
+                          )} (${sortStateLabel(header.column.getIsSorted())})`}
                         >
                           <span>
                             {flexRender(

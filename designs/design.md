@@ -384,15 +384,18 @@ sync with this document. New tokens go to `tokens.css` and this file together.
 
 - Token system established (spec 0003) and later aligned to the Agent Manifesto parent design
   system. Desktop viewport and Kanban width tokens are established.
-- F006 advanced views use the existing workspace shell. Board/List/Tree are exposed as tabs for the
-  same selected project, with the active view kept in React session state and reset only by page
+- F006 advanced views use the existing workspace shell. Board/List/Tree are exposed as header tabs
+  immediately after the project selector for the same selected project. The tablist is only shown
+  once a project is selected, with the active view kept in React session state and reset only by page
   reload. Switching views does not clear the selected project.
-- The List view is a dense TanStack Table scanning surface with ID, title, type, status, priority,
 - Kanban item cards preserve a fixed scanning rhythm: card titles clamp after two visible lines and
   reserve two title lines even when the title fits on one line, so card footers align across one-line
   and two-line titles.
-  created date, and updated date columns. Column headers are buttons with explicit sort state in the
-  accessible name. Rows open the existing item modal and preserve status/priority text labels.
+- The List view is a dense TanStack Table scanning surface with ID, title, type, status, priority,
+  created date, and updated date columns. Column headers are buttons with explicit ascending,
+  descending, or not-sorted state in the accessible name. Header activation cycles ascending and
+  descending sorting for that column without requiring implementation-only selectors. Rows open the
+  existing item modal and preserve status/priority text labels.
 - The List filter bar uses native selects for status, type, priority, and a time-range selector for
   updated date windows. Filters combine with AND semantics, reset when the selected project changes,
   and show a filtered-empty state when no rows match.

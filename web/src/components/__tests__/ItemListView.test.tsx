@@ -92,14 +92,20 @@ describe("ItemListView", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /Sort by Type/ }));
+    const sortByType = screen.getByRole("button", {
+      name: "Sort by Type (not sorted)",
+    });
+
+    await user.click(sortByType);
+    expect(sortByType).toHaveAccessibleName("Sort by Type (ascending)");
 
     let rows = screen.getAllByRole("row");
     expect(within(rows[1]).getByText("Bug")).toBeInTheDocument();
     expect(within(rows[2]).getByText("Feature")).toBeInTheDocument();
     expect(within(rows[3]).getByText("Task")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Sort by Type/ }));
+    await user.click(sortByType);
+    expect(sortByType).toHaveAccessibleName("Sort by Type (descending)");
 
     rows = screen.getAllByRole("row");
     expect(within(rows[1]).getByText("Task")).toBeInTheDocument();
@@ -172,5 +178,57 @@ describe("ItemListView", () => {
 
     expect(screen.getByText("Recent item")).toBeInTheDocument();
     expect(screen.queryByText("Old item")).not.toBeInTheDocument();
+  });
+
+  it("sorts only the rows that remain after filters are applied", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "High bug",
+            type: "bug",
+            status: "done",
+            priority: "high",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Normal bug",
+            type: "bug",
+            status: "done",
+            priority: "normal",
+          }),
+          makeItem({
+            id: "VP-3",
+            title: "High task",
+            type: "task",
+            status: "done",
+            priority: "high",
+          }),
+          makeItem({
+            id: "VP-4",
+            title: "Backlog bug",
+            type: "bug",
+            status: "backlog",
+            priority: "high",
+          }),
+        ]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await user.selectOptions(screen.getByLabelText("Type"), "bug");
+    await user.selectOptions(screen.getByLabelText("Status"), "done");
+    await user.click(
+      screen.getByRole("button", { name: "Sort by Priority (not sorted)" }),
+    );
+
+    const rows = screen.getAllByRole("row");
+    expect(rows).toHaveLength(3);
+    expect(within(rows[1]).getByText("High bug")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Normal bug")).toBeInTheDocument();
+    expect(screen.queryByText("High task")).not.toBeInTheDocument();
+    expect(screen.queryByText("Backlog bug")).not.toBeInTheDocument();
   });
 });
