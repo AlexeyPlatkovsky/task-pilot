@@ -60,6 +60,16 @@
   when no accessible role cleanly scopes a board region. When a test uses a domain selector, it
   must also include a user-visible role, label, text, or REST-backed assertion for the same workflow,
   or record why the UI exposes no accessible control for that interaction.
+- Functional E2E uses Page Objects under `web/e2e/pages`. Functional specs under
+  `web/e2e/functional` must not construct Playwright locators; specs call Page Object methods for
+  browser actions and assertions.
+- Page Objects use `data-test-id` as the primary selector. The attribute value must be stable,
+  kebab-case, and domain-oriented. Role, label, or text locators are allowed inside Page Objects
+  only as secondary user-visible assertions or when adding a stable `data-test-id` is impossible;
+  the exception must be reported in the E2E artifact.
+- E2E is part of TDD for UI work. Each selected functional E2E row must state why unit, component,
+  or API coverage cannot fully prove the workflow. Every UI implementation change runs the affected
+  functional E2E scope after implementation, or records why no functional E2E scope applies.
 - Review functional E2E additions for flakiness, hidden shared state, over-broad coverage,
   implementation-only selectors, sleeps, false positives, and over-engineered helper extraction.
 - CSS token and theme correctness should be tested as unit/component CSS-contract checks when the

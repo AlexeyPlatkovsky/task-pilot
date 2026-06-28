@@ -120,6 +120,7 @@ Routing:
 - Pencil design pipeline: `.claude/pipelines/pen-design.md`
 - Pencil-to-code pipeline: `.claude/pipelines/pen-to-code.md`
 - Browser verify pipeline: `.claude/pipelines/browser-verify.md`
+- E2E change pipeline: `.claude/pipelines/e2e-change.md`
 - Review pipeline: `.claude/pipelines/code-review.md`
 - Instruction change pipeline: `.claude/pipelines/instruction-change.md`
 - Instructions review pipeline: `.claude/pipelines/instructions-review.md`
@@ -136,6 +137,7 @@ Skills:
 - Open Design-to-code translation: `.claude/skills/od-to-code/SKILL.md`
 - Pencil design execution: `.claude/skills/pencil-design/SKILL.md`
 - Browser UI investigation: `.claude/skills/playwright-cli/SKILL.md`
+- E2E test writing: `.claude/skills/write-e2e-tests/SKILL.md`
 - Validation: `.claude/skills/validate-change/SKILL.md`
 - Documentation maintenance: `.claude/skills/maintain-docs/SKILL.md`
 - Instruction maintenance: `.claude/skills/maintain-instruction-system/SKILL.md`
@@ -146,6 +148,7 @@ Agents:
 
 - Independent code review: `.claude/agents/code-reviewer.md`
 - Independent design review: `.claude/agents/design-reviewer.md`
+- Independent E2E test review: `.claude/agents/e2e-test-reviewer.md`
 - Instruction review: `.claude/agents/instruction-evaluator.md`
 - Instruction scenario acceptance: `.claude/agents/artifact-acceptance-tester.md`
 

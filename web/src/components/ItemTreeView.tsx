@@ -99,6 +99,7 @@ function TreeNode({
             <button
               className={styles.expandButton}
               type="button"
+              data-test-id={`item-tree-expand-${node.item.id}`}
               onClick={() => onToggle(node.item.id)}
               aria-label={`${isExpanded ? "Collapse" : "Expand"} ${
                 node.item.id
@@ -113,6 +114,7 @@ function TreeNode({
           <button
             className={styles.titleButton}
             type="button"
+            data-test-id={`item-tree-open-${node.item.id}`}
             onClick={() => onItemClick(node.item.id)}
             disabled={!node.item.valid}
             aria-label={`Open ${node.item.id}`}
@@ -161,7 +163,7 @@ export function ItemTreeView({ items, onItemClick }: Props) {
 
   if (items.length === 0) {
     return (
-      <div className={styles.emptyState}>
+      <div className={styles.emptyState} data-test-id="item-tree-empty">
         No hierarchy yet.
       </div>
     );
@@ -169,7 +171,12 @@ export function ItemTreeView({ items, onItemClick }: Props) {
 
   return (
     <div className={styles.treeFrame}>
-      <ul className={styles.tree} role="tree" aria-label="Item hierarchy">
+      <ul
+        className={styles.tree}
+        role="tree"
+        aria-label="Item hierarchy"
+        data-test-id="item-tree"
+      >
         {tree.map((node) => (
           <TreeNode
             key={node.item.id}

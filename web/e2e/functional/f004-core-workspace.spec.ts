@@ -1,18 +1,12 @@
-import { expect, test, type Route } from "@playwright/test";
+import { test } from "@playwright/test";
+import { TaskPilotPage } from "../pages/taskpilot-page";
 import {
-  expectCardInColumn,
-  fixtureProject,
-  kanbanCard,
-  kanbanColumn,
-  openFixtureProject,
-} from "../support/workspace";
-
-const projectSummary = {
-  id: fixtureProject.id,
-  key: fixtureProject.key,
-  name: fixtureProject.name,
-  active: true,
-};
+  fulfillJson,
+  mockEmptyProject,
+  mockNoProjects,
+  mockProjectList,
+  mockValidationOk,
+} from "../support/api-routes";
 
 const mockItemSummary = {
   id: "TP-9",
@@ -39,84 +33,51 @@ const mockItemDetail = {
   findings: [],
 };
 
-async function fulfillJson(route: Route, body: unknown, status = 200) {
-  await route.fulfill({
-    status,
-    contentType: "application/json",
-    body: JSON.stringify(body),
-  });
-}
-
 test.describe("F004 core workspace flows", () => {
   test("shows guidance when no projects are registered", async ({ page }) => {
-    await page.route("**/api/projects", (route) => fulfillJson(route, []));
+    await mockNoProjects(page);
 
-    await page.goto("/");
-
-    await expect(page.getByText("No projects registered")).toBeVisible();
-    await expect(page.getByText("taskpilot init .")).toBeVisible();
+    await new TaskPilotPage(page).openWithNoProjects();
   });
 
   test("selects a project and displays the Kanban board columns", async ({
     page,
   }) => {
-    await openFixtureProject(page);
-
-    await expect(page.getByRole("tab", { name: "Board" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(
-      kanbanColumn(page, "backlog").getByText("Backlog"),
-    ).toBeVisible();
-    await expect(kanbanColumn(page, "ready").getByText("Ready")).toBeVisible();
-    await expect(
-      kanbanColumn(page, "in_progress").getByText("In Progress"),
-    ).toBeVisible();
-    await expect(kanbanColumn(page, "done").getByText("Done")).toBeVisible();
-    await expect(
-      kanbanColumn(page, "cancelled").getByText("Cancelled"),
-    ).toBeVisible();
+    const app = new TaskPilotPage(page);
+    await app.openFixtureProject();
+    await app.expectBoardTabSelected();
+    await app.expectKanbanColumnsVisible();
   });
 
   test("opens an item detail modal in read mode", async ({ page }) => {
-    await openFixtureProject(page);
+    const app = new TaskPilotPage(page);
+    await app.openFixtureProject();
+    await app.openCard("TP-1");
 
-    await kanbanCard(page, "TP-1").click();
-
-    const dialog = page.getByRole("dialog", {
-      name: "TP-1: Launch advanced workspace",
+    await app.expectItemModalReadMode({
+      itemId: "TP-1",
+      title: "Launch advanced workspace",
+      type: "Epic",
+      status: "Ready",
+      priority: "High",
+      description: "Parent item for the functional e2e hierarchy.",
     });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Epic", { exact: true })).toBeVisible();
-    await expect(dialog.getByText("Ready", { exact: true })).toBeVisible();
-    await expect(dialog.getByText("High", { exact: true })).toBeVisible();
-    await expect(dialog.getByText("Parent item for the functional e2e hierarchy."))
-      .toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Edit" })).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Delete" })).toBeVisible();
   });
 
   test("edits item status and moves the card to the target column", async ({
     page,
   }) => {
-    await openFixtureProject(page);
-    await expectCardInColumn(page, "TP-1", "ready");
+    const app = new TaskPilotPage(page);
+    await app.openFixtureProject();
+    await app.expectCardInColumn("TP-1", "ready");
 
-    await kanbanCard(page, "TP-1").click();
-    await page.getByRole("button", { name: "Edit" }).click();
-    await page.getByLabel("Status").selectOption("in_progress");
-    await page.getByRole("button", { name: "Save" }).click();
+    await app.openCard("TP-1");
+    await app.editOpenItemStatus("in_progress");
 
-    await expect(
-      page
-        .getByRole("dialog", { name: "TP-1: Launch advanced workspace" })
-        .getByText("In Progress", { exact: true }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Close" }).click();
-    await expectCardInColumn(page, "TP-1", "in_progress");
-    await expect(kanbanColumn(page, "ready").locator('[data-item-id="TP-1"]'))
-      .toBeHidden();
+    await app.expectOpenItemStatus("TP-1", "In Progress");
+    await app.closeModal();
+    await app.expectCardInColumn("TP-1", "in_progress");
+    await app.expectCardNotInColumn("TP-1", "ready");
   });
 
   test("deletes an item after confirmation and removes it from the board", async ({
@@ -124,16 +85,8 @@ test.describe("F004 core workspace flows", () => {
   }) => {
     let items = [mockItemSummary];
 
-    await page.route("**/api/projects", (route) =>
-      fulfillJson(route, [projectSummary]),
-    );
-    await page.route("**/api/projects/taskpilot-e2e/validate", (route) =>
-      fulfillJson(route, {
-        ok: true,
-        summary: { errors: 0, warnings: 0 },
-        findings: [],
-      }),
-    );
+    await mockProjectList(page);
+    await mockValidationOk(page);
     await page.route("**/api/projects/taskpilot-e2e/items", (route) =>
       fulfillJson(route, items),
     );
@@ -155,39 +108,24 @@ test.describe("F004 core workspace flows", () => {
       },
     );
 
-    await openFixtureProject(page);
-    await expectCardInColumn(page, "TP-9", "ready");
+    const app = new TaskPilotPage(page);
+    await app.openFixtureProject();
+    await app.expectCardInColumn("TP-9", "ready");
 
-    await kanbanCard(page, "TP-9").click();
-    await page.getByRole("button", { name: "Delete" }).click();
-    await expect(
-      page.getByRole("alertdialog", { name: "Delete this item?" }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Delete" }).click();
+    await app.openCard("TP-9");
+    await app.deleteOpenItem();
 
-    await expect(kanbanCard(page, "TP-9")).toBeHidden();
+    await app.expectCardHidden("TP-9");
   });
 
   test("shows an empty board prompt for a project with zero items", async ({
     page,
   }) => {
-    await page.route("**/api/projects", (route) =>
-      fulfillJson(route, [projectSummary]),
-    );
-    await page.route("**/api/projects/taskpilot-e2e/items", (route) =>
-      fulfillJson(route, []),
-    );
-    await page.route("**/api/projects/taskpilot-e2e/validate", (route) =>
-      fulfillJson(route, {
-        ok: true,
-        summary: { errors: 0, warnings: 0 },
-        findings: [],
-      }),
-    );
+    await mockEmptyProject(page);
 
-    await openFixtureProject(page);
+    const app = new TaskPilotPage(page);
+    await app.openFixtureProject();
 
-    await expect(page.getByText("No items yet.")).toBeVisible();
-    await expect(page.getByText(/taskpilot item create/)).toBeVisible();
+    await app.expectEmptyBoardPrompt();
   });
 });

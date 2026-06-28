@@ -35,6 +35,7 @@ function ViewTabs({
           role="tab"
           type="button"
           aria-selected={activeView === view}
+          data-test-id={`workspace-tab-${view}`}
           className={activeView === view ? styles.activeTab : styles.tab}
           onClick={() => onChange(view)}
         >
@@ -66,12 +67,20 @@ export function ProjectWorkspace({ projectId }: Props) {
     }
 
     if (isLoading) {
-      return <div className={styles.loading}>Loading items...</div>;
+      return (
+        <div className={styles.loading} data-test-id="workspace-loading">
+          Loading items...
+        </div>
+      );
     }
 
     if (error) {
       return (
-        <div className={styles.error} role="alert">
+        <div
+          className={styles.error}
+          role="alert"
+          data-test-id="workspace-error"
+        >
           <span>Failed to load items</span>
           <button type="button" onClick={() => refetch()}>
             Retry

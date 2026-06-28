@@ -47,6 +47,10 @@ Functional E2E support code lives under `web/e2e/support`. Keep it lightweight: 
 fixture setup and repeated domain locators, and add page-object or custom assertion layers only
 after the same setup, navigation, or assertion pattern appears in at least three committed
 functional specs or a flaky/false-positive E2E failure shows the missing layer would prevent it.
+Functional specs call Page Objects under `web/e2e/pages`; locator construction belongs in those
+Page Objects, with `data-test-id` as the primary selector. UI changes run the affected functional
+E2E scope after implementation, and E2E test plans must explain why the workflow cannot be fully
+proved at unit, component, or API level.
 
 ## Coverage Expectations
 

@@ -33,6 +33,7 @@ export function KanbanCard({ item, onClick }: Props) {
     <div
       className={`${styles.card} ${!item.valid ? styles.invalid : ""}`}
       data-item-id={item.id}
+      data-test-id={`kanban-card-${item.id}`}
       onClick={handleClick}
       onKeyDown={item.valid && onClick ? handleKeyDown : undefined}
       aria-label={`${item.id}: ${item.title}`}

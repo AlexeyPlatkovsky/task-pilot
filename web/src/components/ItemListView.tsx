@@ -120,6 +120,7 @@ export function ItemListView({
           <button
             className={styles.titleButton}
             type="button"
+            data-test-id={`item-list-open-${row.original.id}`}
             onClick={() => onItemClick(row.original.id)}
             disabled={!row.original.valid}
             aria-label={`Open ${row.original.id}`}
@@ -170,7 +171,7 @@ export function ItemListView({
 
   if (items.length === 0) {
     return (
-      <div className={styles.emptyState}>
+      <div className={styles.emptyState} data-test-id="item-list-empty">
         <p>No items yet.</p>
         <p>
           Create your first item with: <code>taskpilot item create</code>
@@ -181,10 +182,15 @@ export function ItemListView({
 
   return (
     <>
-      <div className={styles.filterBar} aria-label="List filters">
+      <div
+        className={styles.filterBar}
+        aria-label="List filters"
+        data-test-id="item-list-filters"
+      >
         <label>
           <span>Status</span>
           <select
+            data-test-id="item-list-filter-status"
             value={filters.status}
             onChange={(event) =>
               setFilters((current) => ({
@@ -205,6 +211,7 @@ export function ItemListView({
         <label>
           <span>Type</span>
           <select
+            data-test-id="item-list-filter-type"
             value={filters.type}
             onChange={(event) =>
               setFilters((current) => ({
@@ -225,6 +232,7 @@ export function ItemListView({
         <label>
           <span>Priority</span>
           <select
+            data-test-id="item-list-filter-priority"
             value={filters.priority}
             onChange={(event) =>
               setFilters((current) => ({
@@ -245,6 +253,7 @@ export function ItemListView({
         <label>
           <span>Updated</span>
           <select
+            data-test-id="item-list-filter-updated"
             value={filters.timeRange}
             onChange={(event) =>
               setFilters((current) => ({
@@ -262,12 +271,15 @@ export function ItemListView({
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className={styles.filteredEmptyState}>
+        <div
+          className={styles.filteredEmptyState}
+          data-test-id="item-list-filtered-empty"
+        >
           No items match the selected filters.
         </div>
       ) : (
         <div className={styles.tableFrame}>
-          <table className={styles.table}>
+          <table className={styles.table} data-test-id="item-list-table">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -277,6 +289,7 @@ export function ItemListView({
                         <button
                           className={styles.headerButton}
                           type="button"
+                          data-test-id={`item-list-sort-${header.id}`}
                           onClick={header.column.getToggleSortingHandler()}
                           aria-label={`Sort by ${String(
                             header.column.columnDef.header,
@@ -307,7 +320,11 @@ export function ItemListView({
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} data-item-id={row.original.id}>
+                <tr
+                  key={row.id}
+                  data-item-id={row.original.id}
+                  data-test-id="item-list-row"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id}>
                       {flexRender(

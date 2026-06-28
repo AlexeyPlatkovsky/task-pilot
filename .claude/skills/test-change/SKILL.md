@@ -14,8 +14,9 @@ Read `references/test-strategy.md` and `.claude/conventions/testing.md`.
    requirement or behavior, assertion, selected level, test file path, tests-first status, and
    explicit skip reason when a level is not applicable. For UI work, include separate decisions for
    component, API/contract, functional E2E, and browser contract. A major UI path must name a
-   committed functional Playwright TypeScript test path, unless an existing functional E2E test
-   already covers it and is named in the row.
+   committed functional Playwright TypeScript test path and Page Object method, unless an existing
+   functional E2E test already covers it and is named in the row. Every selected functional E2E row
+   must justify why unit, component, or API coverage cannot fully prove the workflow.
 5. Add boundary tests where data crosses files, services, CLI, REST, or browser boundaries.
 6. Cover success plus relevant invalid input, missing references, conflict/error behavior, and
    deterministic output.
@@ -35,7 +36,8 @@ Read `references/test-strategy.md` and `.claude/conventions/testing.md`.
    browser contract commands when those levels are selected by the matrix.
 10. Inspect for false positives, brittle mocks, timing assumptions, over-broad E2E coverage,
    misplaced style/token assertions in functional E2E, hidden shared state, over-engineered helper
-   extraction, and redundant coverage.
+   extraction, raw locator construction in functional specs, `data-test-id` selector policy
+   violations, and redundant coverage.
 
 Do not change production behavior unless the active route assigns that scope.
 

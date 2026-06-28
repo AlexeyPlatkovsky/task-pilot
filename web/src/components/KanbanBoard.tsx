@@ -147,7 +147,7 @@ export function KanbanBoard({ projectId }: Props) {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className={styles.board}>
+        <div className={styles.board} data-test-id="kanban-board">
           {WORKFLOW_STATUSES.map((status) => {
             const columnItems = groups.get(status) ?? [];
             return (
@@ -163,7 +163,7 @@ export function KanbanBoard({ projectId }: Props) {
             );
           })}
           {isEmpty && (
-            <div className={styles.emptyPrompt}>
+            <div className={styles.emptyPrompt} data-test-id="kanban-empty-prompt">
               <p>No items yet.</p>
               <p>
                 Create your first item with:{" "}

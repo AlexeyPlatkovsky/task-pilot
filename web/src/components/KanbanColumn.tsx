@@ -16,7 +16,14 @@ interface Props {
   activeDraggedItemId?: string | null;
 }
 
-export function KanbanColumn({ status, label, items, onItemClick, droppedItemId, activeDraggedItemId }: Props) {
+export function KanbanColumn({
+  status,
+  label,
+  items,
+  onItemClick,
+  droppedItemId,
+  activeDraggedItemId,
+}: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -28,6 +35,7 @@ export function KanbanColumn({ status, label, items, onItemClick, droppedItemId,
       ref={setNodeRef}
       className={`${styles.column} ${isOver ? styles.dropTarget : ""}`}
       data-status={status}
+      data-test-id={`kanban-column-${status}`}
     >
       <div className={styles.header}>
         <h3 className={styles.title}>{label}</h3>

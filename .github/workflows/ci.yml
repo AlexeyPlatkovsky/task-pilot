@@ -10,7 +10,7 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -98,6 +98,50 @@ jobs:
 
           exit $rc
 
+      - name: Setup Node
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Web dependencies
+        if: always()
+        run: npm ci --prefix web
+
+      - name: Install Playwright browser
+        if: always()
+        run: npx --prefix web playwright install --with-deps chromium
+
+      - name: E2E
+        id: e2e
+        if: always()
+        run: |
+          set +e
+          npm run test:e2e:functional --prefix web > e2e.out 2>&1
+          rc=$?
+          set -e
+          cat e2e.out
+
+          passed=$(grep -oP '\d+(?= passed)' e2e.out | tail -1 || echo 0)
+          failed=$(grep -oP '\d+(?= failed)' e2e.out | tail -1 || echo 0)
+          total=$((passed + failed))
+          if [ "$total" -eq 0 ]; then
+            total=$(grep -oP 'Running \\K\\d+(?= tests?)' e2e.out | tail -1 || echo 0)
+          fi
+          if [ -z "$passed" ]; then passed=0; fi
+          if [ -z "$total" ]; then total=0; fi
+          if [ "$rc" -eq 0 ]; then ok=true; else ok=false; fi
+
+          jq -n \
+            --argjson ok "$ok" \
+            --argjson passed "$passed" \
+            --argjson total "$total" \
+            '{name:"E2E",ok:$ok,passed:$passed,total:$total}' > result-e2e.json
+
+          exit $rc
+
       - name: Comment PR
         if: always()
         env:
@@ -106,7 +150,7 @@ jobs:
         run: |
           comment="## CI Results\n\n| Check | Result | Details |\n| --- | --- | --- |"
 
-          for result_file in result-tests.json result-lint.json result-format.json; do
+          for result_file in result-tests.json result-lint.json result-format.json result-e2e.json; do
             if [ ! -f "$result_file" ]; then
               name=$(echo "$result_file" | sed 's/result-//;s/.json//')
               comment="${comment}\n| ${name^} | ⚠️ | skipped |"
@@ -135,6 +179,11 @@ jobs:
               Format)
                 changed=$(jq -r .changed "$result_file")
                 detail="${changed} file$([ "$changed" != "1" ] && echo s) would change"
+                ;;
+              E2E)
+                passed=$(jq -r .passed "$result_file")
+                total=$(jq -r .total "$result_file")
+                detail="${passed}/${total}"
                 ;;
             esac
 

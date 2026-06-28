@@ -19,12 +19,16 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   });
 
   if (isLoading) {
-    return <div className={styles.selector}>Loading projects...</div>;
+    return (
+      <div className={styles.selector} data-test-id="project-selector-loading">
+        Loading projects...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className={styles.selector}>
+      <div className={styles.selector} data-test-id="project-selector-error">
         <span className={styles.error}>Failed to load projects</span>
         <button type="button" onClick={() => refetch()}>
           Retry
@@ -36,7 +40,7 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   if (!projects || projects.length === 0) {
     return (
       <div className={styles.selector}>
-        <span className={styles.empty}>
+        <span className={styles.empty} data-test-id="project-selector-empty">
           No projects registered. Run <code>taskpilot init .</code> to
           register a project.
         </span>
@@ -53,6 +57,7 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
     <div className={styles.selector}>
       <select
         className={styles.select}
+        data-test-id="project-selector"
         value={selectedProjectId ?? ""}
         onChange={(e) => {
           const value = e.target.value;

@@ -43,12 +43,20 @@ export function ValidationPanel({ projectId, onItemClick }: Props) {
   });
 
   if (isLoading) {
-    return <section className={styles.panel}>Checking validation...</section>;
+    return (
+      <section className={styles.panel} data-test-id="validation-loading">
+        Checking validation...
+      </section>
+    );
   }
 
   if (error) {
     return (
-      <section className={styles.panel} role="alert">
+      <section
+        className={styles.panel}
+        role="alert"
+        data-test-id="validation-error"
+      >
         <span>Failed to load validation results</span>
         <button type="button" onClick={() => refetch()}>
           Retry
@@ -60,7 +68,9 @@ export function ValidationPanel({ projectId, onItemClick }: Props) {
   if (!data || data.findings.length === 0) {
     return (
       <section className={styles.panel}>
-        <div className={styles.validState}>All items valid</div>
+        <div className={styles.validState} data-test-id="validation-valid-state">
+          All items valid
+        </div>
       </section>
     );
   }

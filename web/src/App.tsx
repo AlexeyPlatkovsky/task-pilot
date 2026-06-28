@@ -17,7 +17,7 @@ function App() {
           width={32}
           height={32}
         />
-        <h1>TaskPilot</h1>
+        <h1 data-test-id="app-title">TaskPilot</h1>
         <ProjectSelector
           selectedProjectId={selectedProjectId}
           onSelect={setSelectedProjectId}

@@ -87,6 +87,8 @@ Size definitions (choose the highest that applies):
   run return control to the manager. When a single request names both an investigation goal and a
   code-change goal, treat the request as non-trivial and route through the appropriate
   feature-change, test-change, or ui-change pipeline, invoking `playwright-cli` inline.
+- Creating, updating, or fixing functional Playwright E2E tests, Page Objects, E2E support helpers,
+  `data-test-id` hooks, or E2E CI behavior: `.claude/pipelines/e2e-change.md`.
 - Read-only instruction-system review: `.claude/agents/instruction-evaluator.md`.
 - Instruction-system review with iterative fix loop: `.claude/pipelines/instructions-review.md`.
 - Other read-only review request: `.claude/pipelines/code-review.md`.

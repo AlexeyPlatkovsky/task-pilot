@@ -11,7 +11,12 @@ interface Props {
   activeDraggedItemId?: string | null;
 }
 
-export function SortableKanbanCard({ item, onClick, droppedItemId, activeDraggedItemId }: Props) {
+export function SortableKanbanCard({
+  item,
+  onClick,
+  droppedItemId,
+  activeDraggedItemId,
+}: Props) {
   const {
     attributes,
     listeners,
@@ -24,7 +29,8 @@ export function SortableKanbanCard({ item, onClick, droppedItemId, activeDragged
     disabled: !item.valid,
   });
 
-  const isHidden = isDragging || item.id === droppedItemId || item.id === activeDraggedItemId;
+  const isHidden =
+    isDragging || item.id === droppedItemId || item.id === activeDraggedItemId;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -37,6 +43,7 @@ export function SortableKanbanCard({ item, onClick, droppedItemId, activeDragged
       ref={setNodeRef}
       style={style}
       className={`${styles.wrapper} ${isDragging ? styles.dragging : ""}`}
+      data-test-id={`kanban-sortable-${item.id}`}
       {...attributes}
       {...listeners}
     >
