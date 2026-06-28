@@ -8,8 +8,11 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",
+    "test:component": "vitest run src/components",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run test:e2e:functional",
+    "test:e2e:functional": "playwright test -c playwright.functional.config.ts",
+    "test:browser-contract": "playwright test -c playwright.browser-contract.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {

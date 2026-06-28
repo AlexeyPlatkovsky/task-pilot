@@ -13,7 +13,9 @@ responsive behavior, and visual-system changes.
 - Local WebUI component-library work follows `.claude/conventions/ui-component-library.md`.
 - Component coverage is required for changed React behavior, using the testing standard in
   `.claude/conventions/testing.md`.
-- Browser validation and E2E scope are governed by `.claude/conventions/testing.md`.
+- Functional E2E coverage for major UI paths and browser contract coverage for style/token/browser
+  behavior are governed by `.claude/conventions/testing.md`. These are separate levels; do not use
+  token, computed-style, screenshot-only, or visual-contract checks as functional E2E evidence.
 - For independent review findings with Critical, High, or Major severity as defined in
   `.claude/conventions/review-severity.md`, repeat fix and re-review up to three times. Stop with
   blockers if those severities remain. Each loop returns to the responsible design,
@@ -33,9 +35,10 @@ responsive behavior, and visual-system changes.
    `Skill: implement-change - output below`.
 6. When implementation is requested, run `test-change` for post-implementation execution. Require
    `Skill: test-change - output below`.
-7. Run `validate-change`, including Playwright TypeScript visual/browser evidence at relevant
-   viewports when `.claude/conventions/testing.md` requires browser validation, or an explicit
-   browser-evidence N/A reason when component-level evidence is sufficient. Require
+7. Run `validate-change`, including committed Playwright TypeScript functional E2E evidence for
+   major UI paths, separate browser contract evidence for style/token/browser behavior when
+   required, and an explicit browser-evidence N/A reason when component-level evidence is
+   sufficient. Require
    `Skill: validate-change - output below`.
 8. Run `design-reviewer` in isolated fresh context. Require
    `Agent: design-reviewer - output below`.
@@ -48,7 +51,8 @@ maintenance and task-complete.
 ## Output Contract
 
 Begin with `Pipeline: ui-change - output below` and report status, design-system path, completed
-handoffs, artifact labels, visual evidence, skipped implementation steps, review-loop attempt count
-and repeated artifact labels, blockers, and whether the change affected reusable local components,
-page-only composition, design tokens, local docs, or OD references. If OD was not used, state that
-the local WebUI component library was the implementation source of truth.
+handoffs, artifact labels, component coverage, functional E2E evidence, browser contract evidence,
+skipped implementation steps, review-loop attempt count and repeated artifact labels, blockers, and
+whether the change affected reusable local components, page-only composition, design tokens, local
+docs, or OD references. If OD was not used, state that the local WebUI component library was the
+implementation source of truth.

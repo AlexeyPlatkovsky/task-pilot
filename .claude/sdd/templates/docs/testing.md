@@ -14,7 +14,8 @@
 | --- | --- | --- |
 | Unit | <what> | <framework> |
 | Integration | <what> | <framework> |
-| End-to-end | <what> | <framework> |
+| Functional E2E | <user-visible workflow> | <framework> |
+| Browser contract | <style/token/browser-only contract> | <framework> |
 
 ## Running Feature Scenarios
 

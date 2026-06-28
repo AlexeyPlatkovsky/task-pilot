@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-1
+title: Launch advanced workspace
+priority: high
+type: epic
+status: ready
+created_at: '2026-06-28T10:01:00Z'
+updated_at: '2026-06-28T10:01:00Z'
+description: Parent item for the functional e2e hierarchy.

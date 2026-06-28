@@ -75,8 +75,9 @@ Use conditional rigor for non-trivial product work. The route must scale with ri
   validation, independent review when required, documentation synchronization, and `task-complete`.
 - Behavior-preserving refactors use the refactor route: characterize existing behavior where
   coverage is weak, change code without changing contracts, then validate the same behavior.
-- UI work adds design-system alignment, component-level coverage, browser evidence for major
-  paths, and independent design review.
+- UI work adds design-system alignment, component-level coverage, functional E2E coverage for major
+  paths, separate browser contract evidence for style/token/browser behavior when required, and
+  independent design review.
 
 Small local fixes may skip a new specification only when expected behavior is already explicit.
 

@@ -14,10 +14,10 @@ Required input:
 - `designs/design.md`;
 - governing specification and acceptance criteria when present;
 - changed UI files and tests when implementation exists;
-- Playwright TypeScript visual/browser evidence at relevant viewports when
-  `.claude/conventions/testing.md` requires browser validation, or an explicit browser-evidence
-  N/A reason when component-level evidence is sufficient. For design-only work, require an explicit
-  not-applicable/blocked visual-verification report.
+- Playwright TypeScript functional E2E evidence for major UI paths and separate browser contract
+  evidence for style/token/browser behavior when `.claude/conventions/testing.md` requires those
+  levels, or an explicit browser-evidence N/A reason when component-level evidence is sufficient.
+  For design-only work, require an explicit not-applicable/blocked visual-verification report.
 
 Review in this order:
 
@@ -27,7 +27,7 @@ Review in this order:
 4. responsive behavior and information density;
 5. consistency with the design book and existing components or tokens;
 6. separation of UI translation from domain and persistence rules;
-7. component and E2E coverage of critical interactions;
+7. component, functional E2E, and browser contract coverage of critical interactions;
 8. decorative complexity or hidden system state that conflicts with TaskPilot's transparent local
    product direction.
 

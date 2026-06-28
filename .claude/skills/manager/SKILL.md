@@ -109,8 +109,9 @@ Use conditional rigor:
   the test scope before production changes.
 - Refactors require characterization tests first when existing coverage does not prove preserved
   behavior.
-- UI work requires component coverage and browser evidence for major paths when a runnable UI
-  exists, as defined in `.claude/conventions/testing.md`.
+- UI work requires component coverage, functional E2E coverage for major paths, and separate
+  browser contract evidence for style/token/browser behavior when required by
+  `.claude/conventions/testing.md`.
 - The local WebUI component library is the default implementation source for TaskPilot UI changes.
   Open Design may be used as reference only; use it for exploration only when the user explicitly
   asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,

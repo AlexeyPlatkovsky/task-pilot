@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-3
+title: Fix tree regression
+priority: high
+type: bug
+status: backlog
+created_at: '2026-06-28T10:03:00Z'
+updated_at: '2026-06-28T10:03:00Z'
+parent_id: TP-2
+description: Leaf item opened from the tree view.
