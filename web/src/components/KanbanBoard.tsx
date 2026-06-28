@@ -173,7 +173,7 @@ export function KanbanBoard({ projectId }: Props) {
           )}
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeItem ? <KanbanCard item={activeItem} /> : null}
         </DragOverlay>
       </DndContext>
