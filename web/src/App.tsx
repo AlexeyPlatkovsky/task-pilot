@@ -1,5 +1,5 @@
 import { ProjectSelector } from "./components/ProjectSelector";
-import { KanbanBoard } from "./components/KanbanBoard";
+import { ProjectWorkspace } from "./components/ProjectWorkspace";
 import { useState } from "react";
 
 function App() {
@@ -25,9 +25,9 @@ function App() {
       </header>
       <main>
         {selectedProjectId ? (
-          <KanbanBoard projectId={selectedProjectId} />
+          <ProjectWorkspace key={selectedProjectId} projectId={selectedProjectId} />
         ) : (
-          <div>Select a project to view the Kanban board</div>
+          <div>Select a project to view tasks</div>
         )}
       </main>
     </div>
