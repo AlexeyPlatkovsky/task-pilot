@@ -59,6 +59,9 @@ export interface ItemSummary {
   type: ItemType;
   status: Status;
   priority: Priority;
+  created_at?: string | null;
+  updated_at?: string | null;
+  parent_id?: string | null;
   valid: boolean;
   findings?: ValidationFinding[];
 }
@@ -94,6 +97,15 @@ export interface ValidationFinding {
   field?: string;
   item_id?: string;
   message: string;
+}
+
+export interface ValidationReport {
+  ok: boolean;
+  summary: {
+    errors: number;
+    warnings: number;
+  };
+  findings: ValidationFinding[];
 }
 
 export interface ItemUpdateInput {

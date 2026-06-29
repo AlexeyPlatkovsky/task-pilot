@@ -12,7 +12,9 @@ from taskpilot.server.schemas import (
     ItemUpdateInput,
     ProjectSummary,
     ValidationFindingOut,
+    ValidationReportOut,
 )
+from taskpilot.core.validation import validate_workspace
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
 from taskpilot.services.errors import ValidationFailed
@@ -116,6 +118,16 @@ def list_project_items(request: Request, project_id: str) -> list[ItemSummary]:
     ]
 
     return valid_summaries + invalid_summaries
+
+
+@router.get(
+    "/projects/{project_id}/validate",
+    response_model=ValidationReportOut,
+)
+def validate_project(request: Request, project_id: str) -> ValidationReportOut:
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    return ValidationReportOut(**validate_workspace(ws).to_dict())
 
 
 @router.get(

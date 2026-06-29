@@ -33,7 +33,10 @@ export function DeleteConfirmDialog({
     <AlertDialog.Root open onOpenChange={(open: boolean) => !open && onCancel()}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className={styles.overlay} />
-        <AlertDialog.Content className={styles.content}>
+        <AlertDialog.Content
+          className={styles.content}
+          data-test-id="delete-confirm-dialog"
+        >
           <AlertDialog.Title className={styles.title}>
             Delete this item?
           </AlertDialog.Title>
@@ -54,6 +57,7 @@ export function DeleteConfirmDialog({
               <button
                 type="button"
                 className={styles.cancelButton}
+                data-test-id="delete-confirm-cancel"
                 disabled={mutation.isPending}
                 onClick={onCancel}
               >
@@ -64,6 +68,7 @@ export function DeleteConfirmDialog({
               <button
                 type="button"
                 className={styles.deleteButton}
+                data-test-id="delete-confirm-submit"
                 disabled={mutation.isPending}
                 onClick={() => mutation.mutate()}
               >

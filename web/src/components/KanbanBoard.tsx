@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -18,7 +18,12 @@ import { STATUS_LABELS } from "../types/labels";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
 import { ItemModal } from "./ItemModal";
-import { resolveDropTarget, groupByStatus } from "./kanban-utils";
+import { LoadingSpinner } from "./ui/LoadingSpinner";
+import {
+  applyItemStatus,
+  resolveDropTarget,
+  groupByStatus,
+} from "./kanban-utils";
 import styles from "./KanbanBoard.module.css";
 
 interface Props {
@@ -28,6 +33,7 @@ interface Props {
 export function KanbanBoard({ projectId }: Props) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
+  const [droppedItemId, setDroppedItemId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -49,13 +55,24 @@ export function KanbanBoard({ projectId }: Props) {
       itemId: string;
       status: Status;
     }) => updateItem(projectId, itemId, { status }),
-    onSuccess: () => {
+    onSuccess: (_updatedItem, { itemId, status }) => {
+      queryClient.setQueryData<ItemSummary[]>(
+        ["items", projectId],
+        (current) =>
+          current ? applyItemStatus(current, itemId, status) : current,
+      );
+      setActiveItem(null);
+      setDroppedItemId(null);
       void queryClient.invalidateQueries({ queryKey: ["items", projectId] });
       if (selectedItemId) {
         void queryClient.invalidateQueries({
           queryKey: ["item", projectId, selectedItemId],
         });
       }
+    },
+    onError: () => {
+      setActiveItem(null);
+      setDroppedItemId(null);
     },
   });
 
@@ -81,21 +98,30 @@ export function KanbanBoard({ projectId }: Props) {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      setActiveItem(null);
 
-      if (!over) return;
+      if (!over) {
+        setActiveItem(null);
+        return;
+      }
 
       const activeId = active.id as string;
       const overId = over.id as string;
 
       const activeItem = items?.find((i) => i.id === activeId);
-      if (!activeItem || !activeItem.valid) return;
+      if (!activeItem || !activeItem.valid) {
+        setActiveItem(null);
+        return;
+      }
 
       const targetStatus = items
         ? resolveDropTarget(overId, items)
         : undefined;
       if (targetStatus && activeItem.status !== targetStatus) {
+        setDroppedItemId(activeId);
+        setActiveItem(null);
         mutate({ itemId: activeId, status: targetStatus });
+      } else {
+        setActiveItem(null);
       }
     },
     [items, mutate],
@@ -105,7 +131,11 @@ export function KanbanBoard({ projectId }: Props) {
   const isEmpty = Array.from(groups.values()).every((g) => g.length === 0);
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading items...</div>;
+    return (
+      <div className={styles.loading}>
+        <LoadingSpinner label="Loading items..." />
+      </div>
+    );
   }
 
   if (error) {
@@ -123,11 +153,11 @@ export function KanbanBoard({ projectId }: Props) {
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className={styles.board}>
+        <div className={styles.board} data-test-id="kanban-board">
           {WORKFLOW_STATUSES.map((status) => {
             const columnItems = groups.get(status) ?? [];
             return (
@@ -137,11 +167,13 @@ export function KanbanBoard({ projectId }: Props) {
                 label={STATUS_LABELS[status]}
                 items={columnItems}
                 onItemClick={setSelectedItemId}
+                droppedItemId={droppedItemId}
+                activeDraggedItemId={activeItem?.id ?? null}
               />
             );
           })}
           {isEmpty && (
-            <div className={styles.emptyPrompt}>
+            <div className={styles.emptyPrompt} data-test-id="kanban-empty-prompt">
               <p>No items yet.</p>
               <p>
                 Create your first item with:{" "}
@@ -151,7 +183,7 @@ export function KanbanBoard({ projectId }: Props) {
           )}
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeItem ? <KanbanCard item={activeItem} /> : null}
         </DragOverlay>
       </DndContext>

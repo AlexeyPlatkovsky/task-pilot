@@ -9,10 +9,13 @@ Covers: F006-R1
 ```gherkin
 Scenario: Sort list view by column
   Given the list view is displayed with items VP-1 (bug), VP-2 (epic), VP-3 (task)
+    And the "Type" column header shows the unsorted indicator "△▽"
   When the user clicks the "Type" column header
   Then rows are sorted by type alphabetically
+    And the "Type" column header shows the ascending indicator "▲▽"
   When the user clicks "Type" again
   Then rows are sorted in reverse order
+    And the "Type" column header shows the descending indicator "△▼"
 ```
 
 ### F006-S2: Filter list view
@@ -26,6 +29,21 @@ Scenario: Filter list view
   Then only VP-2 is shown
   When the user adds "status=backlog" filter
   Then VP-2 remains visible (both filters match)
+  When the user clears filters
+  Then VP-1 and VP-2 are both visible again
+```
+
+### F006-S2a: Filter controls use shared dropdown behavior
+
+Covers: F006-R2
+
+```gherkin
+Scenario: Filter controls use shared dropdown behavior
+  Given the list view is displayed
+  When the user opens the "Status" filter
+  Then a dropdown menu is rendered below the Status trigger
+    And the selected option uses the same selected highlight as Project and Theme selectors
+    And pressing Escape closes the dropdown
 ```
 
 ### F006-S3: Expand tree view hierarchy

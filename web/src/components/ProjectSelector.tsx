@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchProjects } from "../api";
+import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
 import styles from "./ProjectSelector.module.css";
 
 interface Props {
@@ -19,12 +20,16 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   });
 
   if (isLoading) {
-    return <div className={styles.selector}>Loading projects...</div>;
+    return (
+      <div className={styles.selector} data-test-id="project-selector-loading">
+        Loading projects...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className={styles.selector}>
+      <div className={styles.selector} data-test-id="project-selector-error">
         <span className={styles.error}>Failed to load projects</span>
         <button type="button" onClick={() => refetch()}>
           Retry
@@ -36,7 +41,7 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   if (!projects || projects.length === 0) {
     return (
       <div className={styles.selector}>
-        <span className={styles.empty}>
+        <span className={styles.empty} data-test-id="project-selector-empty">
           No projects registered. Run <code>taskpilot init .</code> to
           register a project.
         </span>
@@ -48,24 +53,27 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   const sorted = [...activeProjects].sort((a, b) =>
     a.name.localeCompare(b.name),
   );
+  const projectOptions: DropdownOption[] = [
+    { value: "", label: "Select a project..." },
+    ...sorted.map((project) => ({
+      value: project.id,
+      label: `${project.name} (${project.key})`,
+    })),
+  ];
 
   return (
     <div className={styles.selector}>
-      <select
-        className={styles.select}
+      <DropdownSelect
+        id="project-selector"
+        label="Project"
+        dataTestId="project-selector"
         value={selectedProjectId ?? ""}
-        onChange={(e) => {
-          const value = e.target.value;
+        options={projectOptions}
+        size="project"
+        onChange={(value) => {
           if (value) onSelect(value);
         }}
-      >
-        <option value="">Select a project...</option>
-        {sorted.map((project) => (
-          <option key={project.id} value={project.id}>
-            {project.name} ({project.key})
-          </option>
-        ))}
-      </select>
+      />
     </div>
   );
 }

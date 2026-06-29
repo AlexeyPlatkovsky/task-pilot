@@ -24,7 +24,10 @@ workspace foundation.
 ## Acceptance Criteria
 
 - **F006-R1:** Clicking the List tab shows a table with all items. Clicking the "Status" column header sorts by status. Clicking again reverses sort order.
+- **F006-R1a:** Sortable headers display canonical indicators: `△▽` when unsorted, `▲▽` when ascending, and `△▼` when descending. Accessible names still expose `not sorted`, `ascending`, and `descending`.
 - **F006-R2:** Selecting "type=bug" and "status=done" in list view filters shows only completed bugs.
+- **F006-R2a:** List filters use the shared dropdown selector contract from `designs/design.md`: trigger button with selected value, DOM-rendered menu below the trigger, consistent selected/hover/focus states, and Escape/blur close behavior.
+- **F006-R2b:** Status, type, priority, and time-range filters each support every defined option. The Clear button resets all filters to defaults and restores the full list.
 - **F006-R3:** The tree view shows epics at the root. Expanding an epic reveals its child features. Expanding a feature reveals its child tasks and bugs.
 - **F006-R4:** If VP-3.yaml has a missing title, the validation panel lists it with the file path and error message. Clicking the error opens the item modal (if the item partially loaded).
 - **F006-R5:** Tabs "Board", "List", "Tree" are visible. Clicking "List" switches from Kanban to list view without losing the selected project.
@@ -32,6 +35,7 @@ workspace foundation.
 ## Constraints
 
 - List view uses TanStack Table with client-side sorting and filtering (data already loaded from API).
+- Filter and sort UI behavior follows the canonical interaction contracts in `designs/design.md`.
 - Tree view uses parent_id from item data, not a separate hierarchy API.
 - Validation panel data comes from a dedicated `/validate` API endpoint.
 - View state (selected tab) persists within the session but not across page reloads.

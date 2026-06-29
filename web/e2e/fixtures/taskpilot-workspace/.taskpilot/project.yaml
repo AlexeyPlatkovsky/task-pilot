@@ -1,0 +1,5 @@
+schema_version: 1
+id: taskpilot-e2e
+key: TP
+name: TaskPilot E2E
+created_at: '2026-06-28T10:00:00Z'

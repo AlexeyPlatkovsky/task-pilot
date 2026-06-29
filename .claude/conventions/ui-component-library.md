@@ -29,11 +29,34 @@ as visual reference unless the active route is `.claude/pipelines/od-to-code.md`
 - Prefer updating or extending an existing component before creating a new one.
 - Extract a reusable component when the same UI pattern appears in two or more production places,
   or when a component has meaningful behavior, state, accessibility, or layout rules.
+- Before adding or changing an interactive control, inventory existing controls in
+  `web/src/components/` that solve the same job. If a matching pattern exists, reuse it or record
+  why the new behavior must diverge.
+- Replacing a native browser control with a custom control is allowed only when the required
+  product behavior cannot be guaranteed by the native control, such as deterministic menu
+  placement, shared selected-state styling, or consistent option highlighting.
 - Keep one-off page composition inside the page until reuse is real.
 - Keep component APIs small and domain-oriented.
 - Keep domain and persistence rules out of UI components.
 - Preserve desktop-only and local-only product constraints unless a user-approved product decision
   changes them.
+
+## UI Interaction Contracts
+
+Reusable interaction patterns must define their user-visible contract before implementation. At
+minimum, document or test:
+
+- trigger label, selected value display, icon/arrow state, and disabled state;
+- open, hover, selected, focus-visible, empty, and error states where applicable;
+- menu or popover placement and whether native browser placement is acceptable;
+- close behavior on selection, blur, Escape, and view/project changes;
+- keyboard path and accessible roles/names;
+- reset/default behavior for controls with filters or temporary state;
+- consistency with nearby controls that perform the same job.
+
+For current TaskPilot UI, dropdown-style selectors share the same button, arrow, below-menu,
+selected highlight, hover, focus, and option behavior. Dimensions may vary by context, but
+interaction behavior and state styling should not silently fork.
 
 ## Tokens And Styling
 

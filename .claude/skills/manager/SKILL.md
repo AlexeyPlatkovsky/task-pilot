@@ -87,6 +87,8 @@ Size definitions (choose the highest that applies):
   run return control to the manager. When a single request names both an investigation goal and a
   code-change goal, treat the request as non-trivial and route through the appropriate
   feature-change, test-change, or ui-change pipeline, invoking `playwright-cli` inline.
+- Creating, updating, or fixing functional Playwright E2E tests, Page Objects, E2E support helpers,
+  `data-test-id` hooks, or E2E CI behavior: `.claude/pipelines/e2e-change.md`.
 - Read-only instruction-system review: `.claude/agents/instruction-evaluator.md`.
 - Instruction-system review with iterative fix loop: `.claude/pipelines/instructions-review.md`.
 - Other read-only review request: `.claude/pipelines/code-review.md`.
@@ -109,8 +111,13 @@ Use conditional rigor:
   the test scope before production changes.
 - Refactors require characterization tests first when existing coverage does not prove preserved
   behavior.
-- UI work requires component coverage and browser evidence for major paths when a runnable UI
-  exists, as defined in `.claude/conventions/testing.md`.
+- UI work requires component coverage, functional E2E coverage for major paths, and separate
+  browser contract evidence for style/token/browser behavior when required by
+  `.claude/conventions/testing.md`.
+- UI work that creates or changes a reusable component, replaces a native browser control, changes
+  drag/drop behavior, changes optimistic/cache-visible state, or changes a shared interaction
+  pattern is at least medium risk unless it is documentation-only. Do not classify those changes as
+  low risk merely because the code is localized.
 - The local WebUI component library is the default implementation source for TaskPilot UI changes.
   Open Design may be used as reference only; use it for exploration only when the user explicitly
   asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,

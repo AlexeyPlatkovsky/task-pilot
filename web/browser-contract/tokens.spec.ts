@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-const APP_URL = "http://localhost:3000";
-
 test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
   test("AC-3: light defaults resolve via :root", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "light" });
-    await page.goto(APP_URL);
+    await page.goto("/");
 
     const tokens = await page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
@@ -33,7 +31,7 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: "light" });
-    await page.goto(APP_URL);
+    await page.goto("/");
     await page.evaluate(() =>
       document.documentElement.setAttribute("data-theme", "dark"),
     );
@@ -56,7 +54,7 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto(APP_URL);
+    await page.goto("/");
     await page.evaluate(() =>
       document.documentElement.setAttribute("data-theme", "light"),
     );
@@ -87,7 +85,7 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto(APP_URL);
+    await page.goto("/");
 
     const tokens = await page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);

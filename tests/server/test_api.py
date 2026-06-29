@@ -128,6 +128,42 @@ class TestListItems:
         assert summary["valid"] is True
         assert summary["findings"] == []
 
+    def test_summary_includes_dates_for_list_view(self, client, tmp_path, workspace):
+        """F006 list view needs stable date fields without fetching item details."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Dated item", type="task", now="2026-06-25T10:00:00Z"
+        )
+
+        r = client.get("/api/projects/voice-pilot/items")
+
+        assert r.status_code == 200
+        summary = r.json()[0]
+        assert summary["created_at"] == "2026-06-25T10:00:00Z"
+        assert summary["updated_at"] == "2026-06-25T10:00:00Z"
+
+    def test_summary_includes_parent_id_for_tree_view(
+        self, client, tmp_path, workspace
+    ):
+        """F006 tree view derives hierarchy from the already-loaded item list."""
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace, title="Epic", type="epic", now="2026-06-25T10:00:00Z"
+        )
+        item_service.create_item(
+            workspace,
+            title="Feature",
+            type="feature",
+            parent_id="VP-1",
+            now="2026-06-25T10:01:00Z",
+        )
+
+        r = client.get("/api/projects/voice-pilot/items")
+
+        assert r.status_code == 200
+        child = next(item for item in r.json() if item["id"] == "VP-2")
+        assert child["parent_id"] == "VP-1"
+
     def test_invalid_item_file_surfaces_as_invalid_summary(
         self, client, tmp_path, workspace
     ):
@@ -252,6 +288,37 @@ class TestGetItem:
         )
         assert r.status_code == 200
         assert r.json()["status"] == "done"
+
+
+class TestValidateProject:
+    def test_returns_validation_report(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        bad_file = workspace.items_dir / "VP-3.yaml"
+        bad_file.write_text(
+            "schema_version: 1\n"
+            "id: VP-3\n"
+            "priority: normal\n"
+            "type: task\n"
+            "status: backlog\n"
+            "created_at: '2026-06-25T10:00:00Z'\n"
+            "updated_at: '2026-06-25T10:00:00Z'\n",
+            encoding="utf-8",
+        )
+
+        r = client.get("/api/projects/voice-pilot/validate")
+
+        assert r.status_code == 200
+        data = r.json()
+        assert data["ok"] is False
+        assert data["summary"] == {"errors": 1, "warnings": 0}
+        assert data["findings"][0]["path"] == ".taskpilot/items/VP-3.yaml"
+        assert data["findings"][0]["item_id"] == "VP-3"
+        assert data["findings"][0]["message"] == "Missing required field: title"
+
+    def test_404_for_unknown_project(self, client):
+        r = client.get("/api/projects/ghost/validate")
+        assert r.status_code == 404
+        assert r.json() == {"detail": "Project not found: ghost"}
 
 
 class TestPatchItem:

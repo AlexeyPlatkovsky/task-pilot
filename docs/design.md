@@ -38,6 +38,10 @@ The header appears on every screen. It displays the TaskPilot compass board logo
 The first screen after `taskpilot serve`. Shows a list of registered projects with their display
 names and keys. A project can be disabled locally without changing the repository.
 
+The project selector uses the shared dropdown selector pattern defined in `designs/design.md`.
+Its dimensions may be wider than compact filters, but the trigger, arrow, selected option
+highlight, hover/focus state, and below-menu behavior match list filters and the theme selector.
+
 States:
 - **Empty**: No registered projects. Show a message with the `taskpilot init .` command hint.
 - **Populated**: List of projects. Clicking one navigates to its Kanban board.
@@ -140,6 +144,13 @@ Columns: ID, title, type, status, priority, created_at, updated_at.
 Supports sorting by any column, filtering by status, type, priority, and time range (all, last 7
 days, last 14 days, last month). Uses TanStack Table.
 
+List filters use the shared dropdown selector pattern defined in `designs/design.md`. Filter labels
+and triggers sit on the same row. A trailing Clear button resets all filters to default values and
+restores the unfiltered list.
+
+Sortable headers use the canonical top/down arrow indicators from `designs/design.md`: `△▽` by
+default, `▲▽` for ascending, and `△▼` for descending.
+
 Clicking a row opens the item detail modal.
 
 Tables preserve their tabular structure in constrained desktop windows and use horizontal overflow
@@ -165,6 +176,8 @@ Every view and component handles:
 ## Accessibility
 
 - All interactive elements are keyboard-navigable.
+- Shared dropdown selectors have button triggers, listbox options, selected-state announcement,
+  Escape/blur close behavior, and visible focus.
 - Modal uses Radix UI dialog primitives for focus trapping and screen reader announcements.
 - Drag and drop has keyboard alternatives for status changes.
 - Color is not the only indicator for priority — text labels accompany color badges.

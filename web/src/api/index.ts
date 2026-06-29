@@ -1,1 +1,7 @@
-export { fetchProjects, fetchItems, fetchItem, updateItem } from "./client";
+export {
+  fetchProjects,
+  fetchItems,
+  fetchItem,
+  fetchValidationReport,
+  updateItem,
+} from "./client";

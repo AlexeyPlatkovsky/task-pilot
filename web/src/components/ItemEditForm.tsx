@@ -71,7 +71,11 @@ export function ItemEditForm({
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className={styles.form}
+      data-test-id="item-edit-form"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className={styles.field}>
         <label className={styles.label} htmlFor="title">
           Title
@@ -79,6 +83,7 @@ export function ItemEditForm({
         <input
           id="title"
           className={styles.input}
+          data-test-id="item-edit-title"
           {...register("title")}
           aria-invalid={!!errors.title}
         />
@@ -94,6 +99,7 @@ export function ItemEditForm({
         <textarea
           id="description"
           className={styles.textarea}
+          data-test-id="item-edit-description"
           rows={6}
           {...register("description")}
         />
@@ -107,6 +113,7 @@ export function ItemEditForm({
           <select
             id="priority"
             className={styles.select}
+            data-test-id="item-edit-priority"
             {...register("priority")}
           >
             {PRIORITIES.map((p) => (
@@ -124,6 +131,7 @@ export function ItemEditForm({
           <select
             id="status"
             className={styles.select}
+            data-test-id="item-edit-status"
             {...register("status")}
           >
             {EDITABLE_STATUSES.map((s) => (
@@ -145,6 +153,7 @@ export function ItemEditForm({
         <button
           type="button"
           className={styles.cancelButton}
+          data-test-id="item-edit-cancel"
           onClick={onCancel}
           disabled={mutation.isPending}
         >
@@ -153,6 +162,7 @@ export function ItemEditForm({
         <button
           type="submit"
           className={styles.saveButton}
+          data-test-id="item-edit-save"
           disabled={!isDirty || mutation.isPending}
         >
           {mutation.isPending ? "Saving..." : "Save"}

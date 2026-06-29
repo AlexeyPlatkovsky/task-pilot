@@ -57,7 +57,10 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
       >
         <Dialog.Portal>
           <Dialog.Overlay className={styles.overlay} />
-          <Dialog.Content className={styles.content}>
+          <Dialog.Content
+            className={styles.content}
+            data-test-id={item ? `item-modal-${item.id}` : "item-modal"}
+          >
             <Dialog.Title className={styles.title}>
               {item ? `${item.id}: ${item.title}` : "Item Detail"}
             </Dialog.Title>
@@ -65,7 +68,10 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
               {isEditing ? "Edit item" : "Item detail view"}
             </Dialog.Description>
 
-            <Dialog.Close className={styles.closeButton}>
+            <Dialog.Close
+              className={styles.closeButton}
+              data-test-id="item-modal-close"
+            >
               <Icon icon={X} label="Close" size={20} />
             </Dialog.Close>
 
@@ -100,6 +106,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
                   <button
                     type="button"
                     className={styles.editButton}
+                    data-test-id="item-modal-edit"
                     onClick={() => setIsEditing(true)}
                   >
                     Edit
@@ -108,6 +115,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
                     <button
                       type="button"
                       className={styles.deleteButton}
+                      data-test-id="item-modal-delete"
                       onClick={() => setIsDeleting(true)}
                     >
                       Delete

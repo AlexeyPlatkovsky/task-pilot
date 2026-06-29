@@ -28,6 +28,46 @@ Git-friendly transparency over dashboard decoration.
 
 ---
 
+## UI Interaction Contracts
+
+Reusable controls must keep the same interaction behavior wherever they appear. A control may use
+different dimensions in a header, toolbar, table filter, or modal, but it must not silently fork
+state styling, icons, menu placement, or keyboard behavior.
+
+### Dropdown Selectors
+
+Project selection, theme selection, and list filters use the same dropdown selector contract:
+
+- trigger is a button with the visible selected value and an accessible name in the form
+  `<Label>: <Selected value>`;
+- menu renders in the DOM below the trigger, not as a native browser select popup;
+- options use the same hover, selected, focus-visible, and disabled styling;
+- selecting an option closes the menu and updates the trigger immediately;
+- blur and Escape close the menu;
+- dimensions may differ by context, but border, radius, focus, arrow, option highlighting, and
+  below-menu behavior stay consistent.
+
+Native `select` controls are acceptable only when browser/OS popup placement and option styling do
+not matter to the product behavior.
+
+### Sorting Indicators
+
+Sortable table headers use canonical top/down arrow indicators:
+
+- default: `△▽`;
+- ascending: `▲▽`;
+- descending: `△▼`.
+
+Accessible names still state the text sort state: `not sorted`, `ascending`, or `descending`.
+
+### Optimistic UI And Drag/Drop
+
+Drag/drop and other optimistic interactions must preserve the user-visible target state from the
+moment the user commits the action until the authoritative response or cache refresh settles.
+Stale cached data must not briefly re-render the previous visible state.
+
+---
+
 ## Required States
 
 Every applicable product flow accounts for:
@@ -383,10 +423,31 @@ sync with this document. New tokens go to `tokens.css` and this file together.
 ## Design Debt
 
 - Token system established (spec 0003) and later aligned to the Agent Manifesto parent design
-  system. Desktop viewport and Kanban width tokens are established; List View and Tree View
-  interaction behavior remains provisional until those views are implemented.
-- No theme-toggle UI control yet (spec 0003 out-of-scope). OS preference switches theme
-  automatically; `[data-theme]` override requires manual JS until a toggle is built.
+  system. Desktop viewport and Kanban width tokens are established.
+- F006 advanced views use the existing workspace shell. Board/List/Tree are exposed as header tabs
+  immediately after the project selector for the same selected project. The tablist is only shown
+  once a project is selected, with the active view kept in React session state and reset only by page
+  reload. Switching views does not clear the selected project.
+- Kanban item cards preserve a fixed scanning rhythm: card titles clamp after two visible lines and
+  reserve two title lines even when the title fits on one line, so card footers align across one-line
+  and two-line titles.
+- The List view is a dense TanStack Table scanning surface with ID, title, type, status, priority,
+  created date, and updated date columns. Column headers are buttons with explicit ascending,
+  descending, or not-sorted state in the accessible name. Header activation cycles ascending and
+  descending sorting for that column without requiring implementation-only selectors. Rows open the
+  existing item modal and preserve status/priority text labels.
+- The List filter bar uses native selects for status, type, priority, and a time-range selector for
+  updated date windows. Filters combine with AND semantics, reset when the selected project changes,
+  and show a filtered-empty state when no rows match.
+- The Tree view is derived from `parent_id` in loaded item data. Root rows include epics and any
+  item without a known parent. Expand/collapse controls are native buttons, carry `aria-expanded`,
+  and never rely on indentation alone; node labels include type and status text.
+- The Validation panel is a compact workspace panel above the active view. It lists validation
+  findings with severity, item/file path, and message, and links item findings to the existing
+  modal. The all-valid state ("All items valid") is displayed in the header center via
+  `ValidationStatus`, not in the panel itself — the panel is hidden when there are no findings.
+- Theme toggle in header: a `ThemeSwitcher` select with Light/Dark options sets `data-theme` on
+  `<html>`. OS preference is respected on initial load; the toggle overrides it explicitly.
 - Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use
   sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography, spacing, and desktop layout
   tokens are present; component CSS references tokens rather than literals.
