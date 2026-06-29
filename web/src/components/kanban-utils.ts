@@ -24,6 +24,16 @@ export function sortItems(items: ItemSummary[]): ItemSummary[] {
   });
 }
 
+export function applyItemStatus(
+  items: ItemSummary[],
+  itemId: string,
+  status: Status,
+): ItemSummary[] {
+  return items.map((item) =>
+    item.id === itemId ? { ...item, status } : item,
+  );
+}
+
 export function groupByStatus(items: ItemSummary[]): Map<Status, ItemSummary[]> {
   const groups = new Map<Status, ItemSummary[]>();
   for (const status of WORKFLOW_STATUSES) {

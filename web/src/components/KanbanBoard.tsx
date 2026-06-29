@@ -19,7 +19,11 @@ import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
 import { ItemModal } from "./ItemModal";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
-import { resolveDropTarget, groupByStatus } from "./kanban-utils";
+import {
+  applyItemStatus,
+  resolveDropTarget,
+  groupByStatus,
+} from "./kanban-utils";
 import styles from "./KanbanBoard.module.css";
 
 interface Props {
@@ -51,7 +55,12 @@ export function KanbanBoard({ projectId }: Props) {
       itemId: string;
       status: Status;
     }) => updateItem(projectId, itemId, { status }),
-    onSuccess: () => {
+    onSuccess: (_updatedItem, { itemId, status }) => {
+      queryClient.setQueryData<ItemSummary[]>(
+        ["items", projectId],
+        (current) =>
+          current ? applyItemStatus(current, itemId, status) : current,
+      );
       setActiveItem(null);
       setDroppedItemId(null);
       void queryClient.invalidateQueries({ queryKey: ["items", projectId] });
@@ -109,6 +118,7 @@ export function KanbanBoard({ projectId }: Props) {
         : undefined;
       if (targetStatus && activeItem.status !== targetStatus) {
         setDroppedItemId(activeId);
+        setActiveItem(null);
         mutate({ itemId: activeId, status: targetStatus });
       } else {
         setActiveItem(null);
