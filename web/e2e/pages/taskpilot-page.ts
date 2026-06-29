@@ -26,16 +26,20 @@ export class TaskPilotPage {
 
   async openFixtureProject() {
     await this.open();
-    await this.byTestId("project-selector").selectOption({
-      label: `${fixtureProject.name} (${fixtureProject.key})`,
-    });
+    await this.selectDropdownOption(
+      "project-selector",
+      `${fixtureProject.name} (${fixtureProject.key})`,
+    );
     await expect(this.byTestId("validation-valid-state")).toContainText(
       "All items valid",
     );
   }
 
   async selectTheme(theme: "light" | "dark") {
-    await this.byTestId("theme-switcher").selectOption(theme);
+    await this.selectDropdownOption(
+      "theme-switcher",
+      theme === "light" ? "Light" : "Dark",
+    );
   }
 
   async expectTheme(theme: "light" | "dark") {
@@ -224,7 +228,11 @@ export class TaskPilotPage {
   }
 
   private async selectListFilterOption(filterId: string, option: string) {
-    await this.byTestId(`item-list-filter-${filterId}`).click();
+    await this.selectDropdownOption(`item-list-filter-${filterId}`, option);
+  }
+
+  private async selectDropdownOption(testId: string, option: string) {
+    await this.byTestId(testId).click();
     await this.page
       .getByRole("listbox")
       .getByRole("option", { name: option })

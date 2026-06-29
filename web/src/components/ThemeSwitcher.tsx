@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
+import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
 import styles from "./ThemeSwitcher.module.css";
 
 type Theme = "light" | "dark";
+
+const THEME_OPTIONS: DropdownOption<Theme>[] = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
 
 function getSystemTheme(): Theme {
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -35,19 +41,15 @@ export function ThemeSwitcher() {
 
   return (
     <div className={styles.switcher}>
-      <label className={styles.label} htmlFor="theme-select">
-        Theme
-      </label>
-      <select
+      <DropdownSelect
         id="theme-select"
-        className={styles.select}
+        label="Theme"
         value={theme}
-        onChange={(e) => setTheme(e.target.value as Theme)}
-        data-test-id="theme-switcher"
-      >
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
+        options={THEME_OPTIONS}
+        onChange={setTheme}
+        size="theme"
+        dataTestId="theme-switcher"
+      />
     </div>
   );
 }

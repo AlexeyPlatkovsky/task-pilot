@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchProjects } from "../api";
+import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
 import styles from "./ProjectSelector.module.css";
 
 interface Props {
@@ -52,25 +53,27 @@ export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
   const sorted = [...activeProjects].sort((a, b) =>
     a.name.localeCompare(b.name),
   );
+  const projectOptions: DropdownOption[] = [
+    { value: "", label: "Select a project..." },
+    ...sorted.map((project) => ({
+      value: project.id,
+      label: `${project.name} (${project.key})`,
+    })),
+  ];
 
   return (
     <div className={styles.selector}>
-      <select
-        className={styles.select}
-        data-test-id="project-selector"
+      <DropdownSelect
+        id="project-selector"
+        label="Project"
+        dataTestId="project-selector"
         value={selectedProjectId ?? ""}
-        onChange={(e) => {
-          const value = e.target.value;
+        options={projectOptions}
+        size="project"
+        onChange={(value) => {
           if (value) onSelect(value);
         }}
-      >
-        <option value="">Select a project...</option>
-        {sorted.map((project) => (
-          <option key={project.id} value={project.id}>
-            {project.name} ({project.key})
-          </option>
-        ))}
-      </select>
+      />
     </div>
   );
 }

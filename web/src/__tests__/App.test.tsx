@@ -56,18 +56,22 @@ describe("App", () => {
     const user = userEvent.setup();
     renderApp();
 
-    const projectSelector = await screen.findByTestId("project-selector");
+    const projectSelector = await screen.findByRole("button", {
+      name: "Project: Select a project...",
+    });
 
     expect(
       screen.queryByRole("tablist", { name: "Workspace views" }),
     ).not.toBeInTheDocument();
 
-    await user.selectOptions(projectSelector, "voice-pilot");
+    await user.click(projectSelector);
+    await user.click(screen.getByRole("option", { name: "Voice Pilot (VP)" }));
 
     const tablist = await screen.findByRole("tablist", {
       name: "Workspace views",
     });
-    const selectorWrapper = projectSelector.parentElement;
+    const selectorWrapper = screen.getByTestId("project-selector-field")
+      .parentElement;
 
     expect(selectorWrapper).not.toBeNull();
     expect(selectorWrapper?.nextElementSibling).toBe(tablist);

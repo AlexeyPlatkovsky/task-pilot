@@ -4,22 +4,28 @@ import userEvent from "@testing-library/user-event";
 import { ThemeSwitcher } from "../ThemeSwitcher";
 
 describe("ThemeSwitcher", () => {
-  it("renders the theme label and select", () => {
+  it("renders the theme label and dropdown trigger", () => {
     render(<ThemeSwitcher />);
 
-    expect(screen.getByLabelText("Theme")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Theme: Light" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("theme-switcher")).toBeInTheDocument();
   });
 
-  it("has Light and Dark options", () => {
+  it("renders theme options in the shared dropdown style", async () => {
+    const user = userEvent.setup();
     render(<ThemeSwitcher />);
 
-    const select = screen.getByTestId("theme-switcher") as HTMLSelectElement;
-    expect(select.options.length).toBe(2);
-    expect(select.options[0].value).toBe("light");
-    expect(select.options[0].text).toBe("Light");
-    expect(select.options[1].value).toBe("dark");
-    expect(select.options[1].text).toBe("Dark");
+    await user.click(screen.getByRole("button", { name: "Theme: Light" }));
+
+    const menu = screen.getByRole("listbox", { name: "Theme options" });
+    expect(menu).toHaveAttribute("data-placement", "below");
+    expect(screen.getByRole("option", { name: "Light" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("option", { name: "Dark" })).toBeInTheDocument();
   });
 
   it("sets data-theme on the document element when changed to dark", async () => {
@@ -28,8 +34,8 @@ describe("ThemeSwitcher", () => {
 
     render(<ThemeSwitcher />);
 
-    const select = screen.getByTestId("theme-switcher");
-    await user.selectOptions(select, "dark");
+    await user.click(screen.getByRole("button", { name: "Theme: Light" }));
+    await user.click(screen.getByRole("option", { name: "Dark" }));
 
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
@@ -40,8 +46,8 @@ describe("ThemeSwitcher", () => {
 
     render(<ThemeSwitcher />);
 
-    const select = screen.getByTestId("theme-switcher");
-    await user.selectOptions(select, "light");
+    await user.click(screen.getByRole("button", { name: "Theme: Dark" }));
+    await user.click(screen.getByRole("option", { name: "Light" }));
 
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
   });

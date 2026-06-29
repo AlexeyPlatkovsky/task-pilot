@@ -6,7 +6,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { useMemo, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { useMemo, useState } from "react";
 import type { ItemSummary } from "../types";
 import { ITEM_TYPES, PRIORITIES, WORKFLOW_STATUSES } from "../types";
 import {
@@ -14,6 +14,7 @@ import {
   STATUS_LABELS,
   TYPE_LABELS,
 } from "../types/labels";
+import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
 import styles from "./ItemListView.module.css";
 
 interface Props {
@@ -23,12 +24,6 @@ interface Props {
 }
 
 type TimeRange = "all" | "last_7_days" | "last_14_days" | "last_30_days";
-type FilterId = "status" | "type" | "priority" | "updated";
-
-interface FilterOption<T extends string = string> {
-  value: T;
-  label: string;
-}
 
 interface Filters {
   status: string;
@@ -50,7 +45,7 @@ const DEFAULT_FILTERS: Filters = {
   timeRange: "all",
 };
 
-const STATUS_FILTER_OPTIONS: FilterOption[] = [
+const STATUS_FILTER_OPTIONS: DropdownOption[] = [
   { value: "", label: "All statuses" },
   ...WORKFLOW_STATUSES.map((status) => ({
     value: status,
@@ -58,7 +53,7 @@ const STATUS_FILTER_OPTIONS: FilterOption[] = [
   })),
 ];
 
-const TYPE_FILTER_OPTIONS: FilterOption[] = [
+const TYPE_FILTER_OPTIONS: DropdownOption[] = [
   { value: "", label: "All types" },
   ...ITEM_TYPES.map((type) => ({
     value: type,
@@ -66,7 +61,7 @@ const TYPE_FILTER_OPTIONS: FilterOption[] = [
   })),
 ];
 
-const PRIORITY_FILTER_OPTIONS: FilterOption[] = [
+const PRIORITY_FILTER_OPTIONS: DropdownOption[] = [
   { value: "", label: "All priorities" },
   ...PRIORITIES.map((priority) => ({
     value: priority,
@@ -74,7 +69,7 @@ const PRIORITY_FILTER_OPTIONS: FilterOption[] = [
   })),
 ];
 
-const UPDATED_FILTER_OPTIONS: FilterOption<TimeRange>[] = [
+const UPDATED_FILTER_OPTIONS: DropdownOption<TimeRange>[] = [
   { value: "all", label: "Any time" },
   { value: "last_7_days", label: "Last 7 days" },
   { value: "last_14_days", label: "Last 14 days" },
@@ -150,112 +145,6 @@ function sortIndicatorLabel(sortState: false | "asc" | "desc"): string {
   return "△▽";
 }
 
-function selectedOptionLabel<T extends string>(
-  options: readonly FilterOption<T>[],
-  value: T,
-): string {
-  return options.find((option) => option.value === value)?.label ?? value;
-}
-
-function FilterDropdown<T extends string>({
-  id,
-  label,
-  value,
-  options,
-  isOpen,
-  onOpenChange,
-  onChange,
-}: {
-  id: FilterId;
-  label: string;
-  value: T;
-  options: readonly FilterOption<T>[];
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  onChange: (value: T) => void;
-}) {
-  const selectedLabel = selectedOptionLabel(options, value);
-  const buttonId = `item-list-filter-${id}`;
-  const labelId = `${buttonId}-label`;
-  const menuId = `${buttonId}-menu`;
-
-  const closeOnExternalBlur = (event: FocusEvent<HTMLDivElement>) => {
-    const nextTarget = event.relatedTarget;
-    if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-      onOpenChange(false);
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onOpenChange(false);
-    }
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      onOpenChange(true);
-    }
-  };
-
-  return (
-    <div
-      className={styles.filterField}
-      data-test-id="item-list-filter-field"
-      data-layout="inline"
-      onBlur={closeOnExternalBlur}
-      onKeyDown={handleKeyDown}
-    >
-      <span id={labelId} className={styles.filterLabel}>
-        {label}
-      </span>
-      <div className={styles.dropdownAnchor}>
-        <button
-          id={buttonId}
-          className={styles.filterButton}
-          type="button"
-          data-test-id={buttonId}
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
-          aria-controls={isOpen ? menuId : undefined}
-          aria-label={`${label}: ${selectedLabel}`}
-          onClick={() => onOpenChange(!isOpen)}
-        >
-          <span>{selectedLabel}</span>
-          <span aria-hidden="true" className={styles.dropdownChevron}>
-            ▾
-          </span>
-        </button>
-        {isOpen ? (
-          <div
-            id={menuId}
-            className={styles.dropdownMenu}
-            role="listbox"
-            aria-label={`${label} options`}
-            data-placement="below"
-            data-test-id={`${buttonId}-menu`}
-          >
-            {options.map((option) => (
-              <button
-                key={option.value || "all"}
-                className={styles.dropdownOption}
-                type="button"
-                role="option"
-                aria-selected={option.value === value}
-                onClick={() => {
-                  onChange(option.value);
-                  onOpenChange(false);
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export function ItemListView({
   items,
   onItemClick,
@@ -264,7 +153,6 @@ export function ItemListView({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [defaultNow] = useState(() => new Date());
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const [openFilter, setOpenFilter] = useState<FilterId | null>(null);
   const filterNow = now ?? defaultNow;
   const hasActiveFilters =
     filters.status !== DEFAULT_FILTERS.status ||
@@ -373,47 +261,43 @@ export function ItemListView({
         aria-label="List filters"
         data-test-id="item-list-filters"
       >
-        <FilterDropdown
-          id="status"
+        <DropdownSelect
+          id="item-list-filter-status"
           label="Status"
           value={filters.status}
           options={STATUS_FILTER_OPTIONS}
-          isOpen={openFilter === "status"}
-          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "status" : null)}
+          fieldDataTestId="item-list-filter-field"
           onChange={(status) =>
             setFilters((current) => ({ ...current, status }))
           }
         />
 
-        <FilterDropdown
-          id="type"
+        <DropdownSelect
+          id="item-list-filter-type"
           label="Type"
           value={filters.type}
           options={TYPE_FILTER_OPTIONS}
-          isOpen={openFilter === "type"}
-          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "type" : null)}
+          fieldDataTestId="item-list-filter-field"
           onChange={(type) => setFilters((current) => ({ ...current, type }))}
         />
 
-        <FilterDropdown
-          id="priority"
+        <DropdownSelect
+          id="item-list-filter-priority"
           label="Priority"
           value={filters.priority}
           options={PRIORITY_FILTER_OPTIONS}
-          isOpen={openFilter === "priority"}
-          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "priority" : null)}
+          fieldDataTestId="item-list-filter-field"
           onChange={(priority) =>
             setFilters((current) => ({ ...current, priority }))
           }
         />
 
-        <FilterDropdown
-          id="updated"
+        <DropdownSelect
+          id="item-list-filter-updated"
           label="Updated"
           value={filters.timeRange}
           options={UPDATED_FILTER_OPTIONS}
-          isOpen={openFilter === "updated"}
-          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "updated" : null)}
+          fieldDataTestId="item-list-filter-field"
           onChange={(timeRange) =>
             setFilters((current) => ({ ...current, timeRange }))
           }
@@ -430,7 +314,6 @@ export function ItemListView({
             disabled={!hasActiveFilters}
             onClick={() => {
               setFilters(DEFAULT_FILTERS);
-              setOpenFilter(null);
             }}
             aria-label="Clear filters"
           >
