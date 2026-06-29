@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ItemSummary } from "../../types";
+import {
+  ITEM_TYPES,
+  PRIORITIES,
+  WORKFLOW_STATUSES,
+  type ItemSummary,
+} from "../../types";
 import { ItemListView } from "../ItemListView";
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
@@ -17,6 +22,13 @@ function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
     findings: [],
     ...overrides,
   };
+}
+
+function visibleRowIds(): string[] {
+  return screen
+    .queryAllByTestId("item-list-row")
+    .map((row) => row.getAttribute("data-item-id"))
+    .filter((id): id is string => id !== null);
 }
 
 describe("ItemListView", () => {
@@ -153,6 +165,79 @@ describe("ItemListView", () => {
     expect(screen.queryByText("Completed task")).not.toBeInTheDocument();
   });
 
+  it("filters rows for every status option without blocking further interactions", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={WORKFLOW_STATUSES.map((status, index) =>
+          makeItem({
+            id: `VP-${index + 1}`,
+            title: `${status} item`,
+            status,
+          }),
+        )}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    const statusFilter = screen.getByLabelText("Status");
+    for (const [index, status] of WORKFLOW_STATUSES.entries()) {
+      await user.selectOptions(statusFilter, status);
+      expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
+    }
+
+    await user.selectOptions(statusFilter, "");
+    await user.click(
+      screen.getByRole("button", { name: "Sort by ID (not sorted)" }),
+    );
+
+    expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3", "VP-4", "VP-5"]);
+  });
+
+  it("filters rows for every type option", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={ITEM_TYPES.map((type, index) =>
+          makeItem({
+            id: `VP-${index + 1}`,
+            title: `${type} item`,
+            type,
+          }),
+        )}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    const typeFilter = screen.getByLabelText("Type");
+    for (const [index, type] of ITEM_TYPES.entries()) {
+      await user.selectOptions(typeFilter, type);
+      expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
+    }
+  });
+
+  it("filters rows for every priority option", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={PRIORITIES.map((priority, index) =>
+          makeItem({
+            id: `VP-${index + 1}`,
+            title: `${priority} item`,
+            priority,
+          }),
+        )}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    const priorityFilter = screen.getByLabelText("Priority");
+    for (const [index, priority] of PRIORITIES.entries()) {
+      await user.selectOptions(priorityFilter, priority);
+      expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
+    }
+  });
+
   it("filters rows by updated time range", async () => {
     const user = userEvent.setup();
     render(
@@ -178,6 +263,86 @@ describe("ItemListView", () => {
 
     expect(screen.getByText("Recent item")).toBeInTheDocument();
     expect(screen.queryByText("Old item")).not.toBeInTheDocument();
+  });
+
+  it("filters rows for every updated time range option", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Within 7 days",
+            updated_at: "2026-06-25T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Within 14 days",
+            updated_at: "2026-06-18T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-3",
+            title: "Within 30 days",
+            updated_at: "2026-06-01T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-4",
+            title: "Older item",
+            updated_at: "2026-05-15T10:00:00Z",
+          }),
+        ]}
+        now={new Date("2026-06-29T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    const updatedFilter = screen.getByLabelText("Updated");
+
+    await user.selectOptions(updatedFilter, "last_7_days");
+    expect(visibleRowIds()).toEqual(["VP-1"]);
+
+    await user.selectOptions(updatedFilter, "last_14_days");
+    expect(visibleRowIds()).toEqual(["VP-1", "VP-2"]);
+
+    await user.selectOptions(updatedFilter, "last_30_days");
+    expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3"]);
+
+    await user.selectOptions(updatedFilter, "all");
+    expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3", "VP-4"]);
+  });
+
+  it("keeps the implicit current time stable while date filters remain active", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-29T00:00:00Z"));
+
+    try {
+      render(
+        <ItemListView
+          items={[
+            makeItem({
+              id: "VP-1",
+              title: "Boundary item",
+              updated_at: "2026-06-22T12:00:00Z",
+            }),
+          ]}
+          onItemClick={vi.fn()}
+        />,
+      );
+
+      fireEvent.change(screen.getByLabelText("Updated"), {
+        target: { value: "last_7_days" },
+      });
+      expect(visibleRowIds()).toEqual(["VP-1"]);
+
+      vi.setSystemTime(new Date("2026-07-02T00:00:00Z"));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Sort by ID (not sorted)" }),
+      );
+
+      expect(visibleRowIds()).toEqual(["VP-1"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("sorts only the rows that remain after filters are applied", async () => {

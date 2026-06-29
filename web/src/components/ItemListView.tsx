@@ -99,15 +99,17 @@ function sortAriaValue(
 export function ItemListView({
   items,
   onItemClick,
-  now = new Date(),
+  now,
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [defaultNow] = useState(() => new Date());
   const [filters, setFilters] = useState<Filters>({
     status: "",
     type: "",
     priority: "",
     timeRange: "all",
   });
+  const filterNow = now ?? defaultNow;
 
   const filteredItems = useMemo(
     () =>
@@ -121,9 +123,9 @@ export function ItemListView({
         if (filters.priority && item.priority !== filters.priority) {
           return false;
         }
-        return isWithinTimeRange(item, filters.timeRange, now);
+        return isWithinTimeRange(item, filters.timeRange, filterNow);
       }),
-    [filters, items, now],
+    [filters, items, filterNow],
   );
 
   const columns = useMemo<ColumnDef<ItemSummary>[]>(
