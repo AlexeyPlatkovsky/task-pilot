@@ -169,11 +169,17 @@ export class TaskPilotPage {
   }
 
   async filterListByType(type: string) {
-    await this.byTestId("item-list-filter-type").selectOption(type);
+    const typeLabels: Record<string, string> = {
+      epic: "Epic",
+      feature: "Feature",
+      task: "Task",
+      bug: "Bug",
+    };
+    await this.selectListFilterOption("type", typeLabels[type] ?? type);
   }
 
   async clearListTypeFilter() {
-    await this.byTestId("item-list-filter-type").selectOption("");
+    await this.selectListFilterOption("type", "All types");
   }
 
   async expectListItemVisible(itemId: string) {
@@ -215,6 +221,14 @@ export class TaskPilotPage {
 
   private byTestId(id: string): Locator {
     return this.page.locator(`[data-test-id="${id}"]`);
+  }
+
+  private async selectListFilterOption(filterId: string, option: string) {
+    await this.byTestId(`item-list-filter-${filterId}`).click();
+    await this.page
+      .getByRole("listbox")
+      .getByRole("option", { name: option })
+      .click();
   }
 
   private kanbanColumn(status: string): Locator {

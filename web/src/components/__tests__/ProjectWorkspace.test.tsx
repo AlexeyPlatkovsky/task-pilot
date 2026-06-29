@@ -117,7 +117,8 @@ describe("ProjectWorkspace", () => {
     await waitFor(() => {
       expect(screen.getByText("Alpha backlog")).toBeInTheDocument();
     });
-    await user.selectOptions(screen.getByLabelText("Status"), "done");
+    await user.click(screen.getByRole("button", { name: "Status: All statuses" }));
+    await user.click(screen.getByRole("option", { name: "Done" }));
     expect(
       screen.getByText("No items match the selected filters."),
     ).toBeInTheDocument();

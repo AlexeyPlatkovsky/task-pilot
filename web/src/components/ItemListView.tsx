@@ -6,7 +6,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FocusEvent, type KeyboardEvent } from "react";
 import type { ItemSummary } from "../types";
 import { ITEM_TYPES, PRIORITIES, WORKFLOW_STATUSES } from "../types";
 import {
@@ -23,6 +23,12 @@ interface Props {
 }
 
 type TimeRange = "all" | "last_7_days" | "last_14_days" | "last_30_days";
+type FilterId = "status" | "type" | "priority" | "updated";
+
+interface FilterOption<T extends string = string> {
+  value: T;
+  label: string;
+}
 
 interface Filters {
   status: string;
@@ -36,6 +42,44 @@ const TIME_RANGE_DAYS: Record<Exclude<TimeRange, "all">, number> = {
   last_14_days: 14,
   last_30_days: 30,
 };
+
+const DEFAULT_FILTERS: Filters = {
+  status: "",
+  type: "",
+  priority: "",
+  timeRange: "all",
+};
+
+const STATUS_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "All statuses" },
+  ...WORKFLOW_STATUSES.map((status) => ({
+    value: status,
+    label: STATUS_LABELS[status],
+  })),
+];
+
+const TYPE_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "All types" },
+  ...ITEM_TYPES.map((type) => ({
+    value: type,
+    label: TYPE_LABELS[type],
+  })),
+];
+
+const PRIORITY_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "All priorities" },
+  ...PRIORITIES.map((priority) => ({
+    value: priority,
+    label: PRIORITY_LABELS[priority],
+  })),
+];
+
+const UPDATED_FILTER_OPTIONS: FilterOption<TimeRange>[] = [
+  { value: "all", label: "Any time" },
+  { value: "last_7_days", label: "Last 7 days" },
+  { value: "last_14_days", label: "Last 14 days" },
+  { value: "last_30_days", label: "Last 30 days" },
+];
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
@@ -96,6 +140,122 @@ function sortAriaValue(
   return "none";
 }
 
+function sortIndicatorLabel(sortState: false | "asc" | "desc"): string {
+  if (sortState === "asc") {
+    return "▲▽";
+  }
+  if (sortState === "desc") {
+    return "△▼";
+  }
+  return "△▽";
+}
+
+function selectedOptionLabel<T extends string>(
+  options: readonly FilterOption<T>[],
+  value: T,
+): string {
+  return options.find((option) => option.value === value)?.label ?? value;
+}
+
+function FilterDropdown<T extends string>({
+  id,
+  label,
+  value,
+  options,
+  isOpen,
+  onOpenChange,
+  onChange,
+}: {
+  id: FilterId;
+  label: string;
+  value: T;
+  options: readonly FilterOption<T>[];
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onChange: (value: T) => void;
+}) {
+  const selectedLabel = selectedOptionLabel(options, value);
+  const buttonId = `item-list-filter-${id}`;
+  const labelId = `${buttonId}-label`;
+  const menuId = `${buttonId}-menu`;
+
+  const closeOnExternalBlur = (event: FocusEvent<HTMLDivElement>) => {
+    const nextTarget = event.relatedTarget;
+    if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+      onOpenChange(false);
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onOpenChange(false);
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      onOpenChange(true);
+    }
+  };
+
+  return (
+    <div
+      className={styles.filterField}
+      data-test-id="item-list-filter-field"
+      data-layout="inline"
+      onBlur={closeOnExternalBlur}
+      onKeyDown={handleKeyDown}
+    >
+      <span id={labelId} className={styles.filterLabel}>
+        {label}
+      </span>
+      <div className={styles.dropdownAnchor}>
+        <button
+          id={buttonId}
+          className={styles.filterButton}
+          type="button"
+          data-test-id={buttonId}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? menuId : undefined}
+          aria-label={`${label}: ${selectedLabel}`}
+          onClick={() => onOpenChange(!isOpen)}
+        >
+          <span>{selectedLabel}</span>
+          <span aria-hidden="true" className={styles.dropdownChevron}>
+            ▾
+          </span>
+        </button>
+        {isOpen ? (
+          <div
+            id={menuId}
+            className={styles.dropdownMenu}
+            role="listbox"
+            aria-label={`${label} options`}
+            data-placement="below"
+            data-test-id={`${buttonId}-menu`}
+          >
+            {options.map((option) => (
+              <button
+                key={option.value || "all"}
+                className={styles.dropdownOption}
+                type="button"
+                role="option"
+                aria-selected={option.value === value}
+                onClick={() => {
+                  onChange(option.value);
+                  onOpenChange(false);
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function ItemListView({
   items,
   onItemClick,
@@ -103,13 +263,14 @@ export function ItemListView({
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [defaultNow] = useState(() => new Date());
-  const [filters, setFilters] = useState<Filters>({
-    status: "",
-    type: "",
-    priority: "",
-    timeRange: "all",
-  });
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [openFilter, setOpenFilter] = useState<FilterId | null>(null);
   const filterNow = now ?? defaultNow;
+  const hasActiveFilters =
+    filters.status !== DEFAULT_FILTERS.status ||
+    filters.type !== DEFAULT_FILTERS.type ||
+    filters.priority !== DEFAULT_FILTERS.priority ||
+    filters.timeRange !== DEFAULT_FILTERS.timeRange;
 
   const filteredItems = useMemo(
     () =>
@@ -212,87 +373,70 @@ export function ItemListView({
         aria-label="List filters"
         data-test-id="item-list-filters"
       >
-        <label>
-          <span>Status</span>
-          <select
-            data-test-id="item-list-filter-status"
-            value={filters.status}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                status: event.target.value,
-              }))
-            }
-          >
-            <option value="">All statuses</option>
-            {WORKFLOW_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FilterDropdown
+          id="status"
+          label="Status"
+          value={filters.status}
+          options={STATUS_FILTER_OPTIONS}
+          isOpen={openFilter === "status"}
+          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "status" : null)}
+          onChange={(status) =>
+            setFilters((current) => ({ ...current, status }))
+          }
+        />
 
-        <label>
-          <span>Type</span>
-          <select
-            data-test-id="item-list-filter-type"
-            value={filters.type}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                type: event.target.value,
-              }))
-            }
-          >
-            <option value="">All types</option>
-            {ITEM_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {TYPE_LABELS[type]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FilterDropdown
+          id="type"
+          label="Type"
+          value={filters.type}
+          options={TYPE_FILTER_OPTIONS}
+          isOpen={openFilter === "type"}
+          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "type" : null)}
+          onChange={(type) => setFilters((current) => ({ ...current, type }))}
+        />
 
-        <label>
-          <span>Priority</span>
-          <select
-            data-test-id="item-list-filter-priority"
-            value={filters.priority}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                priority: event.target.value,
-              }))
-            }
-          >
-            <option value="">All priorities</option>
-            {PRIORITIES.map((priority) => (
-              <option key={priority} value={priority}>
-                {PRIORITY_LABELS[priority]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FilterDropdown
+          id="priority"
+          label="Priority"
+          value={filters.priority}
+          options={PRIORITY_FILTER_OPTIONS}
+          isOpen={openFilter === "priority"}
+          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "priority" : null)}
+          onChange={(priority) =>
+            setFilters((current) => ({ ...current, priority }))
+          }
+        />
 
-        <label>
-          <span>Updated</span>
-          <select
-            data-test-id="item-list-filter-updated"
-            value={filters.timeRange}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                timeRange: event.target.value as TimeRange,
-              }))
-            }
+        <FilterDropdown
+          id="updated"
+          label="Updated"
+          value={filters.timeRange}
+          options={UPDATED_FILTER_OPTIONS}
+          isOpen={openFilter === "updated"}
+          onOpenChange={(isOpen) => setOpenFilter(isOpen ? "updated" : null)}
+          onChange={(timeRange) =>
+            setFilters((current) => ({ ...current, timeRange }))
+          }
+        />
+
+        <div
+          className={styles.filterActions}
+          data-test-id="item-list-filter-actions"
+          data-position="trailing"
+        >
+          <button
+            className={styles.clearButton}
+            type="button"
+            disabled={!hasActiveFilters}
+            onClick={() => {
+              setFilters(DEFAULT_FILTERS);
+              setOpenFilter(null);
+            }}
+            aria-label="Clear filters"
           >
-            <option value="all">Any time</option>
-            <option value="last_7_days">Last 7 days</option>
-            <option value="last_14_days">Last 14 days</option>
-            <option value="last_30_days">Last 30 days</option>
-          </select>
-        </label>
+            Clear
+          </button>
+        </div>
       </div>
 
       {filteredItems.length === 0 ? (
@@ -334,11 +478,7 @@ export function ItemListView({
                             aria-hidden="true"
                             className={styles.sortIndicator}
                           >
-                            {header.column.getIsSorted() === "asc"
-                              ? "asc"
-                              : header.column.getIsSorted() === "desc"
-                                ? "desc"
-                                : ""}
+                            {sortIndicatorLabel(header.column.getIsSorted())}
                           </span>
                         </button>
                       )}

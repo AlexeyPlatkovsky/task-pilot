@@ -1,6 +1,6 @@
 .filterBar {
   display: flex;
-  align-items: end;
+  align-items: center;
   gap: var(--space-3);
   width: 100%;
   max-width: var(--content-max-width);
@@ -12,28 +12,118 @@
   border-radius: var(--radius-lg);
 }
 
-.filterBar label {
+.filterField {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  align-items: center;
+  gap: var(--space-2);
   color: var(--text-secondary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
 }
 
-.filterBar select {
-  min-width: calc(var(--space-8) * 5);
+.filterLabel {
+  white-space: nowrap;
+}
+
+.dropdownAnchor {
+  position: relative;
+}
+
+.filterButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: calc(var(--kanban-column-min) * 0.5);
   padding: var(--space-2) var(--space-3);
   color: var(--text-primary);
   background: var(--surface-base);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
 }
 
-.filterBar select:focus-visible {
+.filterButton:hover {
+  border-color: var(--border-strong);
+}
+
+.filterButton[aria-expanded="true"] {
+  border-color: var(--accent);
+}
+
+.filterButton:focus-visible,
+.clearButton:focus-visible,
+.dropdownOption:focus-visible {
   outline: thin solid var(--accent);
   outline-offset: var(--space-1);
+}
+
+.dropdownChevron {
+  color: var(--text-muted);
+}
+
+.dropdownMenu {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: calc(100% + var(--space-1));
+  inset-inline-start: 0;
+  min-width: 100%;
+  padding: var(--space-1);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.dropdownOption {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dropdownOption:hover,
+.dropdownOption[aria-selected="true"] {
+  background: var(--accent-subtle);
+}
+
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline-start: auto;
+}
+
+.clearButton {
+  padding: var(--space-2) var(--space-3);
+  color: var(--accent);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.clearButton:hover:not(:disabled) {
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+
+.clearButton:disabled {
+  color: var(--text-disabled);
+  cursor: default;
 }
 
 .tableFrame {
@@ -89,10 +179,10 @@
 }
 
 .sortIndicator {
-  min-width: var(--space-8);
+  min-width: var(--space-6);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
 }
 
 .table tbody tr:hover {

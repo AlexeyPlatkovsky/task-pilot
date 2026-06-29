@@ -7,6 +7,11 @@ import {
   WORKFLOW_STATUSES,
   type ItemSummary,
 } from "../../types";
+import {
+  PRIORITY_LABELS,
+  STATUS_LABELS,
+  TYPE_LABELS,
+} from "../../types/labels";
 import { ItemListView } from "../ItemListView";
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
@@ -29,6 +34,17 @@ function visibleRowIds(): string[] {
     .queryAllByTestId("item-list-row")
     .map((row) => row.getAttribute("data-item-id"))
     .filter((id): id is string => id !== null);
+}
+
+async function selectFilterOption(
+  user: ReturnType<typeof userEvent.setup>,
+  filterLabel: string,
+  optionLabel: string,
+) {
+  await user.click(
+    screen.getByRole("button", { name: new RegExp(`^${filterLabel}:`) }),
+  );
+  await user.click(screen.getByRole("option", { name: optionLabel }));
 }
 
 describe("ItemListView", () => {
@@ -108,8 +124,11 @@ describe("ItemListView", () => {
       name: "Sort by Type (not sorted)",
     });
 
+    expect(within(sortByType).getByText("△▽")).toBeInTheDocument();
+
     await user.click(sortByType);
     expect(sortByType).toHaveAccessibleName("Sort by Type (ascending)");
+    expect(within(sortByType).getByText("▲▽")).toBeInTheDocument();
 
     let rows = screen.getAllByRole("row");
     expect(within(rows[1]).getByText("Bug")).toBeInTheDocument();
@@ -118,6 +137,7 @@ describe("ItemListView", () => {
 
     await user.click(sortByType);
     expect(sortByType).toHaveAccessibleName("Sort by Type (descending)");
+    expect(within(sortByType).getByText("△▼")).toBeInTheDocument();
 
     rows = screen.getAllByRole("row");
     expect(within(rows[1]).getByText("Task")).toBeInTheDocument();
@@ -156,9 +176,9 @@ describe("ItemListView", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText("Type"), "bug");
-    await user.selectOptions(screen.getByLabelText("Status"), "done");
-    await user.selectOptions(screen.getByLabelText("Priority"), "high");
+    await selectFilterOption(user, "Type", "Bug");
+    await selectFilterOption(user, "Status", "Done");
+    await selectFilterOption(user, "Priority", "High");
 
     expect(screen.getByText("Completed bug")).toBeInTheDocument();
     expect(screen.queryByText("Backlog bug")).not.toBeInTheDocument();
@@ -180,13 +200,12 @@ describe("ItemListView", () => {
       />,
     );
 
-    const statusFilter = screen.getByLabelText("Status");
     for (const [index, status] of WORKFLOW_STATUSES.entries()) {
-      await user.selectOptions(statusFilter, status);
+      await selectFilterOption(user, "Status", STATUS_LABELS[status]);
       expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
     }
 
-    await user.selectOptions(statusFilter, "");
+    await selectFilterOption(user, "Status", "All statuses");
     await user.click(
       screen.getByRole("button", { name: "Sort by ID (not sorted)" }),
     );
@@ -209,9 +228,8 @@ describe("ItemListView", () => {
       />,
     );
 
-    const typeFilter = screen.getByLabelText("Type");
     for (const [index, type] of ITEM_TYPES.entries()) {
-      await user.selectOptions(typeFilter, type);
+      await selectFilterOption(user, "Type", TYPE_LABELS[type]);
       expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
     }
   });
@@ -231,9 +249,8 @@ describe("ItemListView", () => {
       />,
     );
 
-    const priorityFilter = screen.getByLabelText("Priority");
     for (const [index, priority] of PRIORITIES.entries()) {
-      await user.selectOptions(priorityFilter, priority);
+      await selectFilterOption(user, "Priority", PRIORITY_LABELS[priority]);
       expect(visibleRowIds()).toEqual([`VP-${index + 1}`]);
     }
   });
@@ -259,7 +276,7 @@ describe("ItemListView", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText("Updated"), "last_7_days");
+    await selectFilterOption(user, "Updated", "Last 7 days");
 
     expect(screen.getByText("Recent item")).toBeInTheDocument();
     expect(screen.queryByText("Old item")).not.toBeInTheDocument();
@@ -296,19 +313,104 @@ describe("ItemListView", () => {
       />,
     );
 
-    const updatedFilter = screen.getByLabelText("Updated");
-
-    await user.selectOptions(updatedFilter, "last_7_days");
+    await selectFilterOption(user, "Updated", "Last 7 days");
     expect(visibleRowIds()).toEqual(["VP-1"]);
 
-    await user.selectOptions(updatedFilter, "last_14_days");
+    await selectFilterOption(user, "Updated", "Last 14 days");
     expect(visibleRowIds()).toEqual(["VP-1", "VP-2"]);
 
-    await user.selectOptions(updatedFilter, "last_30_days");
+    await selectFilterOption(user, "Updated", "Last 30 days");
     expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3"]);
 
-    await user.selectOptions(updatedFilter, "all");
+    await selectFilterOption(user, "Updated", "Any time");
     expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3", "VP-4"]);
+  });
+
+  it("renders a selected filter menu below the filter control", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({ id: "VP-1", title: "Backlog item", status: "backlog" }),
+          makeItem({ id: "VP-2", title: "Done item", status: "done" }),
+        ]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await selectFilterOption(user, "Status", "Done");
+    await user.click(screen.getByRole("button", { name: "Status: Done" }));
+
+    expect(
+      screen.getByRole("listbox", { name: "Status options" }),
+    ).toHaveAttribute("data-placement", "below");
+  });
+
+  it("renders filter labels and dropdowns on one row with clear at the right edge", () => {
+    render(
+      <ItemListView
+        items={[makeItem({ id: "VP-1", title: "Visible item" })]}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    for (const field of screen.getAllByTestId("item-list-filter-field")) {
+      expect(field).toHaveAttribute("data-layout", "inline");
+    }
+    expect(screen.getByTestId("item-list-filter-actions")).toHaveAttribute(
+      "data-position",
+      "trailing",
+    );
+  });
+
+  it("clears all active filters and restores the default list", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Done bug",
+            type: "bug",
+            status: "done",
+            priority: "high",
+            updated_at: "2026-06-24T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Backlog task",
+            type: "task",
+            status: "backlog",
+            priority: "normal",
+            updated_at: "2026-05-20T10:00:00Z",
+          }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await selectFilterOption(user, "Type", "Bug");
+    await selectFilterOption(user, "Status", "Done");
+    await selectFilterOption(user, "Priority", "High");
+    await selectFilterOption(user, "Updated", "Last 7 days");
+    expect(visibleRowIds()).toEqual(["VP-1"]);
+
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+
+    expect(visibleRowIds()).toEqual(["VP-1", "VP-2"]);
+    expect(
+      screen.getByRole("button", { name: "Status: All statuses" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Type: All types" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Priority: All priorities" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Updated: Any time" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps the implicit current time stable while date filters remain active", async () => {
@@ -329,9 +431,10 @@ describe("ItemListView", () => {
         />,
       );
 
-      fireEvent.change(screen.getByLabelText("Updated"), {
-        target: { value: "last_7_days" },
-      });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Updated: Any time" }),
+      );
+      fireEvent.click(screen.getByRole("option", { name: "Last 7 days" }));
       expect(visibleRowIds()).toEqual(["VP-1"]);
 
       vi.setSystemTime(new Date("2026-07-02T00:00:00Z"));
@@ -383,8 +486,8 @@ describe("ItemListView", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText("Type"), "bug");
-    await user.selectOptions(screen.getByLabelText("Status"), "done");
+    await selectFilterOption(user, "Type", "Bug");
+    await selectFilterOption(user, "Status", "Done");
     await user.click(
       screen.getByRole("button", { name: "Sort by Priority (not sorted)" }),
     );
