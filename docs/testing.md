@@ -13,6 +13,12 @@ generic copied browser framework.
 Failure paths, invalid inputs, cross-platform path behavior, and deterministic output are
 treated as first-class test concerns alongside happy paths.
 
+For UI work, "works once" is not enough evidence. Controls with finite option sets must cover all
+meaningful options or document a concrete equivalence rationale. Filters must cover defaults,
+combined filters, filtered-empty state, and reset/clear behavior. Sort controls must cover default,
+ascending, and descending visible indicators plus accessible state. Drag/drop and optimistic UI
+must cover the transient state between the user action and the settled API/cache response.
+
 ## Test Levels
 
 | Level | Scope | Tooling |
@@ -60,6 +66,10 @@ Before a feature is considered done:
 - the feature's manual checklist has been executed and passed;
 - every UI requirement has an explicit test-level decision for component, API/contract,
   functional E2E, browser contract, or not applicable with a concrete reason;
+- reusable UI controls have component contract coverage for shared state styling, selected values,
+  menu placement, close behavior, and keyboard/accessibility behavior;
+- UI controls that replace native browser behavior explain why native browser behavior is
+  insufficient and cover the required custom behavior;
 - no assertions have been weakened or tests deleted to force a pass.
 
 Shared infrastructure (file parser, validation, link derivation, JSON serialization) must have

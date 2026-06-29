@@ -32,9 +32,13 @@ Read `references/test-strategy.md` and `.claude/conventions/testing.md`.
    invoke `playwright-cli` per
    `.claude/conventions/testing.md`. Require `Skill: playwright-cli - output below` when this
    investigation step runs.
-9. Run narrow tests, then the affected suite, including the required component, functional E2E, and
+9. For UI controls, explicitly map finite option sets, default/reset state, filtered-empty state,
+   sorting indicator states, custom dropdown/menu placement, and transient optimistic/cache states
+   when the changed behavior includes them. Do not treat one representative option or the final
+   settled state as sufficient coverage unless the matrix records a concrete equivalence rationale.
+10. Run narrow tests, then the affected suite, including the required component, functional E2E, and
    browser contract commands when those levels are selected by the matrix.
-10. Inspect for false positives, brittle mocks, timing assumptions, over-broad E2E coverage,
+11. Inspect for false positives, brittle mocks, timing assumptions, over-broad E2E coverage,
    misplaced style/token assertions in functional E2E, hidden shared state, over-engineered helper
    extraction, raw locator construction in functional specs, `data-test-id` selector policy
    violations, and redundant coverage.

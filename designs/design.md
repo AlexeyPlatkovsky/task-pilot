@@ -28,6 +28,46 @@ Git-friendly transparency over dashboard decoration.
 
 ---
 
+## UI Interaction Contracts
+
+Reusable controls must keep the same interaction behavior wherever they appear. A control may use
+different dimensions in a header, toolbar, table filter, or modal, but it must not silently fork
+state styling, icons, menu placement, or keyboard behavior.
+
+### Dropdown Selectors
+
+Project selection, theme selection, and list filters use the same dropdown selector contract:
+
+- trigger is a button with the visible selected value and an accessible name in the form
+  `<Label>: <Selected value>`;
+- menu renders in the DOM below the trigger, not as a native browser select popup;
+- options use the same hover, selected, focus-visible, and disabled styling;
+- selecting an option closes the menu and updates the trigger immediately;
+- blur and Escape close the menu;
+- dimensions may differ by context, but border, radius, focus, arrow, option highlighting, and
+  below-menu behavior stay consistent.
+
+Native `select` controls are acceptable only when browser/OS popup placement and option styling do
+not matter to the product behavior.
+
+### Sorting Indicators
+
+Sortable table headers use canonical top/down arrow indicators:
+
+- default: `△▽`;
+- ascending: `▲▽`;
+- descending: `△▼`.
+
+Accessible names still state the text sort state: `not sorted`, `ascending`, or `descending`.
+
+### Optimistic UI And Drag/Drop
+
+Drag/drop and other optimistic interactions must preserve the user-visible target state from the
+moment the user commits the action until the authoritative response or cache refresh settles.
+Stale cached data must not briefly re-render the previous visible state.
+
+---
+
 ## Required States
 
 Every applicable product flow accounts for:

@@ -50,6 +50,22 @@
 - UI tests use accessible roles, labels, and visible text.
 - UI implementation should be proven primarily by component tests, with Playwright evidence for
   major browser paths, responsive behavior, drag/drop, keyboard navigation, and API-backed flows.
+- UI controls with finite option sets must cover every meaningful option or every enum member,
+  not only one representative value, unless the test artifact explains why the remaining values are
+  mechanically equivalent. Filter controls must also cover the default state, reset/clear behavior,
+  filtered-empty behavior, and at least one combined-filter case.
+- Sorting controls must cover the default, ascending, and descending visible indicators plus the
+  accessible sort state. If product docs define canonical icons or glyphs, tests must assert those
+  indicators directly rather than accepting arbitrary text labels.
+- Custom dropdowns, menus, and popovers must have component coverage for trigger labeling,
+  selected option display, selected/hover/focus state contract, below/anchored placement when
+  required, close behavior, and parity with any existing selector pattern they replace.
+- Drag/drop, optimistic updates, and local cache updates must cover the transient user-visible
+  state between the user action and the confirmed server/cache result. A passing final-state test
+  is insufficient when stale cached data could briefly reappear.
+- UI logic that depends on current time, cache contents, or parent re-renders must include a
+  deterministic regression test for those changing inputs when the behavior would be visible to
+  users.
 - Functional E2E authoring should stay TaskPilot-native. Start with small helpers under
   `web/e2e/support` for deterministic workspaces, project opening, and repeated domain locators.
   Do not introduce a copied browser framework, custom locator proxy, page-object DSL, reporting

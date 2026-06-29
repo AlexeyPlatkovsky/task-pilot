@@ -47,7 +47,7 @@ The component library artifact must include the following components with all vi
 | ItemDetailModal shell | loading, view, edit, error |
 | Button | primary, secondary, destructive; default/hover/focus/disabled per variant |
 | TextInput | default, focus, error, disabled |
-| SelectDropdown | closed, open, selected |
+| SelectDropdown | closed, open, hover, focused, selected, disabled; compact filter, header project, and header theme dimensions |
 | Icon (Lucide wrapper) | labeled, decorative |
 | EmptyState | with CTA, without CTA |
 | FeedbackBanner | error, warning |
@@ -67,8 +67,9 @@ The component library artifact must include the following components with all vi
 - **F009-R5:** The Item Detail Modal prototype shows view mode (all Alpha read-only fields), edit
   mode (editable title, description, priority, status), validation error inline, and save error
   banner.
-- **F009-R6:** The List View prototype shows a populated table with header sort indicators and an
-  empty state.
+- **F009-R6:** The List View prototype shows a populated table with header sort indicators
+  (`△▽`, `▲▽`, `△▼`), list filters using the shared SelectDropdown behavior, a Clear filters
+  action, filtered-empty state, and an empty state.
 - **F009-R7:** The Tree View prototype shows a two-level hierarchy (epic → feature → task) with
   expand/collapse and an empty state.
 - **F009-R11:** The Validation Panel prototype shows an empty state (a success message: all items
@@ -95,7 +96,8 @@ The component library artifact must include the following components with all vi
   always authoritative; OD is derived.
 - WCAG AA contrast must be maintained for all component state pairings (see `designs/design.md`
   Accessibility Baseline).
-- Icon usage must match the Icon Library in `designs/design.md`. No ad hoc glyphs.
+- Icon usage must match the Icon Library in `designs/design.md`. Text glyphs are allowed only
+  where `designs/design.md` defines them as canonical UI indicators, such as table sort arrows.
 - Prototypes use light theme by default; dark theme variants are optional for Alpha, but the
   canonical token system includes dark theme values.
 - Prototypes target desktop-only local use. Kanban and table views keep their desktop structure in

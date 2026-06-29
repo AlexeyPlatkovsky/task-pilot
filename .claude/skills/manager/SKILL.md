@@ -114,6 +114,10 @@ Use conditional rigor:
 - UI work requires component coverage, functional E2E coverage for major paths, and separate
   browser contract evidence for style/token/browser behavior when required by
   `.claude/conventions/testing.md`.
+- UI work that creates or changes a reusable component, replaces a native browser control, changes
+  drag/drop behavior, changes optimistic/cache-visible state, or changes a shared interaction
+  pattern is at least medium risk unless it is documentation-only. Do not classify those changes as
+  low risk merely because the code is localized.
 - The local WebUI component library is the default implementation source for TaskPilot UI changes.
   Open Design may be used as reference only; use it for exploration only when the user explicitly
   asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,
