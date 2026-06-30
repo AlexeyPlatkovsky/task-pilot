@@ -38,6 +38,7 @@ under `docs/specs/` supersede them where they conflict.
 | F007 | git-helpers | ⏳ planned | 5 | 5 | 5 | Phase 6 — Git helpers |
 | F008 | mcp-adapter | ⏳ planned | 6 | 7 | 5 | Phase 7 — MCP adapter |
 | F009 | release-automation | ⏳ planned | 12 | 13 | 12 | Next Release Roadmap — Release Automation |
+| F010 | release-ui-readiness | ⏳ planned | 12 | 13 | 14 | Next Release Roadmap — Release UI Readiness |
 
 ## Decision Log
 
