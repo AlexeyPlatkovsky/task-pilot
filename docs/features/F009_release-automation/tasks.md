@@ -3,7 +3,7 @@
 | ID | Task | Implements | Status | Depends on |
 | --- | --- | --- | --- | --- |
 | F009-T1 | Define npm package metadata for unscoped `taskpilot`, `taskpilot` bin, included files, and package-name preflight | F009-R1, F009-R2 | ✅ done | — |
-| F009-T2 | Build clean npm staging that copies Python source, release metadata, `requirements.lock`, wrapper files, and production WebUI assets | F009-R2, F009-R7 | ⏳ todo | F009-T1 |
+| F009-T2 | Build clean npm staging that copies Python source, release metadata, `requirements.lock`, wrapper files, and production WebUI assets | F009-R2, F009-R7 | ✅ done | F009-T1 |
 | F009-T3 | Implement Python discovery with `TASKPILOT_PYTHON` override, common command fallback, and `>=3.11`/`venv`/`pip` validation | F009-R3 | ⏳ todo | F009-T1 |
 | F009-T4 | Implement lazy user-cache runtime setup keyed by npm version and Python major/minor version | F009-R4 | ⏳ todo | F009-T3 |
 | F009-T5 | Install dependencies from bundled `requirements.lock`, handle partial-cache deletion, setup progress, setup logs, pip output tail, and offline/setup errors | F009-R5 | ⏳ todo | F009-T4 |
