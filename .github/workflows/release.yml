@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feat/*
+      - bugfix/*
   pull_request:
     paths:
       - 'scripts/release/**'
