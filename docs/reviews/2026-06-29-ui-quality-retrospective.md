@@ -37,7 +37,7 @@ coverage, reusable control consistency, or transient optimistic-state validation
 - `.claude/skills/design-ui/SKILL.md`, `.claude/skills/test-change/SKILL.md`, and
   `.claude/skills/validate-change/SKILL.md` now require those contracts to be planned, tested, and
   validated.
-- `designs/design.md`, `docs/design.md`, `docs/testing.md`, F006, and F009 now document the
+- `designs/design.md`, `docs/design.md`, `docs/testing.md` and F006 now document the
   dropdown selector, sorting indicator, filter reset, and optimistic UI contracts.
 
 ## Expected Future Behavior

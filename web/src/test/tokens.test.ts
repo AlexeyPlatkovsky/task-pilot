@@ -140,7 +140,7 @@ describe("tokens.css — token definitions (AC-2)", () => {
     expect(css).toContain("--radius-pill: 999px");
   });
 
-  it("no longer defines --radius-xl after the radius merge (F009-R10)", () => {
+  it("no longer defines --radius-xl after the radius merge", () => {
     expect(css).not.toContain("--radius-xl");
   });
 
@@ -154,7 +154,7 @@ describe("tokens.css — token definitions (AC-2)", () => {
     }
   });
 
-  it("defines the full typography token set (F009-R10)", () => {
+  it("defines the full typography token set", () => {
     for (const name of [
       "--font-family-base",
       "--font-size-xs",

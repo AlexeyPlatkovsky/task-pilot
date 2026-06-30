@@ -99,14 +99,6 @@ Expose core operations as MCP tools. No separate logic. Only after CLI/API stabi
 
 Serves: [F008: MCP Adapter](features/F008_mcp-adapter/)
 
-### ⏳ Phase 0 — Design gate (OD prototypes)
-
-Create an Open Design project with the design system, component library, and page prototypes
-for all screens in the Alpha and Beta scope. Prototypes must pass design review before the
-corresponding UI implementation phase begins.
-
-Serves: [F009: OD Design Prototypes](features/F009_od-design-prototypes/)
-
 ## Recommended First Usable Slice
 
 ```text

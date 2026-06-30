@@ -302,7 +302,7 @@ Invariant across themes.
 | `--font-size-lg` | `1.25rem` | 20 | Modal titles, dialog headings |
 
 > **Merges:** 0.6875rem + 0.75rem → `--font-size-xs` (1px diff). 1.125rem + 1.25rem → `--font-size-lg` (2px diff, both heading contexts).
-> `--font-size-xs` and `--font-size-lg` are in `tokens.css` and applied in component CSS (F009-T0).
+> `--font-size-xs` and `--font-size-lg` are in `tokens.css` and applied in component CSS.
 
 ### Font Weight
 
@@ -311,7 +311,7 @@ Invariant across themes.
 | `--font-weight-normal` | `400` | Body text |
 | `--font-weight-semibold` | `600` | Labels, headings, emphasis |
 
-> In `tokens.css` (F009-T0). The former `font-weight: bold` (700) in `KanbanCard` was unified to `--font-weight-semibold`.
+> In `tokens.css`. The former `font-weight: bold` (700) in `KanbanCard` was unified to `--font-weight-semibold`.
 
 ### Line Height
 
@@ -321,7 +321,7 @@ Invariant across themes.
 | `--line-height-base` | `1.5` | Body text, forms (global default) |
 | `--line-height-relaxed` | `1.6` | Modal reading text |
 
-> In `tokens.css` and applied in component CSS (F009-T0).
+> In `tokens.css` and applied in component CSS.
 
 ### Letter Spacing
 
@@ -329,7 +329,7 @@ Invariant across themes.
 |---|---|---|
 | `--letter-spacing-wide` | `0.05em` | Uppercase section labels |
 
-> In `tokens.css` and applied in component CSS (F009-T0).
+> In `tokens.css` and applied in component CSS.
 
 ---
 
@@ -415,8 +415,7 @@ with `Read` or `Grep` directly.
 
 ## Tokens Not Yet in tokens.css
 
-All previously pending tokens were added to `tokens.css` in F009-T0. `tokens.css` is now in full
-sync with this document. New tokens go to `tokens.css` and this file together.
+`tokens.css` is now in full sync with this document. New tokens go to `tokens.css` and this file together.
 
 ---
 
@@ -448,7 +447,7 @@ sync with this document. New tokens go to `tokens.css` and this file together.
   `ValidationStatus`, not in the panel itself — the panel is hidden when there are no findings.
 - Theme toggle in header: a `ThemeSwitcher` select with Light/Dark options sets `data-theme` on
   `<html>`. OS preference is respected on initial load; the toggle overrides it explicitly.
-- Token sync complete (F009-T0, updated for Agent Manifesto parent): radii now use
+- Token sync complete (updated for Agent Manifesto parent): radii now use
   sm=10px/md=16px/lg=20px plus `--radius-pill`; all typography, spacing, and desktop layout
   tokens are present; component CSS references tokens rather than literals.
 - Update this file when an accepted specification or implemented UI establishes a durable pattern.

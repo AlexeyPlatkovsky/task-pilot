@@ -37,7 +37,6 @@ under `docs/specs/` supersede them where they conflict.
 | F006 | advanced-views | ✅ implemented | 5 | 6 | 6 | Phase 5 — Better views |
 | F007 | git-helpers | ⏳ planned | 5 | 5 | 5 | Phase 6 — Git helpers |
 | F008 | mcp-adapter | ⏳ planned | 6 | 7 | 5 | Phase 7 — MCP adapter |
-| F009 | od-design-prototypes | ⏳ planned | 11 | 15 | 7 | Design gate — OD prototypes before UI implementation |
 
 ## Decision Log
 
