@@ -6,7 +6,8 @@ description: Implements an explicitly approved TaskPilot instruction-system chan
 # Maintain Instruction System
 
 1. Read `AGENTS.md`, `.claude/skills/manager/SKILL.md`, directly affected runtime artifacts, and
-   the applicable standards under `.manifesto/conventions/`.
+   `.claude/conventions/documentation-quality.md`, plus the applicable standards under
+   `.manifesto/conventions/`.
 2. Restate the approved change, affected authority owners, and expected output contracts.
 3. Modify only the smallest coherent set of root, manager, pipeline, skill, agent, convention,
    adapter, or AI-reference files.

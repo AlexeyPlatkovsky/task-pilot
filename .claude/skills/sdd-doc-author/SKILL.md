@@ -14,12 +14,14 @@ description: Authors or updates a single main or extension document in a docs/ S
 
 ## Required Environment
 
-This skill ships in the SDD bundle and depends on two files that travel with it:
+This skill ships in the SDD bundle and depends on these files:
 - the `sdd-doc-set` convention (document ownership, tiers, extension-doc vocabulary,
   split rule, ID scheme) — the authority for every decision below;
+- `.claude/conventions/documentation-quality.md` for gap disclosure, evidence boundaries, and
+  assumptions in project documents;
 - the matching template under the bundle's `templates/docs/`.
 
-If either is unavailable, report it as a blocker before writing.
+If any required file is unavailable, report it as a blocker before writing.
 
 ## Inputs
 

@@ -5,7 +5,8 @@ description: Creates or refines an implementation-ready TaskPilot specification 
 
 # Specification-Driven Development
 
-Read `references/spec-template.md` and the relevant sections of `.claude/docs/README.md`.
+Read `references/spec-template.md`, `.claude/conventions/documentation-quality.md`, and the
+relevant sections of `.claude/docs/README.md`.
 
 1. Inspect the concept, related specs and decisions, affected code, and tests.
 2. State the user outcome, current behavior, boundaries, and non-goals.

@@ -5,7 +5,8 @@ description: Synchronizes TaskPilot specifications, decisions, guides, commands,
 
 # Maintain Documentation
 
-Read `.claude/conventions/reference-docs.md`.
+Read `.claude/conventions/reference-docs.md` and
+`.claude/conventions/documentation-quality.md`.
 
 1. Inspect the actual diff and completed behavior.
 2. Find authoritative documentation roots through `.claude/docs/README.md`.

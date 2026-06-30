@@ -17,9 +17,11 @@ description: Scaffolds or updates one feature folder (requirements, tasks, scena
 
 This skill ships in the SDD bundle and depends on files that travel with it:
 - the `sdd-doc-set` convention (feature-folder schema, ID scheme, traceability spine);
+- `.claude/conventions/documentation-quality.md` for gap disclosure, evidence boundaries, and
+  assumptions in project documents;
 - the feature templates under the bundle's `templates/features/F000_template/`.
 
-If either is unavailable, report it as a blocker before writing.
+If any required file is unavailable, report it as a blocker before writing.
 
 ## Inputs
 
