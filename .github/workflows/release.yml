@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feat/F009-release-automation
       - feat/*
   pull_request:
     paths:
