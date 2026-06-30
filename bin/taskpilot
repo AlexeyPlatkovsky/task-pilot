@@ -125,6 +125,45 @@ function validatePython(pythonCmd) {
 }
 
 // ---------------------------------------------------------------------------
+// T4: Runtime cache
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the Python major.minor version string.
+ */
+function getPythonVersion(pythonCmd) {
+  const output = execSync(
+    `"${pythonCmd}" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"`,
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+  ).trim();
+  return output;
+}
+
+/**
+ * Get the base cache directory for TaskPilot runtimes.
+ * Uses XDG/standard cache locations per platform.
+ */
+function getCacheDir() {
+  if (process.platform === "win32") {
+    const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+    return path.join(localAppData, "taskpilot", "Cache");
+  }
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Caches", "taskpilot");
+  }
+  const xdg = process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+  return path.join(xdg, "taskpilot");
+}
+
+/**
+ * Get the versioned runtime path.
+ * Keyed by npm version and Python major.minor version.
+ */
+function getRuntimePath(npmVersion, pythonVersion) {
+  return path.join(getCacheDir(), "runtimes", `npm-${npmVersion}`, `py${pythonVersion}`);
+}
+
+// ---------------------------------------------------------------------------
 // Command handling
 // ---------------------------------------------------------------------------
 
@@ -148,9 +187,11 @@ function main() {
 
   // --- resolve python ---
   const python = discoverPython();
-  process.stderr.write(`taskpilot: using Python: ${python}\n`);
+  const pyVersion = getPythonVersion(python);
+  const runtimePath = getRuntimePath(packageJson.version, pyVersion);
 
-  // TODO: F009-T4 runtime cache setup
+  process.stderr.write(`taskpilot: runtime path: ${runtimePath}\n`);
+
   // TODO: F009-T5 dependency installation
   // TODO: F009-T7 delegate to Python
 
