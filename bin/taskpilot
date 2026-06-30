@@ -210,25 +210,17 @@ function ensureRuntime(pythonCmd, runtimePath) {
         // runtimePath itself exists but lockFile doesn't — retry as top-level
         return ensureRuntime(pythonCmd, runtimePath);
       }
-      // Lock exists — wait for the other process to finish
+      // Lock exists — poll until released (do NOT rmdir — it may belong to the owner)
       process.stderr.write("taskpilot: waiting for another setup to finish...\n");
       const deadline = Date.now() + 120000; // 2 minutes
-      while (Date.now() < deadline) {
-        try {
-          fs.rmdirSync(lockFile);
-          // Lock released — check if venv is now ready
-          break;
-        } catch (e) {
-          if (e.code !== "ENOENT") {
-            // Lock still held, spin briefly
-            const spinEnd = Date.now() + 500;
-            while (Date.now() < spinEnd) { /* wait */ }
-          }
+      while (fs.existsSync(lockFile)) {
+        if (Date.now() >= deadline) {
+          fail("Timed out waiting for runtime setup. Try again or run: taskpilot doctor --rebuild-runtime");
         }
+        const spinEnd = Date.now() + 500;
+        while (Date.now() < spinEnd) { /* poll interval */ }
       }
-      if (fs.existsSync(lockFile)) {
-        fail("Timed out waiting for runtime setup. Try again or run: taskpilot doctor --rebuild-runtime");
-      }
+      // Lock released — check if venv is now ready
       if (fs.existsSync(venvPy)) {
         try {
           execSync(`"${venvPy}" -c "import fastapi"`, {
@@ -238,7 +230,9 @@ function ensureRuntime(pythonCmd, runtimePath) {
           process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
           return venvPy;
         } catch {
-          // Corrupted — fall through to rebuild
+          // Corrupted — fall through to rebuild it
+          process.stderr.write("taskpilot: cached runtime is corrupted, rebuilding...\n");
+          deletePartialCache(runtimePath);
         }
       }
       // Re-acquire lock and rebuild
@@ -441,7 +435,9 @@ function delegateToPython(venvPy, webDist, args) {
     });
 
     if (signal) {
-      process.kill(process.pid, signal);
+      // Child was killed by a signal; exit with convention 128+N
+      const sigNum = { SIGINT: 2, SIGTERM: 15, SIGHUP: 1 }[signal] || 1;
+      process.exit(128 + sigNum);
     }
     process.exit(code || 0);
   });

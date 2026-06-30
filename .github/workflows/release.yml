@@ -89,7 +89,7 @@ jobs:
         run: |
           mkdir -p /tmp/smoke-workspace
           cd /tmp/smoke-workspace
-          TASKPILOT_PYTHON=$(which python3) taskpilot serve &
+          TASKPILOT_PYTHON=$(python3 -c "import sys; print(sys.executable)") taskpilot serve &
           PID=$!
 
           # Retry health check up to 15 seconds
@@ -157,7 +157,7 @@ jobs:
         run: |
           mkdir -p /tmp/smoke-workspace
           cd /tmp/smoke-workspace
-          TASKPILOT_PYTHON=$(which python3 2>/dev/null || which python 2>/dev/null) taskpilot serve &
+          TASKPILOT_PYTHON=$(python -c "import sys; print(sys.executable)") taskpilot serve &
           PID=$!
 
           healthy=false
