@@ -326,6 +326,72 @@ describe("ItemListView", () => {
     expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3", "VP-4"]);
   });
 
+  it("filters rows by created time range", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Recent creation",
+            created_at: "2026-06-25T10:00:00Z",
+            updated_at: "2026-06-25T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Old creation",
+            created_at: "2026-05-20T10:00:00Z",
+            updated_at: "2026-06-25T10:00:00Z",
+          }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await selectFilterOption(user, "Created", "Last 7 days");
+
+    expect(screen.getByText("Recent creation")).toBeInTheDocument();
+    expect(screen.queryByText("Old creation")).not.toBeInTheDocument();
+  });
+
+  it("combines updated and created range filters", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItemListView
+        items={[
+          makeItem({
+            id: "VP-1",
+            title: "Both recent",
+            created_at: "2026-06-25T10:00:00Z",
+            updated_at: "2026-06-25T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-2",
+            title: "Old created",
+            created_at: "2026-05-20T10:00:00Z",
+            updated_at: "2026-06-25T10:00:00Z",
+          }),
+          makeItem({
+            id: "VP-3",
+            title: "Old updated",
+            created_at: "2026-06-25T10:00:00Z",
+            updated_at: "2026-05-20T10:00:00Z",
+          }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    await selectFilterOption(user, "Created", "Last 7 days");
+    await selectFilterOption(user, "Updated", "Last 7 days");
+
+    expect(screen.getByText("Both recent")).toBeInTheDocument();
+    expect(screen.queryByText("Old created")).not.toBeInTheDocument();
+    expect(screen.queryByText("Old updated")).not.toBeInTheDocument();
+  });
+
   it("renders a selected filter menu below the filter control", async () => {
     const user = userEvent.setup();
     render(
@@ -357,10 +423,9 @@ describe("ItemListView", () => {
     for (const field of screen.getAllByTestId("item-list-filter-field")) {
       expect(field).toHaveAttribute("data-layout", "inline");
     }
-    expect(screen.getByTestId("item-list-filter-actions")).toHaveAttribute(
-      "data-position",
-      "trailing",
-    );
+    expect(
+      screen.getByRole("button", { name: "Clear filters" }),
+    ).toBeInTheDocument();
   });
 
   it("clears all active filters and restores the default list", async () => {
@@ -394,6 +459,7 @@ describe("ItemListView", () => {
     await selectFilterOption(user, "Status", "Done");
     await selectFilterOption(user, "Priority", "High");
     await selectFilterOption(user, "Updated", "Last 7 days");
+    await selectFilterOption(user, "Created", "Last 7 days");
     expect(visibleRowIds()).toEqual(["VP-1"]);
 
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
@@ -410,6 +476,9 @@ describe("ItemListView", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Updated: Any time" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Created: Any time" }),
     ).toBeInTheDocument();
   });
 

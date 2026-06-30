@@ -8,13 +8,22 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import type { ItemSummary } from "../types";
-import { ITEM_TYPES, PRIORITIES, WORKFLOW_STATUSES } from "../types";
+import { WORKFLOW_STATUSES } from "../types";
 import {
   PRIORITY_LABELS,
   STATUS_LABELS,
   TYPE_LABELS,
 } from "../types/labels";
 import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
+import { FilterBar } from "./FilterBar";
+import {
+  isWithinTimeRange,
+  TYPE_FILTER_OPTIONS,
+  PRIORITY_FILTER_OPTIONS,
+  UPDATED_FILTER_OPTIONS,
+  CREATED_FILTER_OPTIONS,
+  type TimeRange,
+} from "./filters";
 import styles from "./ItemListView.module.css";
 
 interface Props {
@@ -23,26 +32,20 @@ interface Props {
   now?: Date;
 }
 
-type TimeRange = "all" | "last_7_days" | "last_14_days" | "last_30_days";
-
 interface Filters {
   status: string;
   type: string;
   priority: string;
   timeRange: TimeRange;
+  createdRange: TimeRange;
 }
-
-const TIME_RANGE_DAYS: Record<Exclude<TimeRange, "all">, number> = {
-  last_7_days: 7,
-  last_14_days: 14,
-  last_30_days: 30,
-};
 
 const DEFAULT_FILTERS: Filters = {
   status: "",
   type: "",
   priority: "",
   timeRange: "all",
+  createdRange: "all",
 };
 
 const STATUS_FILTER_OPTIONS: DropdownOption[] = [
@@ -51,29 +54,6 @@ const STATUS_FILTER_OPTIONS: DropdownOption[] = [
     value: status,
     label: STATUS_LABELS[status],
   })),
-];
-
-const TYPE_FILTER_OPTIONS: DropdownOption[] = [
-  { value: "", label: "All types" },
-  ...ITEM_TYPES.map((type) => ({
-    value: type,
-    label: TYPE_LABELS[type],
-  })),
-];
-
-const PRIORITY_FILTER_OPTIONS: DropdownOption[] = [
-  { value: "", label: "All priorities" },
-  ...PRIORITIES.map((priority) => ({
-    value: priority,
-    label: PRIORITY_LABELS[priority],
-  })),
-];
-
-const UPDATED_FILTER_OPTIONS: DropdownOption<TimeRange>[] = [
-  { value: "all", label: "Any time" },
-  { value: "last_7_days", label: "Last 7 days" },
-  { value: "last_14_days", label: "Last 14 days" },
-  { value: "last_30_days", label: "Last 30 days" },
 ];
 
 function formatDate(value: string | null | undefined): string {
@@ -91,26 +71,6 @@ function labelFor(
     return "Unknown";
   }
   return labels[value] ?? value;
-}
-
-function isWithinTimeRange(
-  item: ItemSummary,
-  timeRange: TimeRange,
-  now: Date,
-): boolean {
-  if (timeRange === "all") {
-    return true;
-  }
-  if (!item.updated_at) {
-    return false;
-  }
-  const updated = new Date(item.updated_at);
-  if (Number.isNaN(updated.getTime())) {
-    return false;
-  }
-  const days = TIME_RANGE_DAYS[timeRange];
-  const earliest = now.getTime() - days * 24 * 60 * 60 * 1000;
-  return updated.getTime() >= earliest && updated.getTime() <= now.getTime();
 }
 
 function sortStateLabel(sortState: false | "asc" | "desc"): string {
@@ -158,7 +118,8 @@ export function ItemListView({
     filters.status !== DEFAULT_FILTERS.status ||
     filters.type !== DEFAULT_FILTERS.type ||
     filters.priority !== DEFAULT_FILTERS.priority ||
-    filters.timeRange !== DEFAULT_FILTERS.timeRange;
+    filters.timeRange !== DEFAULT_FILTERS.timeRange ||
+    filters.createdRange !== DEFAULT_FILTERS.createdRange;
 
   const filteredItems = useMemo(
     () =>
@@ -172,7 +133,13 @@ export function ItemListView({
         if (filters.priority && item.priority !== filters.priority) {
           return false;
         }
-        return isWithinTimeRange(item, filters.timeRange, filterNow);
+        if (!isWithinTimeRange(item, filters.timeRange, "updated_at", filterNow)) {
+          return false;
+        }
+        if (!isWithinTimeRange(item, filters.createdRange, "created_at", filterNow)) {
+          return false;
+        }
+        return true;
       }),
     [filters, items, filterNow],
   );
@@ -256,10 +223,11 @@ export function ItemListView({
 
   return (
     <>
-      <div
-        className={styles.filterBar}
-        aria-label="List filters"
-        data-test-id="item-list-filters"
+      <FilterBar
+        hasActiveFilters={hasActiveFilters}
+        onClear={() => setFilters(DEFAULT_FILTERS)}
+        ariaLabel="List filters"
+        dataTestId="item-list-filters"
       >
         <DropdownSelect
           id="item-list-filter-status"
@@ -303,24 +271,17 @@ export function ItemListView({
           }
         />
 
-        <div
-          className={styles.filterActions}
-          data-test-id="item-list-filter-actions"
-          data-position="trailing"
-        >
-          <button
-            className={styles.clearButton}
-            type="button"
-            disabled={!hasActiveFilters}
-            onClick={() => {
-              setFilters(DEFAULT_FILTERS);
-            }}
-            aria-label="Clear filters"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
+        <DropdownSelect
+          id="item-list-filter-created"
+          label="Created"
+          value={filters.createdRange}
+          options={CREATED_FILTER_OPTIONS}
+          fieldDataTestId="item-list-filter-field"
+          onChange={(createdRange) =>
+            setFilters((current) => ({ ...current, createdRange }))
+          }
+        />
+      </FilterBar>
 
       {filteredItems.length === 0 ? (
         <div
