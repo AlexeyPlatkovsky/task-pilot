@@ -8,8 +8,24 @@
 
 ## Next Release Roadmap
 
-Goal: polish the advanced WebUI views enough for daily use, then make releases repeatable through
-an automated npm publishing workflow.
+Goal: polish the advanced WebUI views enough for daily use, then make the first release
+repeatable through an npm-distributed CLI package.
+
+Prerequisites and gaps:
+- The Board date filter contract is `updated_at` time range parity with List view, using `Any time`,
+  `Last 7 days`, `Last 14 days`, and `Last 30 days`. `created_at` filtering is out of scope for
+  this release unless a later spec adds it.
+- The Tree view item below is discovery first. Tree implementation is not ready to start until the
+  interaction contract, metadata, invalid-parent behavior, and expansion persistence decisions are
+  documented.
+- The release package target is the unscoped npm CLI package `taskpilot`. The current WebUI package
+  is private and named `web`, so release work must create clean npm package metadata/staging rather
+  than publishing the current `web/package.json` package as-is.
+- The npm package bundles Python source and built WebUI assets. It requires user Python `>=3.11`
+  with `venv` and `pip`, then lazily creates a user-cache runtime from a bundled
+  `requirements.lock`.
+- The current GitHub workflow is pull-request CI only. Release automation needs two-stage publish:
+  dry-run first, then manual approval before real npm publish.
 
 ### 1. Board Filter Bar
 
@@ -17,16 +33,17 @@ Add a Board view filter bar that matches the List view filter bar sizing, spacin
 behavior, and visual style.
 
 Scope:
-- filters: type, date, priority;
-- date filter follows the List view time-range model unless a future spec defines a separate board
-  date contract;
+- filters: type, updated time range, priority;
+- updated time range follows the List view `updated_at` model: `Any time`, `Last 7 days`,
+  `Last 14 days`, and `Last 30 days`;
 - Clear resets all Board filters to their defaults and restores every board card;
 - filtered empty columns remain visible and stable.
 
 Acceptance:
 - Board filters use the same shared dropdown selector pattern as List filters.
 - Filtering by type and priority hides non-matching cards without changing item status or order.
-- Filtering by date uses the same local, deterministic reference-time behavior as List filters.
+- Filtering by updated time range uses the same local, deterministic reference-time behavior as
+  List filters.
 - Component, functional E2E, and browser-contract coverage prove option coverage, reset behavior,
   filtered-empty state, and layout consistency with List filters.
 
@@ -62,24 +79,51 @@ Acceptance for discovery:
   code changes.
 - Keep Tree view derived from `parent_id`; do not introduce stored reverse links.
 
-### 4. Automated Release Pipeline
+Implementation gate:
+- Do not implement Tree view changes until discovery is accepted.
+- After discovery, create a separate implementation slice with explicit acceptance criteria for
+  node rendering, keyboard interaction, invalid hierarchy states, view-switch behavior, and browser
+  layout evidence.
 
-Create a repeatable release workflow with version bumping and npm publishing after the UI polish
-items are accepted.
+### 4. Release Automation
+
+Create a repeatable npm-first release workflow after the UI polish items are accepted. The release
+artifact is a global npm CLI package named `taskpilot` that wraps the bundled Python
+implementation and packaged WebUI assets.
 
 Scope:
-- define package ownership and publish target before enabling npm release;
-- add a version bump command or workflow step with deterministic changelog/release notes;
-- run tests, lint, build, and relevant browser checks before publish;
-- publish only from an intentional release trigger, not from every push.
+- assemble a clean npm staging directory with package metadata, wrapper files, Python source,
+  `requirements.lock`, and built WebUI assets;
+- require `package.json` and `pyproject.toml` versions to match;
+- require a committed `CHANGELOG.md` entry for the target version;
+- support `npm install -g taskpilot` as the first install path; pnpm, yarn, and `npx` are out of
+  scope for the first release;
+- run the full current quality suite before publish, with full checks on macOS and CLI/WebUI asset
+  smoke checks on Windows and Ubuntu;
+- publish only after npm dry-run succeeds and a maintainer manually approves real publish.
 
 Acceptance:
-- The release workflow fails before publish if validation, tests, lint, build, or package metadata
-  checks fail.
-- Version bump and npm publish steps are auditable in CI logs.
-- Dry-run evidence is captured before the first real npm publication.
-- Release documentation explains credentials, trigger path, rollback expectations, and local
-  verification.
+- The release workflow blocks publish if the npm package name is not `taskpilot`, if package name
+  availability is unresolved, if versions mismatch, if the target changelog entry is missing, or if
+  any required quality gate fails.
+- First-run setup discovers Python via `TASKPILOT_PYTHON` or common commands, rejects incompatible
+  Python with specific errors, and creates a user-cache runtime keyed by npm version and Python
+  major/minor.
+- Setup failure deletes the partial cache and reports a concise error, setup log path, last 20-50
+  lines of `pip` output, and exact offline/setup instructions.
+- `taskpilot --version` works without runtime setup, and `taskpilot doctor --rebuild-runtime`
+  rebuilds the runtime cache before delegating to Python.
+- Packaged `taskpilot serve` starts API routes even when WebUI assets are missing; the WebUI route
+  shows a clear packaging error.
+- Release documentation explains npm-only support, credentials, approval, setup logs, offline
+  failure recovery, cache rebuild, and rollback by `npm deprecate` plus a corrected version.
+
+Open questions after first npm release:
+- Should `npx`, pnpm, or yarn become supported install paths?
+- Should a future release include a managed Python runtime or vendored wheels for fully offline
+  fresh installs?
+- After the manual approval flow is proven, should a future release trigger use tag push, GitHub
+  Release creation, or another explicit release command?
 
 ## Alpha Scope
 
