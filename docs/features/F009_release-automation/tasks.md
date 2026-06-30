@@ -12,7 +12,7 @@
 | F009-T8 | Add server behavior for missing or unreadable packaged WebUI assets: API continues and WebUI route reports packaging error | F009-R8 | ✅ done | F009-T7 |
 | F009-T9 | Add release preflight for matching `package.json`/`pyproject.toml` versions and target-version `CHANGELOG.md` entry | F009-R9 | ✅ done | F009-T1 |
 | F009-T10 | Wire full release quality gates: Python tests/lint/format, WebUI tests, browser contract, functional E2E, WebUI build, package build, and npm dry-run | F009-R9, F009-R10 | ✅ done | F009-T2, F009-T9 |
-| F009-T11 | Add two-stage release workflow with required dry-run, manual approval, credentials check, and real npm publish | F009-R10 | ⏳ todo | F009-T10 |
+| F009-T11 | Add two-stage release workflow with required dry-run, manual approval, credentials check, and real npm publish | F009-R10 | ✅ done | F009-T10 |
 | F009-T12 | Add macOS full-check release validation and Windows/Ubuntu npm global install plus CLI/WebUI smoke checks | F009-R11 | ⏳ todo | F009-T10 |
 | F009-T13 | Document install path, npm-only support, Python prerequisite, cache/log locations, offline recovery, rebuild command, approval, credentials, and npm deprecate rollback | F009-R12 | ⏳ todo | F009-T11, F009-T12 |
 
