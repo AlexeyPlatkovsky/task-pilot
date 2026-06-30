@@ -4,10 +4,10 @@
   "description": "Local-first, file-based task management. Markdown/YAML files are the source of truth.",
   "license": "SEE LICENSE IN LICENSE",
   "bin": {
-    "taskpilot": "./bin/taskpilot"
+    "taskpilot": "bin/taskpilot"
   },
   "files": [
-    "bin/",
+    "bin/taskpilot",
     "src/",
     "web-dist/",
     "requirements.lock",
@@ -19,12 +19,12 @@
     "build:staging": "bash scripts/release/build-staging.sh",
     "quality-gates": "bash scripts/release/quality-gates.sh",
     "release:dry-run": "bash scripts/release/publish.sh --dry-run",
-    "release:publish": "bash scripts/release/publish.sh",
+    "release:publish": "bash scripts/release/publish.sh --publish",
     "release": "npm run preflight && npm run quality-gates && npm run release:dry-run && npm run release:publish"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/anomalyco/task-pilot"
+    "url": "git+https://github.com/anomalyco/task-pilot.git"
   },
   "private": false
 }

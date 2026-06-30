@@ -11,17 +11,25 @@
  */
 
 const { spawn, execSync } = require("child_process");
+const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
 
 const WRAPPER = path.resolve(__dirname, "taskpilot");
+const TEST_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "taskpilot-wrapper-test-"));
 
 function run(args, env, opts) {
   return new Promise((resolve) => {
     const child = spawn("node", [WRAPPER, ...args], {
       stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, ...env },
+      env: {
+        ...process.env,
+        XDG_CACHE_HOME: path.join(TEST_HOME, "xdg-cache"),
+        LOCALAPPDATA: path.join(TEST_HOME, "local-app-data"),
+        ...env,
+      },
       ...opts,
     });
     let stdout = "";
@@ -36,26 +44,84 @@ function run(args, env, opts) {
 }
 
 let testPython = null;
+let testPythonExecutable = null;
+function pythonIsUsable(cmd) {
+  try {
+    const ver = execSync(
+      `"${cmd}" -c "import sys; print(sys.version_info[:2])"`,
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+    ).trim();
+    const match = ver.match(/\((\d+),\s*(\d+)\)/);
+    if (!match || (parseInt(match[1]) === 3 && parseInt(match[2]) < 11) || parseInt(match[1]) < 3) {
+      return false;
+    }
+    execSync(`"${cmd}" -m venv --help`, {
+      encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+    });
+    execSync(`"${cmd}" -m pip --version`, {
+      encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function pythonExecutable(cmd) {
+  return execSync(
+    `"${cmd}" -c "import sys; print(sys.executable)"`,
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+  ).trim();
+}
+
+function writeFakeCommand(dir, name, content) {
+  const fileName = process.platform === "win32" ? `${name}.cmd` : name;
+  const filePath = path.join(dir, fileName);
+  fs.writeFileSync(filePath, content);
+  if (process.platform !== "win32") {
+    fs.chmodSync(filePath, 0o755);
+  }
+  return filePath;
+}
+
+function makeFallbackPythonPath(realPython) {
+  const fakeBin = fs.mkdtempSync(path.join(TEST_HOME, "fake-python-path-"));
+  if (process.platform === "win32") {
+    writeFakeCommand(
+      fakeBin,
+      "python3",
+      '@echo off\r\nif "%1"=="-c" (echo 3.10.0 & exit /b 0)\r\necho old python should not be used 1>&2\r\nexit /b 1\r\n'
+    );
+    writeFakeCommand(fakeBin, "python", '@echo off\r\n"%TASKPILOT_TEST_REAL_PYTHON%" %*\r\nexit /b %ERRORLEVEL%\r\n');
+  } else {
+    writeFakeCommand(
+      fakeBin,
+      "python3",
+      '#!/usr/bin/env bash\nif [ "$1" = "-c" ]; then echo "3.10.0"; exit 0; fi\necho "old python should not be used" >&2\nexit 1\n'
+    );
+    writeFakeCommand(
+      fakeBin,
+      "python",
+      '#!/usr/bin/env node\nconst { spawnSync } = require("child_process");\nconst result = spawnSync(process.env.TASKPILOT_TEST_REAL_PYTHON, process.argv.slice(2), { stdio: "inherit" });\nprocess.exit(result.status ?? 1);\n'
+    );
+  }
+  return fakeBin;
+}
+
 try {
   const override = process.env.TASKPILOT_PYTHON;
   if (override) {
-    execSync(`"${override}" -c "import sys; print(sys.version_info[:2])"`, {
-      encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
-    });
-    testPython = override;
+    if (pythonIsUsable(override)) {
+      testPython = override;
+      testPythonExecutable = pythonExecutable(override);
+    }
   } else {
-    for (const cmd of ["python3", "python"]) {
-      try {
-        const ver = execSync(
-          `"${cmd}" -c "import sys; print(sys.version_info[:2])"`,
-          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
-        ).trim();
-        const match = ver.match(/\((\d+),\s*(\d+)\)/);
-        if (match && (parseInt(match[1]) > 3 || (parseInt(match[1]) === 3 && parseInt(match[2]) >= 11))) {
-          testPython = cmd;
-          break;
-        }
-      } catch { /* not found */ }
+    for (const cmd of ["python3", "python", "python3.14", "python3.13", "python3.12", "python3.11"]) {
+      if (pythonIsUsable(cmd)) {
+        testPython = cmd;
+        testPythonExecutable = pythonExecutable(cmd);
+        break;
+      }
     }
   }
 } catch { /* no Python */ }
@@ -96,6 +162,18 @@ describe("Python discovery", () => {
       `stderr: ${stderr}`
     );
     assert.ok(!stderr.includes("Could not find a Python interpreter"));
+  });
+
+  it("skips incompatible python3 and falls back to compatible python", { skip: !hasPython }, async () => {
+    const fakeBin = makeFallbackPythonPath(testPythonExecutable);
+    const { code, stdout, stderr } = await run(["--help"], {
+      PATH: `${fakeBin}${path.delimiter}${process.env.PATH}`,
+      TASKPILOT_PYTHON: "",
+      TASKPILOT_TEST_REAL_PYTHON: testPythonExecutable,
+    });
+    assert.strictEqual(code, 0, `stderr: ${stderr}`);
+    assert.ok(stdout.includes("TaskPilot — local-first"), `stdout: ${stdout}`);
+    assert.ok(!stderr.includes("old python should not be used"), `stderr: ${stderr}`);
   });
 });
 

@@ -46,7 +46,7 @@ npm install -g taskpilot
 
 The first run sets up a Python runtime environment in your user cache directory
 (keyed by TaskPilot npm version and Python major.minor version). Subsequent runs
-reuse the cached environment and are fast. Setup logs are written to
+reuse the cached environment and are fast. During setup, logs are written to
 `<cache>/runtimes/npm-<version>/py<major.minor>/setup.log`.
 
 **Specifying a Python interpreter:**
@@ -73,6 +73,8 @@ setup requires network access to install Python dependencies from the bundled
 
 If setup fails:
 - The partial cache is deleted automatically.
+- The setup log is preserved at
+  `<cache>/runtimes/npm-<version>/py<major.minor>.setup.log`.
 - The setup log path and last 20-40 lines of `pip` output are printed.
 - For network failures, the error includes instructions to connect and retry.
 - For other failures, run `taskpilot doctor --rebuild-runtime` to retry.

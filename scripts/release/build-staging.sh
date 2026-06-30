@@ -42,6 +42,8 @@ cp -R "$WEB_DIST"/* "$STAGING/web-dist/"
 echo "Copying Python source..." >&2
 mkdir -p "$STAGING/src"
 cp -R "$PROJECT_ROOT/src/taskpilot" "$STAGING/src/"
+find "$STAGING/src" -type d -name "__pycache__" -prune -exec rm -rf {} +
+find "$STAGING/src" -type f -name "*.pyc" -delete
 
 # --- copy npm package files ---
 echo "Copying package files..." >&2

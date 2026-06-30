@@ -53,10 +53,16 @@ run_check() {
   fi
 }
 
+npm_publish_dry_run_from_staging() {
+  (cd "$PROJECT_ROOT/staging" && npm publish --dry-run)
+}
+
 # --- Python ---
+run_check "Release preflight" bash scripts/release/preflight.sh
 run_check "Python tests" uv run pytest --tb=short -q
 run_check "Python lint" uv run ruff check .
 run_check "Python format" uv run ruff format --check .
+run_check "npm wrapper tests" node --test-timeout 120000 bin/taskpilot.test.js
 
 # --- WebUI ---
 run_check "WebUI unit/component tests" npm --prefix web run test:component
@@ -68,7 +74,7 @@ run_check "WebUI production build" npm --prefix web run build
 run_check "npm package staging build" bash scripts/release/build-staging.sh
 
 # --- npm dry-run ---
-run_check "npm publish dry-run" npm publish --dry-run --prefix "$PROJECT_ROOT/staging"
+run_check "npm publish dry-run" npm_publish_dry_run_from_staging
 
 # --- Summary ---
 echo ""

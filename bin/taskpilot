@@ -36,39 +36,36 @@ function discoverPython() {
   }
 
   const candidates = process.platform === "win32"
-    ? ["python3", "python"]
-    : ["python3", "python"];
+    ? ["python3", "python", "python3.14", "python3.13", "python3.12", "python3.11"]
+    : ["python3", "python", "python3.14", "python3.13", "python3.12", "python3.11"];
+  const errors = [];
 
   for (const cmd of candidates) {
     try {
-      const resolved = execSync(
-        process.platform === "win32"
-          ? `where "${cmd}" 2>nul`
-          : `command -v "${cmd}" 2>/dev/null`,
-        { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
-      ).trim();
-      if (resolved && resolved !== cmd) {
-        validatePython(resolved);
-        return resolved;
-      }
-      // command -v may return the bare name on some shells
-      if (resolved === cmd) {
-        validatePython(cmd);
-        return cmd;
-      }
-    } catch {
-      // not found, try next
+      validatePython(cmd, { fatal: false });
+      return cmd;
+    } catch (err) {
+      errors.push(err.message);
     }
   }
 
   fail(
-    "Could not find a Python interpreter.\n" +
+    "Could not find a compatible Python interpreter.\n" +
     "Install Python >=3.11 with venv and pip, or set TASKPILOT_PYTHON to\n" +
-    "the full path of a compatible Python executable."
+    "the full path of a compatible Python executable." +
+    (errors.length ? "\nChecked candidates:\n- " + errors.join("\n- ") : "")
   );
 }
 
-function validatePython(pythonCmd) {
+function validatePython(pythonCmd, options = {}) {
+  const fatal = options.fatal !== false;
+  function invalid(message) {
+    if (fatal) {
+      fail(message);
+    }
+    throw new Error(message);
+  }
+
   let version;
   try {
     version = execSync(`"${pythonCmd}" -c "import sys; print(sys.version)"`, {
@@ -76,19 +73,19 @@ function validatePython(pythonCmd) {
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
   } catch {
-    fail(`${pythonCmd}: failed to run Python. Check that it is a valid Python executable.`);
+    invalid(`${pythonCmd}: failed to run Python. Check that it is a valid Python executable.`);
   }
 
   const match = version.match(/^(\d+)\.(\d+)/);
   if (!match) {
-    fail(`${pythonCmd}: could not determine Python version (output: ${version})`);
+    invalid(`${pythonCmd}: could not determine Python version (output: ${version})`);
   }
 
   const major = parseInt(match[1], 10);
   const minor = parseInt(match[2], 10);
 
   if (major < 3 || (major === 3 && minor < 11)) {
-    fail(
+    invalid(
       `${pythonCmd}: Python ${major}.${minor} is too old.\n` +
       "TaskPilot requires Python >=3.11. Install a newer Python or set\n" +
       "TASKPILOT_PYTHON to a compatible interpreter."
@@ -102,7 +99,7 @@ function validatePython(pythonCmd) {
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch {
-    fail(
+    invalid(
       `${pythonCmd}: missing venv module.\n` +
       "Install the venv module for your Python distribution\n" +
       "(e.g. 'python3 -m ensurepip && python3 -m pip install virtualenv'\n" +
@@ -117,7 +114,7 @@ function validatePython(pythonCmd) {
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch {
-    fail(
+    invalid(
       `${pythonCmd}: missing pip.\n` +
       "Run 'python3 -m ensurepip' or install pip for your Python distribution."
     );
@@ -272,6 +269,7 @@ function ensureRuntime(pythonCmd, runtimePath) {
   const reqLock = path.join(packageDir, "requirements.lock");
 
   if (!fs.existsSync(reqLock)) {
+    deletePartialCache(runtimePath);
     releaseLock();
     fail(`Bundled requirements.lock not found at ${reqLock}. Package may be incomplete.`);
   }
@@ -288,17 +286,10 @@ function ensureRuntime(pythonCmd, runtimePath) {
       }
     );
   } catch (err) {
+    const failureLog = runtimePath + ".setup.log";
+    const tail = copySetupLogAndTail(setupLog, failureLog);
     deletePartialCache(runtimePath);
     releaseLock();
-
-    let tail = "";
-    try {
-      const logContent = fs.readFileSync(setupLog, "utf8");
-      const lines = logContent.trim().split("\n");
-      tail = lines.slice(-40).join("\n");
-    } catch {
-      tail = "(setup log unavailable)";
-    }
 
     const isOffline =
       (err.stderr || "").includes("Could not connect") ||
@@ -315,13 +306,13 @@ function ensureRuntime(pythonCmd, runtimePath) {
         "Connect to the internet and try again.";
     } else {
       instructions =
-        "\n\nCheck the setup log for details: " + setupLog + "\n" +
+        "\n\nCheck the setup log for details: " + failureLog + "\n" +
         "You can retry by running: taskpilot doctor --rebuild-runtime";
     }
 
     fail(
       `Dependency installation failed.\n` +
-      `Setup log: ${setupLog}\n` +
+      `Setup log: ${failureLog}\n` +
       `--- pip output (last lines) ---\n${tail}\n` +
       `--- end pip output ---` +
       instructions
@@ -331,6 +322,17 @@ function ensureRuntime(pythonCmd, runtimePath) {
   releaseLock();
   process.stderr.write("taskpilot: runtime ready\n");
   return venvPy;
+}
+
+function copySetupLogAndTail(setupLog, failureLog) {
+  try {
+    fs.copyFileSync(setupLog, failureLog);
+    const logContent = fs.readFileSync(failureLog, "utf8");
+    const lines = logContent.trim().split("\n");
+    return lines.slice(-40).join("\n");
+  } catch {
+    return "(setup log unavailable)";
+  }
 }
 
 /**

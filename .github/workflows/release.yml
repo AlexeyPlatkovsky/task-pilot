@@ -71,6 +71,9 @@ jobs:
           python-version: "3.12"
           enable-cache: false
 
+      - name: Install WebUI dependencies
+        run: npm ci --prefix web
+
       - name: Build staging package
         run: bash scripts/release/build-staging.sh
 
@@ -89,6 +92,7 @@ jobs:
         run: |
           mkdir -p /tmp/smoke-workspace
           cd /tmp/smoke-workspace
+          TASKPILOT_PYTHON=$(python3 -c "import sys; print(sys.executable)") taskpilot init . --key SM --name Smoke --id smoke
           TASKPILOT_PYTHON=$(python3 -c "import sys; print(sys.executable)") taskpilot serve &
           PID=$!
 
@@ -107,10 +111,9 @@ jobs:
             exit 1
           fi
 
-          # WebUI route: expect 404 (no TASKPILOT_WEB_DIST set, route not registered)
           web_status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7152/ || echo "000")
-          if [ "$web_status" != "404" ]; then
-            echo "ERROR: WebUI route returned $web_status, expected 404" >&2
+          if [ "$web_status" != "200" ]; then
+            echo "ERROR: WebUI route returned $web_status, expected 200" >&2
             kill $PID 2>/dev/null || true
             exit 1
           fi
@@ -137,6 +140,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install WebUI dependencies
+        run: npm ci --prefix web
+        shell: bash
+
       - name: Build staging package
         run: bash scripts/release/build-staging.sh
         shell: bash
@@ -157,6 +164,7 @@ jobs:
         run: |
           mkdir -p /tmp/smoke-workspace
           cd /tmp/smoke-workspace
+          TASKPILOT_PYTHON=$(python -c "import sys; print(sys.executable)") taskpilot init . --key SM --name Smoke --id smoke
           TASKPILOT_PYTHON=$(python -c "import sys; print(sys.executable)") taskpilot serve &
           PID=$!
 
@@ -175,8 +183,8 @@ jobs:
           fi
 
           web_status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7152/ || echo "000")
-          if [ "$web_status" != "404" ]; then
-            echo "ERROR: WebUI route returned $web_status, expected 404" >&2
+          if [ "$web_status" != "200" ]; then
+            echo "ERROR: WebUI route returned $web_status, expected 200" >&2
             kill $PID 2>/dev/null || true
             exit 1
           fi
