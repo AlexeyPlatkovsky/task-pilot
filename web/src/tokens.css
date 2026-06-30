@@ -152,8 +152,10 @@
     --feedback-error-bg:    #4a1a1f;
     --feedback-warning:     #ffc107;
     --feedback-warning-bg:  #3d2e00;
-    --feedback-success:     #75b798; /* #75b798 on #0f2914 ≈ 6.7:1 — WCAG AA */
+    --feedback-success:     #75b798;
     --feedback-success-bg:  #0f2914;
+
+    --validation-success-muted: #9eaeb8; /* lighter than body text, WCAG AA on dark surface */
   }
 }
 
@@ -253,4 +255,6 @@
   --feedback-warning-bg:  #3d2e00;
   --feedback-success:     #75b798;
   --feedback-success-bg:  #0f2914;
+
+  --validation-success-muted: #7492a5; /* lighter than body text, WCAG AA on light surface */
 }
