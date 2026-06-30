@@ -16,8 +16,10 @@
   "scripts": {
     "preflight": "bash scripts/release/preflight.sh",
     "build:staging": "bash scripts/release/build-staging.sh",
+    "quality-gates": "bash scripts/release/quality-gates.sh",
     "release:dry-run": "bash scripts/release/publish.sh --dry-run",
-    "release:publish": "bash scripts/release/publish.sh"
+    "release:publish": "bash scripts/release/publish.sh",
+    "release": "npm run preflight && npm run quality-gates && npm run release:dry-run && npm run release:publish"
   },
   "repository": {
     "type": "git",

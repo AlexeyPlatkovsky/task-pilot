@@ -59,7 +59,11 @@ def _mount_webui(app: FastAPI) -> None:
 
     if web_dist_path.is_dir() and (web_dist_path / "index.html").is_file():
         # Mount static assets (JS, CSS, SVGs, etc.)
-        app.mount("/assets", StaticFiles(directory=str(web_dist_path / "assets")), name="webui_assets")
+        app.mount(
+            "/assets",
+            StaticFiles(directory=str(web_dist_path / "assets")),
+            name="webui_assets",
+        )
 
         # SPA fallback: serve index.html for all non-API routes
         index_path = web_dist_path / "index.html"
