@@ -14,7 +14,7 @@
 | F009-T10 | Wire full release quality gates: Python tests/lint/format, WebUI tests, browser contract, functional E2E, WebUI build, package build, and npm dry-run | F009-R9, F009-R10 | ✅ done | F009-T2, F009-T9 |
 | F009-T11 | Add two-stage release workflow with required dry-run, manual approval, credentials check, and real npm publish | F009-R10 | ✅ done | F009-T10 |
 | F009-T12 | Add macOS full-check release validation and Windows/Ubuntu npm global install plus CLI/WebUI smoke checks | F009-R11 | ✅ done | F009-T10 |
-| F009-T13 | Document install path, npm-only support, Python prerequisite, cache/log locations, offline recovery, rebuild command, approval, credentials, and npm deprecate rollback | F009-R12 | ⏳ todo | F009-T11, F009-T12 |
+| F009-T13 | Document install path, npm-only support, Python prerequisite, cache/log locations, offline recovery, rebuild command, approval, credentials, and npm deprecate rollback | F009-R12 | ✅ done | F009-T11, F009-T12 |
 
 ## Notes
 
