@@ -3,9 +3,9 @@
 /**
  * TaskPilot npm entry point.
  *
- * This wrapper discovers a compatible Python >=3.11 interpreter, manages a
- * user-cache runtime environment, and delegates CLI commands to the bundled
- * Python implementation.
+ * Discovers a compatible Python >=3.11 interpreter, manages a user-cache
+ * runtime environment, and delegates CLI commands to the bundled Python
+ * implementation.
  *
  * Handled inline (no delegation):
  *   taskpilot --version
@@ -14,21 +14,147 @@
  * All other commands are forwarded to Python with TASKPILOT_WEB_DIST set.
  */
 
+const { execSync } = require("child_process");
+const fs = require("fs");
+const os = require("os");
 const path = require("path");
+
 const packageJson = require("../package.json");
 
-const args = process.argv.slice(2);
+// ---------------------------------------------------------------------------
+// T3: Python discovery
+// ---------------------------------------------------------------------------
 
-if (args.length === 1 && args[0] === "--version") {
-  process.stdout.write(`${packageJson.version}\n`);
-  process.exit(0);
+/**
+ * @returns {string} The resolved Python command path.
+ */
+function discoverPython() {
+  const override = process.env.TASKPILOT_PYTHON;
+  if (override) {
+    validatePython(override);
+    return override;
+  }
+
+  const candidates = process.platform === "win32"
+    ? ["python3", "python"]
+    : ["python3", "python"];
+
+  for (const cmd of candidates) {
+    try {
+      const resolved = execSync(
+        process.platform === "win32"
+          ? `where "${cmd}" 2>nul`
+          : `command -v "${cmd}" 2>/dev/null`,
+        { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+      ).trim();
+      if (resolved && resolved !== cmd) {
+        validatePython(resolved);
+        return resolved;
+      }
+      // command -v may return the bare name on some shells
+      if (resolved === cmd) {
+        validatePython(cmd);
+        return cmd;
+      }
+    } catch {
+      // not found, try next
+    }
+  }
+
+  fail(
+    "Could not find a Python interpreter.\n" +
+    "Install Python >=3.11 with venv and pip, or set TASKPILOT_PYTHON to\n" +
+    "the full path of a compatible Python executable."
+  );
 }
 
-// TODO: F009-T3 Python discovery
-// TODO: F009-T4 runtime cache setup
-// TODO: F009-T5 dependency installation
-// TODO: F009-T6 doctor --rebuild-runtime
-// TODO: F009-T7 delegate to Python
+function validatePython(pythonCmd) {
+  let version;
+  try {
+    version = execSync(`"${pythonCmd}" -c "import sys; print(sys.version)"`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    fail(`${pythonCmd}: failed to run Python. Check that it is a valid Python executable.`);
+  }
 
-process.stderr.write("taskpilot: Python runtime not yet wired (F009 in progress)\n");
-process.exit(1);
+  const match = version.match(/^(\d+)\.(\d+)/);
+  if (!match) {
+    fail(`${pythonCmd}: could not determine Python version (output: ${version})`);
+  }
+
+  const major = parseInt(match[1], 10);
+  const minor = parseInt(match[2], 10);
+
+  if (major < 3 || (major === 3 && minor < 11)) {
+    fail(
+      `${pythonCmd}: Python ${major}.${minor} is too old.\n` +
+      "TaskPilot requires Python >=3.11. Install a newer Python or set\n" +
+      "TASKPILOT_PYTHON to a compatible interpreter."
+    );
+  }
+
+  // Validate venv
+  try {
+    execSync(`"${pythonCmd}" -m venv --help`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    fail(
+      `${pythonCmd}: missing venv module.\n` +
+      "Install the venv module for your Python distribution\n" +
+      "(e.g. 'python3 -m ensurepip && python3 -m pip install virtualenv'\n" +
+      "or install 'python3-venv' via your system package manager)."
+    );
+  }
+
+  // Validate pip (ensurepip bootstraps pip, check it's available)
+  try {
+    execSync(`"${pythonCmd}" -m pip --version`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    fail(
+      `${pythonCmd}: missing pip.\n` +
+      "Run 'python3 -m ensurepip' or install pip for your Python distribution."
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Command handling
+// ---------------------------------------------------------------------------
+
+function fail(message) {
+  process.stderr.write(`taskpilot: ${message}\n`);
+  process.exit(1);
+}
+
+function main() {
+  const args = process.argv.slice(2);
+
+  if (args.length === 1 && args[0] === "--version") {
+    process.stdout.write(`${packageJson.version}\n`);
+    process.exit(0);
+  }
+
+  if (args.length >= 1 && args[0] === "doctor" && args[1] === "--rebuild-runtime") {
+    // TODO: F009-T6
+    fail("doctor --rebuild-runtime: not yet implemented (F009 in progress)");
+  }
+
+  // --- resolve python ---
+  const python = discoverPython();
+  process.stderr.write(`taskpilot: using Python: ${python}\n`);
+
+  // TODO: F009-T4 runtime cache setup
+  // TODO: F009-T5 dependency installation
+  // TODO: F009-T7 delegate to Python
+
+  fail("Python runtime not yet wired (F009 in progress)");
+}
+
+main();
