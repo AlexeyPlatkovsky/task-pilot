@@ -14,7 +14,7 @@
  * All other commands are forwarded to Python with TASKPILOT_WEB_DIST set.
  */
 
-const { execSync } = require("child_process");
+const { execSync, spawn } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -327,9 +327,54 @@ function main() {
   // --- ensure runtime is ready ---
   const venvPy = ensureRuntime(python, runtimePath);
 
-  // TODO: F009-T7 delegate to Python
+  // --- resolve WebUI assets path ---
+  const packageDir = path.resolve(__dirname, "..");
+  const webDist = path.join(packageDir, "web-dist");
 
-  fail("Python runtime not yet wired (F009 in progress)");
+  // --- delegate to Python ---
+  delegateToPython(venvPy, webDist, args);
+}
+
+// ---------------------------------------------------------------------------
+// T7: Delegate to Python
+// ---------------------------------------------------------------------------
+
+/**
+ * Forward all arguments to the bundled Python implementation.
+ * Sets TASKPILOT_WEB_DIST to the staged WebUI assets directory.
+ * Forwards exit code and signals.
+ */
+function delegateToPython(venvPy, webDist, args) {
+  const packageDir = path.resolve(__dirname, "..");
+  const srcDir = path.join(packageDir, "src");
+
+  const child = spawn(
+    venvPy,
+    ["-m", "taskpilot.cli.app", ...args],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        TASKPILOT_WEB_DIST: webDist,
+        PYTHONPATH: srcDir,
+      },
+    }
+  );
+
+  child.on("close", (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+    }
+    process.exit(code || 0);
+  });
+
+  // Forward signals to the child process
+  const signals = ["SIGINT", "SIGTERM", "SIGHUP"];
+  signals.forEach((sig) => {
+    process.on(sig, () => {
+      child.kill(sig);
+    });
+  });
 }
 
 main();
