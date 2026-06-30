@@ -307,9 +307,16 @@ function main() {
     process.exit(0);
   }
 
-  if (args.length >= 1 && args[0] === "doctor" && args[1] === "--rebuild-runtime") {
-    // TODO: F009-T6
-    fail("doctor --rebuild-runtime: not yet implemented (F009 in progress)");
+  if (args.length >= 1 && args[0] === "doctor" && args.includes("--rebuild-runtime")) {
+    const python = discoverPython();
+    const pyVersion = getPythonVersion(python);
+    const runtimePath = getRuntimePath(packageJson.version, pyVersion);
+
+    process.stderr.write(`taskpilot: rebuilding runtime for ${pyVersion}...\n`);
+    deletePartialCache(runtimePath);
+    ensureRuntime(python, runtimePath);
+    process.stderr.write("taskpilot: runtime rebuilt successfully\n");
+    process.exit(0);
   }
 
   // --- resolve python ---
