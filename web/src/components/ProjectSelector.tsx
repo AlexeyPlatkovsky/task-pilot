@@ -1,23 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchProjects } from "../api";
 import { DropdownSelect, type DropdownOption } from "./DropdownSelect";
+import type { ProjectSummary } from "../types";
 import styles from "./ProjectSelector.module.css";
 
 interface Props {
   selectedProjectId: string | null;
   onSelect: (projectId: string) => void;
+  projects?: ProjectSummary[];
 }
 
-export function ProjectSelector({ selectedProjectId, onSelect }: Props) {
+export function ProjectSelector({
+  selectedProjectId,
+  onSelect,
+  projects: projectsProp,
+}: Props) {
   const {
-    data: projects,
+    data: fetchedProjects,
     isLoading,
     error,
     refetch,
   } = useQuery({
     queryKey: ["projects"],
     queryFn: fetchProjects,
+    enabled: !projectsProp,
   });
+
+  const projects = projectsProp ?? fetchedProjects;
 
   if (isLoading) {
     return (

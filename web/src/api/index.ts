@@ -4,4 +4,6 @@ export {
   fetchItem,
   fetchValidationReport,
   updateItem,
+  fetchUIState,
+  patchUIState,
 } from "./client";

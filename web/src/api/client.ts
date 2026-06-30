@@ -4,6 +4,7 @@ import type {
   ItemSummary,
   ItemUpdateInput,
   ProjectSummary,
+  UIState,
   ValidationReport,
 } from "../types";
 
@@ -71,5 +72,18 @@ export async function updateItem(
   return request<ItemDetail>(`/projects/${projectId}/items/${itemId}`, {
     method: "PATCH",
     body: JSON.stringify(input),
+  });
+}
+
+export async function fetchUIState(): Promise<UIState> {
+  return request<UIState>("/ui-state");
+}
+
+export async function patchUIState(
+  lastOpenedProjectId: string | null,
+): Promise<UIState> {
+  return request<UIState>("/ui-state", {
+    method: "PATCH",
+    body: JSON.stringify({ last_opened_project_id: lastOpenedProjectId }),
   });
 }
