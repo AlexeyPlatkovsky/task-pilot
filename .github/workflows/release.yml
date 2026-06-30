@@ -1,17 +1,12 @@
-name: Release Validation
+name: Release
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/*
-      - bugfix/*
-  pull_request:
-    paths:
-      - 'scripts/release/**'
-      - 'bin/**'
-      - 'package.json'
-      - '.github/workflows/release.yml'
+    inputs:
+      version:
+        description: "Version to publish. Must match package.json, pyproject.toml, and CHANGELOG.md."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -48,7 +43,7 @@ jobs:
         run: npx --prefix web playwright install --with-deps chromium
 
       - name: Quality gates
-        run: bash scripts/release/quality-gates.sh
+        run: TASKPILOT_SKIP_NPM_OWNERSHIP=1 bash scripts/release/quality-gates.sh
 
   # ---------------------------------------------------------------------------
   # Ubuntu: smoke checks (npm global install + CLI + WebUI)
@@ -191,3 +186,79 @@ jobs:
 
           kill $PID 2>/dev/null || true
         shell: bash
+
+  # ---------------------------------------------------------------------------
+  # Publish: manual npm publish through trusted publishing
+  # ---------------------------------------------------------------------------
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - macos-full
+      - ubuntu-smoke
+      - windows-smoke
+    environment: npm-beta
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install current npm
+        run: npm install -g npm@latest
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Install WebUI dependencies
+        run: npm ci --prefix web
+
+      - name: Verify release version
+        env:
+          TARGET_VERSION: ${{ inputs.version }}
+        run: |
+          package_version=$(node -e "console.log(require('./package.json').version)")
+          python_version=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+
+          if [ "$TARGET_VERSION" != "$package_version" ]; then
+            echo "ERROR: workflow version ($TARGET_VERSION) does not match package.json ($package_version)" >&2
+            exit 1
+          fi
+
+          if [ "$TARGET_VERSION" != "$python_version" ]; then
+            echo "ERROR: workflow version ($TARGET_VERSION) does not match pyproject.toml ($python_version)" >&2
+            exit 1
+          fi
+
+          if ! grep -q "^## \[$TARGET_VERSION\]" CHANGELOG.md; then
+            echo "ERROR: CHANGELOG.md does not contain a ## [$TARGET_VERSION] section" >&2
+            exit 1
+          fi
+
+      - name: Build staging package
+        run: bash scripts/release/build-staging.sh
+
+      - name: Dry-run npm publish
+        env:
+          NPM_DIST_TAG: beta
+        run: npm publish --dry-run --access public --tag "$NPM_DIST_TAG" --provenance
+        working-directory: staging
+
+      - name: Publish to npm
+        env:
+          NPM_DIST_TAG: beta
+        run: npm publish --access public --tag "$NPM_DIST_TAG" --provenance
+        working-directory: staging

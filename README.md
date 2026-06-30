@@ -91,18 +91,34 @@ to Python.
 
 ## Releasing
 
-### Publishing a new version
+### Publishing a Beta version
 
 1. Update `version` in both `package.json` and `pyproject.toml`.
 2. Add a `## [x.y.z]` section to `CHANGELOG.md`.
-3. Run the quality gates: `npm run quality-gates`
-4. Run the preflight: `npm run preflight`
-5. Stage 1 — dry-run: `npm run release:dry-run`
-6. Stage 2 — real publish: `npm run release:publish`
-   (requires `npm login` and manual confirmation of the package name)
+3. Merge the version/changelog change.
+4. In GitHub Actions, run the **Release** workflow manually.
+5. Enter the exact version.
 
-Real publish cannot run until the dry-run succeeds and the maintainer
-confirms by typing the exact package name.
+The manual workflow runs the full release gate, Ubuntu and Windows package
+smoke checks, rebuilds the staging package, runs `npm publish --dry-run`, then
+publishes to npm with the `beta` dist-tag.
+
+Beta publishing uses npm Trusted Publishing from GitHub Actions. Before the
+first publish, configure the npm package trusted publisher for this repository,
+workflow `.github/workflows/release.yml`, and environment `npm-beta`. The
+publish job requests GitHub's OIDC token through `id-token: write` and does not
+require a long-lived `NPM_TOKEN` secret.
+
+Local publish scripts remain available for emergency/manual verification:
+
+```bash
+npm run quality-gates
+npm run release:dry-run
+npm run release:publish
+```
+
+Local publish scripts also default to the `beta` dist-tag. Set
+`NPM_DIST_TAG=latest` only when intentionally promoting a stable release.
 
 ### Rolling back a bad release
 

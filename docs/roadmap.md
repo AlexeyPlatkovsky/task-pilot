@@ -30,8 +30,8 @@ Prerequisites and gaps:
 - The npm package bundles Python source and built WebUI assets. It requires user Python `>=3.11`
   with `venv` and `pip`, then lazily creates a user-cache runtime from a bundled
   `requirements.lock`.
-- The current GitHub workflow is pull-request CI only. Release automation needs two-stage publish:
-  dry-run first, then manual approval before real npm publish.
+- Beta publishing is manual from GitHub Actions. The workflow validates the release, performs an
+  npm dry-run, and publishes to npm through Trusted Publishing with the `beta` dist-tag.
 - Settings, Git helpers, MCP, advanced relation visualization, import/export, search, hosted sync,
   accounts, and other non-core surfaces should stay out of this release unless already required by
   the item-management path below.
@@ -173,7 +173,7 @@ Scope:
   scope for the first release;
 - run the full current quality suite before publish, with full checks on macOS and CLI/WebUI asset
   smoke checks on Windows and Ubuntu;
-- publish only after npm dry-run succeeds and a maintainer manually approves real publish.
+- publish only from the manual GitHub workflow after npm dry-run succeeds.
 
 Acceptance:
 - The release workflow blocks publish if the npm package name is not `taskpilot`, if package name
@@ -195,8 +195,9 @@ Open questions after first npm release:
 - Should `npx`, pnpm, or yarn become supported install paths?
 - Should a future release include a managed Python runtime or vendored wheels for fully offline
   fresh installs?
-- After the manual approval flow is proven, should a future release trigger use tag push, GitHub
-  Release creation, or another explicit release command?
+- After the manual Beta flow is proven, should a future release trigger use tag push, GitHub
+  Release creation, or another explicit release command, and should it promote to the `latest`
+  npm dist-tag?
 
 ## Release Readiness Review
 

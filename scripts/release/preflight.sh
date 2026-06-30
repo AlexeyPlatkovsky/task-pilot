@@ -8,6 +8,7 @@
 #   2. package.json version matches pyproject.toml version
 #   3. CHANGELOG.md has an entry for the target version
 #   4. npm package name is available or owned by the authenticated npm user
+#      (skipped when TASKPILOT_SKIP_NPM_OWNERSHIP=1; npm publish dry-run remains the auth gate)
 #
 
 set -euo pipefail
@@ -30,26 +31,30 @@ if [ "$PKG_NAME" != "taskpilot" ]; then
 fi
 
 # --- 1b. Package name availability / ownership ---
-NPM_VIEW_ERR="$(mktemp)"
-if npm view "$PKG_NAME" name >/dev/null 2>"$NPM_VIEW_ERR"; then
-  NPM_USER=$(npm whoami 2>/dev/null || echo "")
-  if [ -z "$NPM_USER" ]; then
-    echo "ERROR: npm package '$PKG_NAME' already exists, but npm ownership cannot be verified." >&2
-    echo "Run 'npm login' and retry, or stop if the package is not owned by this project." >&2
-    HAS_ERROR=1
-  elif ! npm owner ls "$PKG_NAME" 2>/dev/null | awk '{print $1}' | grep -qx "$NPM_USER"; then
-    echo "ERROR: npm package '$PKG_NAME' exists and is not owned by authenticated user '$NPM_USER'." >&2
-    echo "Stop and resolve package ownership before publishing." >&2
+if [ "${TASKPILOT_SKIP_NPM_OWNERSHIP:-0}" = "1" ]; then
+  echo "WARN: skipping npm ownership preflight; npm publish dry-run must prove authorization." >&2
+else
+  NPM_VIEW_ERR="$(mktemp)"
+  if npm view "$PKG_NAME" name >/dev/null 2>"$NPM_VIEW_ERR"; then
+    NPM_USER=$(npm whoami 2>/dev/null || echo "")
+    if [ -z "$NPM_USER" ]; then
+      echo "ERROR: npm package '$PKG_NAME' already exists, but npm ownership cannot be verified." >&2
+      echo "Run 'npm login' and retry, or stop if the package is not owned by this project." >&2
+      HAS_ERROR=1
+    elif ! npm owner ls "$PKG_NAME" 2>/dev/null | awk '{print $1}' | grep -qx "$NPM_USER"; then
+      echo "ERROR: npm package '$PKG_NAME' exists and is not owned by authenticated user '$NPM_USER'." >&2
+      echo "Stop and resolve package ownership before publishing." >&2
+      HAS_ERROR=1
+    fi
+  elif grep -q "E404\\|404 Not Found\\|Not found" "$NPM_VIEW_ERR"; then
+    : # Package name appears available for first publish.
+  else
+    echo "ERROR: could not confirm npm package availability for '$PKG_NAME'." >&2
+    cat "$NPM_VIEW_ERR" >&2
     HAS_ERROR=1
   fi
-elif grep -q "E404\\|404 Not Found\\|Not found" "$NPM_VIEW_ERR"; then
-  : # Package name appears available for first publish.
-else
-  echo "ERROR: could not confirm npm package availability for '$PKG_NAME'." >&2
-  cat "$NPM_VIEW_ERR" >&2
-  HAS_ERROR=1
+  rm -f "$NPM_VIEW_ERR"
 fi
-rm -f "$NPM_VIEW_ERR"
 
 # --- 2. Version consistency ---
 PY_VERSION=$(
