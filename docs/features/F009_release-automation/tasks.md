@@ -6,7 +6,7 @@
 | F009-T2 | Build clean npm staging that copies Python source, release metadata, `requirements.lock`, wrapper files, and production WebUI assets | F009-R2, F009-R7 | ✅ done | F009-T1 |
 | F009-T3 | Implement Python discovery with `TASKPILOT_PYTHON` override, common command fallback, and `>=3.11`/`venv`/`pip` validation | F009-R3 | ✅ done | F009-T1 |
 | F009-T4 | Implement lazy user-cache runtime setup keyed by npm version and Python major/minor version | F009-R4 | ✅ done | F009-T3 |
-| F009-T5 | Install dependencies from bundled `requirements.lock`, handle partial-cache deletion, setup progress, setup logs, pip output tail, and offline/setup errors | F009-R5 | ⏳ todo | F009-T4 |
+| F009-T5 | Install dependencies from bundled `requirements.lock`, handle partial-cache deletion, setup progress, setup logs, pip output tail, and offline/setup errors | F009-R5 | ✅ done | F009-T4 |
 | F009-T6 | Implement wrapper command handling for `--version` and `doctor --rebuild-runtime` | F009-R6 | ⏳ todo | F009-T4 |
 | F009-T7 | Delegate normal commands to Python with `TASKPILOT_WEB_DIST` set to staged WebUI assets | F009-R7 | ⏳ todo | F009-T2, F009-T5 |
 | F009-T8 | Add server behavior for missing or unreadable packaged WebUI assets: API continues and WebUI route reports packaging error | F009-R8 | ⏳ todo | F009-T7 |

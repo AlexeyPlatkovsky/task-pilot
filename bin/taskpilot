@@ -164,6 +164,133 @@ function getRuntimePath(npmVersion, pythonVersion) {
 }
 
 // ---------------------------------------------------------------------------
+// T5: Dependency installation
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the path to the Python executable inside a venv.
+ */
+function venvPython(runtimePath) {
+  if (process.platform === "win32") {
+    return path.join(runtimePath, "Scripts", "python.exe");
+  }
+  return path.join(runtimePath, "bin", "python");
+}
+
+/**
+ * Ensure the runtime venv is ready.
+ * Returns the path to the venv Python executable.
+ */
+function ensureRuntime(pythonCmd, runtimePath) {
+  const venvPy = venvPython(runtimePath);
+
+  if (fs.existsSync(venvPy)) {
+    process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
+    return venvPy;
+  }
+
+  process.stderr.write("taskpilot: setting up Python runtime (first run)...\n");
+
+  // --- create venv ---
+  process.stderr.write("taskpilot: creating virtual environment...\n");
+  try {
+    execSync(`"${pythonCmd}" -m venv "${runtimePath}"`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (err) {
+    deletePartialCache(runtimePath);
+    fail(
+      `Failed to create virtual environment at ${runtimePath}\n` +
+      `Cause: ${err.stderr || err.message}`
+    );
+  }
+
+  // --- ensure pip in the venv ---
+  process.stderr.write("taskpilot: installing dependencies...\n");
+
+  // Find the bundled requirements.lock relative to the npm package root.
+  // packageDir/bin/taskpilot -> packageDir/
+  const packageDir = path.resolve(__dirname, "..");
+  const reqLock = path.join(packageDir, "requirements.lock");
+
+  if (!fs.existsSync(reqLock)) {
+    fail(`Bundled requirements.lock not found at ${reqLock}. Package may be incomplete.`);
+  }
+
+  const setupLog = path.join(runtimePath, "setup.log");
+
+  let pipResult;
+  try {
+    pipResult = execSync(
+      `"${venvPy}" -m pip install -r "${reqLock}" --quiet --no-input --log "${setupLog}"`,
+      {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 300000, // 5 minutes
+      }
+    );
+  } catch (err) {
+    deletePartialCache(runtimePath);
+
+    let tail = "";
+    try {
+      const logContent = fs.readFileSync(setupLog, "utf8");
+      const lines = logContent.trim().split("\n");
+      const tailLines = lines.slice(-40);
+      tail = tailLines.join("\n");
+    } catch {
+      tail = "(setup log unavailable)";
+    }
+
+    const isOffline =
+      (err.stderr || "").includes("Could not connect") ||
+      (err.stderr || "").includes("Failed to establish") ||
+      (err.stderr || "").includes("Name or service not known") ||
+      (err.stderr || "").includes("Network is unreachable") ||
+      tail.includes("Could not connect") ||
+      tail.includes("Failed to establish");
+
+    let instructions = "";
+    if (isOffline) {
+      instructions =
+        "\n\nSetup requires network access to install Python dependencies.\n" +
+        "Connect to the internet and try again.";
+    } else {
+      instructions =
+        "\n\nCheck the setup log for details: " + setupLog + "\n" +
+        "You can retry by running: taskpilot doctor --rebuild-runtime";
+    }
+
+    fail(
+      `Dependency installation failed.\n` +
+      `Setup log: ${setupLog}\n` +
+      `--- pip output (last lines) ---\n${tail}\n` +
+      `--- end pip output ---` +
+      instructions
+    );
+  }
+
+  process.stderr.write("taskpilot: runtime ready\n");
+  return venvPy;
+}
+
+/**
+ * Delete the partial runtime cache directory.
+ * Does not remove unrelated caches.
+ */
+function deletePartialCache(runtimePath) {
+  if (fs.existsSync(runtimePath)) {
+    try {
+      fs.rmSync(runtimePath, { recursive: true, force: true });
+      process.stderr.write("taskpilot: removed partial cache\n");
+    } catch (err) {
+      process.stderr.write(`taskpilot: warning: could not remove partial cache at ${runtimePath}: ${err.message}\n`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command handling
 // ---------------------------------------------------------------------------
 
@@ -190,9 +317,9 @@ function main() {
   const pyVersion = getPythonVersion(python);
   const runtimePath = getRuntimePath(packageJson.version, pyVersion);
 
-  process.stderr.write(`taskpilot: runtime path: ${runtimePath}\n`);
+  // --- ensure runtime is ready ---
+  const venvPy = ensureRuntime(python, runtimePath);
 
-  // TODO: F009-T5 dependency installation
   // TODO: F009-T7 delegate to Python
 
   fail("Python runtime not yet wired (F009 in progress)");
