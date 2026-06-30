@@ -9,6 +9,7 @@
   "files": [
     "bin/",
     "src/",
+    "web-dist/",
     "requirements.lock",
     "LICENSE",
     "README.md"

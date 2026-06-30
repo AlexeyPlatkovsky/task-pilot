@@ -91,11 +91,30 @@ jobs:
           cd /tmp/smoke-workspace
           TASKPILOT_PYTHON=$(which python3) taskpilot serve &
           PID=$!
-          sleep 5
-          # API health check
-          curl -sf http://127.0.0.1:7152/api/health || (kill $PID 2>/dev/null; exit 1)
-          # WebUI route responds (packaging error is expected without env vars, but must not 500)
-          curl -sf -o /dev/null http://127.0.0.1:7152/ || true
+
+          # Retry health check up to 15 seconds
+          healthy=false
+          for i in $(seq 1 15); do
+            if curl -sf http://127.0.0.1:7152/api/health >/dev/null 2>&1; then
+              healthy=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" != "true" ]; then
+            echo "ERROR: API health check failed after 15s" >&2
+            kill $PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # WebUI route: expect 404 (no TASKPILOT_WEB_DIST set, route not registered)
+          web_status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7152/ || echo "000")
+          if [ "$web_status" != "404" ]; then
+            echo "ERROR: WebUI route returned $web_status, expected 404" >&2
+            kill $PID 2>/dev/null || true
+            exit 1
+          fi
+
           kill $PID 2>/dev/null || true
 
   # ---------------------------------------------------------------------------
@@ -132,4 +151,35 @@ jobs:
         run: |
           taskpilot --version
           taskpilot --help
+        shell: bash
+
+      - name: Smoketest WebUI (server starts)
+        run: |
+          mkdir -p /tmp/smoke-workspace
+          cd /tmp/smoke-workspace
+          TASKPILOT_PYTHON=$(which python3 2>/dev/null || which python 2>/dev/null) taskpilot serve &
+          PID=$!
+
+          healthy=false
+          for i in $(seq 1 15); do
+            if curl -sf http://127.0.0.1:7152/api/health >/dev/null 2>&1; then
+              healthy=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" != "true" ]; then
+            echo "ERROR: API health check failed after 15s" >&2
+            kill $PID 2>/dev/null || true
+            exit 1
+          fi
+
+          web_status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7152/ || echo "000")
+          if [ "$web_status" != "404" ]; then
+            echo "ERROR: WebUI route returned $web_status, expected 404" >&2
+            kill $PID 2>/dev/null || true
+            exit 1
+          fi
+
+          kill $PID 2>/dev/null || true
         shell: bash

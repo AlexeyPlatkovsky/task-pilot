@@ -29,11 +29,34 @@ if [ "$PKG_NAME" != "taskpilot" ]; then
 fi
 
 # --- 2. Version consistency ---
-PY_VERSION=$(python3 -c "
+PY_VERSION=$(
+  uv run python3 -c "
 import tomllib
 with open('pyproject.toml', 'rb') as f:
     print(tomllib.load(f)['project']['version'])
-" 2>/dev/null || echo "")
+" 2>/dev/null
+)
+
+if [ -z "$PY_VERSION" ]; then
+  # Fallback: try system python3
+  PY_VERSION=$(
+    python3 -c "
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    print(tomllib.load(f)['project']['version'])
+" 2>/dev/null || echo ""
+  )
+  # Second fallback: try python
+  if [ -z "$PY_VERSION" ]; then
+    PY_VERSION=$(
+      python -c "
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    print(tomllib.load(f)['project']['version'])
+" 2>/dev/null || echo ""
+    )
+  fi
+fi
 
 if [ -z "$PY_VERSION" ]; then
   echo "ERROR: could not read version from pyproject.toml" >&2

@@ -185,8 +185,72 @@ function ensureRuntime(pythonCmd, runtimePath) {
   const venvPy = venvPython(runtimePath);
 
   if (fs.existsSync(venvPy)) {
-    process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
-    return venvPy;
+    // Quick health check: can the venv import a key dependency?
+    try {
+      execSync(`"${venvPy}" -c "import fastapi"`, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
+      return venvPy;
+    } catch {
+      process.stderr.write("taskpilot: cached runtime is corrupted, rebuilding...\n");
+      deletePartialCache(runtimePath);
+    }
+  }
+
+  // --- acquire lock to prevent concurrent venv creation ---
+  const lockFile = runtimePath + ".lock";
+  try {
+    fs.mkdirSync(runtimePath, { recursive: true });
+    fs.mkdirSync(lockFile);
+  } catch (err) {
+    if (err.code === "EEXIST") {
+      if (!fs.existsSync(lockFile)) {
+        // runtimePath itself exists but lockFile doesn't — retry as top-level
+        return ensureRuntime(pythonCmd, runtimePath);
+      }
+      // Lock exists — wait for the other process to finish
+      process.stderr.write("taskpilot: waiting for another setup to finish...\n");
+      const deadline = Date.now() + 120000; // 2 minutes
+      while (Date.now() < deadline) {
+        try {
+          fs.rmdirSync(lockFile);
+          // Lock released — check if venv is now ready
+          break;
+        } catch (e) {
+          if (e.code !== "ENOENT") {
+            // Lock still held, spin briefly
+            const spinEnd = Date.now() + 500;
+            while (Date.now() < spinEnd) { /* wait */ }
+          }
+        }
+      }
+      if (fs.existsSync(lockFile)) {
+        fail("Timed out waiting for runtime setup. Try again or run: taskpilot doctor --rebuild-runtime");
+      }
+      if (fs.existsSync(venvPy)) {
+        try {
+          execSync(`"${venvPy}" -c "import fastapi"`, {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"],
+          });
+          process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
+          return venvPy;
+        } catch {
+          // Corrupted — fall through to rebuild
+        }
+      }
+      // Re-acquire lock and rebuild
+      try { fs.mkdirSync(lockFile); } catch { return ensureRuntime(pythonCmd, runtimePath); }
+    } else {
+      fail(`Failed to create runtime directory at ${runtimePath}: ${err.message}`);
+    }
+  }
+
+  // Release lock on exit/failure
+  function releaseLock() {
+    try { fs.rmdirSync(lockFile); } catch {}
   }
 
   process.stderr.write("taskpilot: setting up Python runtime (first run)...\n");
@@ -200,45 +264,44 @@ function ensureRuntime(pythonCmd, runtimePath) {
     });
   } catch (err) {
     deletePartialCache(runtimePath);
+    releaseLock();
     fail(
       `Failed to create virtual environment at ${runtimePath}\n` +
       `Cause: ${err.stderr || err.message}`
     );
   }
 
-  // --- ensure pip in the venv ---
+  // --- install dependencies ---
   process.stderr.write("taskpilot: installing dependencies...\n");
 
-  // Find the bundled requirements.lock relative to the npm package root.
-  // packageDir/bin/taskpilot -> packageDir/
   const packageDir = path.resolve(__dirname, "..");
   const reqLock = path.join(packageDir, "requirements.lock");
 
   if (!fs.existsSync(reqLock)) {
+    releaseLock();
     fail(`Bundled requirements.lock not found at ${reqLock}. Package may be incomplete.`);
   }
 
   const setupLog = path.join(runtimePath, "setup.log");
 
-  let pipResult;
   try {
-    pipResult = execSync(
+    execSync(
       `"${venvPy}" -m pip install -r "${reqLock}" --quiet --no-input --log "${setupLog}"`,
       {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
-        timeout: 300000, // 5 minutes
+        timeout: 300000,
       }
     );
   } catch (err) {
     deletePartialCache(runtimePath);
+    releaseLock();
 
     let tail = "";
     try {
       const logContent = fs.readFileSync(setupLog, "utf8");
       const lines = logContent.trim().split("\n");
-      const tailLines = lines.slice(-40);
-      tail = tailLines.join("\n");
+      tail = lines.slice(-40).join("\n");
     } catch {
       tail = "(setup log unavailable)";
     }
@@ -271,6 +334,7 @@ function ensureRuntime(pythonCmd, runtimePath) {
     );
   }
 
+  releaseLock();
   process.stderr.write("taskpilot: runtime ready\n");
   return venvPy;
 }
@@ -361,19 +425,31 @@ function delegateToPython(venvPy, webDist, args) {
     }
   );
 
+  const signalHandlers = {};
+  const sigs = process.platform === "win32"
+    ? ["SIGINT", "SIGTERM"]
+    : ["SIGINT", "SIGTERM", "SIGHUP"];
+
+  child.on("error", (err) => {
+    fail(`Failed to launch Python (${venvPy}): ${err.message}`);
+  });
+
   child.on("close", (code, signal) => {
+    // Remove signal listeners
+    sigs.forEach((sig) => {
+      process.removeListener(sig, signalHandlers[sig]);
+    });
+
     if (signal) {
       process.kill(process.pid, signal);
     }
     process.exit(code || 0);
   });
 
-  // Forward signals to the child process
-  const signals = ["SIGINT", "SIGTERM", "SIGHUP"];
-  signals.forEach((sig) => {
-    process.on(sig, () => {
-      child.kill(sig);
-    });
+  sigs.forEach((sig) => {
+    const handler = () => child.kill(sig);
+    signalHandlers[sig] = handler;
+    process.on(sig, handler);
   });
 }
 

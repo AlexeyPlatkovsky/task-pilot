@@ -525,3 +525,92 @@ class TestAppFactory:
         monkeypatch.delenv("TASKPILOT_REGISTRY_DIR", raising=False)
         with pytest.raises(RuntimeError):
             create_app_from_env()
+
+
+class TestWebUIServing:
+    """F009-T8: WebUI static serving with TASKPILOT_WEB_DIST."""
+
+    @pytest.fixture
+    def webui_app(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        from taskpilot.server.app import create_app
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
+        return create_app(registry_dir=str(registry_dir))
+
+    @pytest.fixture
+    def webui_dist(self, tmp_path: Path) -> Path:
+        dist = tmp_path / "web-dist"
+        dist.mkdir()
+        (dist / "index.html").write_text(
+            "<!DOCTYPE html><html><head><title>TaskPilot</title></head><body>App</body></html>",
+            encoding="utf-8",
+        )
+        assets = dist / "assets"
+        assets.mkdir()
+        (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
+        return dist
+
+    def test_no_web_dist_env_serves_only_api(self, webui_app):
+        """When TASKPILOT_WEB_DIST is unset, only API routes are available."""
+        c = TestClient(webui_app)
+        assert c.get("/api/health").status_code == 200
+        # Root returns 404 (fallback route not registered)
+        assert c.get("/").status_code == 404
+
+    def test_valid_web_dist_serves_spa_fallback(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """With a valid web-dist, index.html is served and API still works."""
+        dist = tmp_path / "web-dist"
+        dist.mkdir()
+        (dist / "index.html").write_text(
+            "<!DOCTYPE html><html><head><title>TaskPilot</title></head><body>App</body></html>",
+            encoding="utf-8",
+        )
+        assets = dist / "assets"
+        assets.mkdir()
+        (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
+
+        monkeypatch.setenv("TASKPILOT_WEB_DIST", str(dist))
+        from taskpilot.server.app import create_app
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
+        app = create_app(registry_dir=str(registry_dir))
+        c = TestClient(app)
+
+        assert c.get("/api/health").status_code == 200
+        r = c.get("/")
+        assert r.status_code == 200
+        assert "<title>TaskPilot</title>" in r.text
+        r = c.get("/projects/foo")
+        assert r.status_code == 200
+        assert "<title>TaskPilot</title>" in r.text
+        r = c.get("/assets/main.js")
+        assert r.status_code == 200
+        assert r.text == "console.log('test');"
+
+    def test_missing_web_dist_returns_packaging_error(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """When TASKPILOT_WEB_DIST points to a missing directory, 503 is returned."""
+        missing = str(tmp_path / "nonexistent")
+        monkeypatch.setenv("TASKPILOT_WEB_DIST", missing)
+        from taskpilot.server.app import create_app
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
+        app = create_app(registry_dir=str(registry_dir))
+        c = TestClient(app)
+
+        assert c.get("/api/health").status_code == 200
+        r = c.get("/")
+        assert r.status_code == 503
+        assert "WebUI assets are not available" in r.text
+        r = c.get("/some/page")
+        assert r.status_code == 503
+        assert "WebUI assets are not available" in r.text

@@ -68,7 +68,7 @@ run_check "WebUI production build" npm --prefix web run build
 run_check "npm package staging build" bash scripts/release/build-staging.sh
 
 # --- npm dry-run ---
-run_check "npm publish dry-run" npm publish --dry-run --prefix staging
+run_check "npm publish dry-run" npm publish --dry-run --prefix "$PROJECT_ROOT/staging"
 
 # --- Summary ---
 echo ""
