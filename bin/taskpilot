@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+/**
+ * TaskPilot npm entry point.
+ *
+ * This wrapper discovers a compatible Python >=3.11 interpreter, manages a
+ * user-cache runtime environment, and delegates CLI commands to the bundled
+ * Python implementation.
+ *
+ * Handled inline (no delegation):
+ *   taskpilot --version
+ *   taskpilot doctor --rebuild-runtime
+ *
+ * All other commands are forwarded to Python with TASKPILOT_WEB_DIST set.
+ */
+
+const path = require("path");
+const packageJson = require("../package.json");
+
+const args = process.argv.slice(2);
+
+if (args.length === 1 && args[0] === "--version") {
+  process.stdout.write(`${packageJson.version}\n`);
+  process.exit(0);
+}
+
+// TODO: F009-T3 Python discovery
+// TODO: F009-T4 runtime cache setup
+// TODO: F009-T5 dependency installation
+// TODO: F009-T6 doctor --rebuild-runtime
+// TODO: F009-T7 delegate to Python
+
+process.stderr.write("taskpilot: Python runtime not yet wired (F009 in progress)\n");
+process.exit(1);
