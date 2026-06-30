@@ -1,0 +1,454 @@
+#!/usr/bin/env node
+
+/**
+ * TaskPilot npm entry point.
+ *
+ * Discovers a compatible Python >=3.11 interpreter, manages a user-cache
+ * runtime environment, and delegates CLI commands to the bundled Python
+ * implementation.
+ *
+ * Handled inline (no delegation):
+ *   taskpilot --version
+ *   taskpilot doctor --rebuild-runtime
+ *
+ * All other commands are forwarded to Python with TASKPILOT_WEB_DIST set.
+ */
+
+const { execSync, spawn } = require("child_process");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+const packageJson = require("../package.json");
+
+// ---------------------------------------------------------------------------
+// T3: Python discovery
+// ---------------------------------------------------------------------------
+
+/**
+ * @returns {string} The resolved Python command path.
+ */
+function discoverPython() {
+  const override = process.env.TASKPILOT_PYTHON;
+  if (override) {
+    validatePython(override);
+    return override;
+  }
+
+  const candidates = process.platform === "win32"
+    ? ["python3", "python", "python3.14", "python3.13", "python3.12", "python3.11"]
+    : ["python3", "python", "python3.14", "python3.13", "python3.12", "python3.11"];
+  const errors = [];
+
+  for (const cmd of candidates) {
+    try {
+      validatePython(cmd, { fatal: false });
+      return cmd;
+    } catch (err) {
+      errors.push(err.message);
+    }
+  }
+
+  fail(
+    "Could not find a compatible Python interpreter.\n" +
+    "Install Python >=3.11 with venv and pip, or set TASKPILOT_PYTHON to\n" +
+    "the full path of a compatible Python executable." +
+    (errors.length ? "\nChecked candidates:\n- " + errors.join("\n- ") : "")
+  );
+}
+
+function validatePython(pythonCmd, options = {}) {
+  const fatal = options.fatal !== false;
+  function invalid(message) {
+    if (fatal) {
+      fail(message);
+    }
+    throw new Error(message);
+  }
+
+  let version;
+  try {
+    version = execSync(`"${pythonCmd}" -c "import sys; print(sys.version)"`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    invalid(`${pythonCmd}: failed to run Python. Check that it is a valid Python executable.`);
+  }
+
+  const match = version.match(/^(\d+)\.(\d+)/);
+  if (!match) {
+    invalid(`${pythonCmd}: could not determine Python version (output: ${version})`);
+  }
+
+  const major = parseInt(match[1], 10);
+  const minor = parseInt(match[2], 10);
+
+  if (major < 3 || (major === 3 && minor < 11)) {
+    invalid(
+      `${pythonCmd}: Python ${major}.${minor} is too old.\n` +
+      "TaskPilot requires Python >=3.11. Install a newer Python or set\n" +
+      "TASKPILOT_PYTHON to a compatible interpreter."
+    );
+  }
+
+  // Validate venv
+  try {
+    execSync(`"${pythonCmd}" -m venv --help`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    invalid(
+      `${pythonCmd}: missing venv module.\n` +
+      "Install the venv module for your Python distribution\n" +
+      "(e.g. 'python3 -m ensurepip && python3 -m pip install virtualenv'\n" +
+      "or install 'python3-venv' via your system package manager)."
+    );
+  }
+
+  // Validate pip (ensurepip bootstraps pip, check it's available)
+  try {
+    execSync(`"${pythonCmd}" -m pip --version`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    invalid(
+      `${pythonCmd}: missing pip.\n` +
+      "Run 'python3 -m ensurepip' or install pip for your Python distribution."
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// T4: Runtime cache
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the Python major.minor version string.
+ */
+function getPythonVersion(pythonCmd) {
+  const output = execSync(
+    `"${pythonCmd}" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"`,
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+  ).trim();
+  return output;
+}
+
+/**
+ * Get the base cache directory for TaskPilot runtimes.
+ * Uses XDG/standard cache locations per platform.
+ */
+function getCacheDir() {
+  if (process.platform === "win32") {
+    const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+    return path.join(localAppData, "taskpilot", "Cache");
+  }
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Caches", "taskpilot");
+  }
+  const xdg = process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+  return path.join(xdg, "taskpilot");
+}
+
+/**
+ * Get the versioned runtime path.
+ * Keyed by npm version and Python major.minor version.
+ */
+function getRuntimePath(npmVersion, pythonVersion) {
+  return path.join(getCacheDir(), "runtimes", `npm-${npmVersion}`, `py${pythonVersion}`);
+}
+
+// ---------------------------------------------------------------------------
+// T5: Dependency installation
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the path to the Python executable inside a venv.
+ */
+function venvPython(runtimePath) {
+  if (process.platform === "win32") {
+    return path.join(runtimePath, "Scripts", "python.exe");
+  }
+  return path.join(runtimePath, "bin", "python");
+}
+
+/**
+ * Ensure the runtime venv is ready.
+ * Returns the path to the venv Python executable.
+ */
+function ensureRuntime(pythonCmd, runtimePath) {
+  const venvPy = venvPython(runtimePath);
+
+  if (fs.existsSync(venvPy)) {
+    // Quick health check: can the venv import a key dependency?
+    try {
+      execSync(`"${venvPy}" -c "import fastapi"`, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
+      return venvPy;
+    } catch {
+      process.stderr.write("taskpilot: cached runtime is corrupted, rebuilding...\n");
+      deletePartialCache(runtimePath);
+    }
+  }
+
+  // --- acquire lock to prevent concurrent venv creation ---
+  const lockFile = runtimePath + ".lock";
+  try {
+    fs.mkdirSync(runtimePath, { recursive: true });
+    fs.mkdirSync(lockFile);
+  } catch (err) {
+    if (err.code === "EEXIST") {
+      if (!fs.existsSync(lockFile)) {
+        // runtimePath itself exists but lockFile doesn't — retry as top-level
+        return ensureRuntime(pythonCmd, runtimePath);
+      }
+      // Lock exists — poll until released (do NOT rmdir — it may belong to the owner)
+      process.stderr.write("taskpilot: waiting for another setup to finish...\n");
+      const deadline = Date.now() + 120000; // 2 minutes
+      while (fs.existsSync(lockFile)) {
+        if (Date.now() >= deadline) {
+          fail("Timed out waiting for runtime setup. Try again or run: taskpilot doctor --rebuild-runtime");
+        }
+        const spinEnd = Date.now() + 500;
+        while (Date.now() < spinEnd) { /* poll interval */ }
+      }
+      // Lock released — check if venv is now ready
+      if (fs.existsSync(venvPy)) {
+        try {
+          execSync(`"${venvPy}" -c "import fastapi"`, {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"],
+          });
+          process.stderr.write(`taskpilot: using cached runtime at ${runtimePath}\n`);
+          return venvPy;
+        } catch {
+          // Corrupted — fall through to rebuild it
+          process.stderr.write("taskpilot: cached runtime is corrupted, rebuilding...\n");
+          deletePartialCache(runtimePath);
+        }
+      }
+      // Re-acquire lock and rebuild
+      try { fs.mkdirSync(lockFile); } catch { return ensureRuntime(pythonCmd, runtimePath); }
+    } else {
+      fail(`Failed to create runtime directory at ${runtimePath}: ${err.message}`);
+    }
+  }
+
+  // Release lock on exit/failure
+  function releaseLock() {
+    try { fs.rmdirSync(lockFile); } catch {}
+  }
+
+  process.stderr.write("taskpilot: setting up Python runtime (first run)...\n");
+
+  // --- create venv ---
+  process.stderr.write("taskpilot: creating virtual environment...\n");
+  try {
+    execSync(`"${pythonCmd}" -m venv "${runtimePath}"`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (err) {
+    deletePartialCache(runtimePath);
+    releaseLock();
+    fail(
+      `Failed to create virtual environment at ${runtimePath}\n` +
+      `Cause: ${err.stderr || err.message}`
+    );
+  }
+
+  // --- install dependencies ---
+  process.stderr.write("taskpilot: installing dependencies...\n");
+
+  const packageDir = path.resolve(__dirname, "..");
+  const reqLock = path.join(packageDir, "requirements.lock");
+
+  if (!fs.existsSync(reqLock)) {
+    deletePartialCache(runtimePath);
+    releaseLock();
+    fail(`Bundled requirements.lock not found at ${reqLock}. Package may be incomplete.`);
+  }
+
+  const setupLog = path.join(runtimePath, "setup.log");
+
+  try {
+    execSync(
+      `"${venvPy}" -m pip install -r "${reqLock}" --quiet --no-input --log "${setupLog}"`,
+      {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 300000,
+      }
+    );
+  } catch (err) {
+    const failureLog = runtimePath + ".setup.log";
+    const tail = copySetupLogAndTail(setupLog, failureLog);
+    deletePartialCache(runtimePath);
+    releaseLock();
+
+    const isOffline =
+      (err.stderr || "").includes("Could not connect") ||
+      (err.stderr || "").includes("Failed to establish") ||
+      (err.stderr || "").includes("Name or service not known") ||
+      (err.stderr || "").includes("Network is unreachable") ||
+      tail.includes("Could not connect") ||
+      tail.includes("Failed to establish");
+
+    let instructions = "";
+    if (isOffline) {
+      instructions =
+        "\n\nSetup requires network access to install Python dependencies.\n" +
+        "Connect to the internet and try again.";
+    } else {
+      instructions =
+        "\n\nCheck the setup log for details: " + failureLog + "\n" +
+        "You can retry by running: taskpilot doctor --rebuild-runtime";
+    }
+
+    fail(
+      `Dependency installation failed.\n` +
+      `Setup log: ${failureLog}\n` +
+      `--- pip output (last lines) ---\n${tail}\n` +
+      `--- end pip output ---` +
+      instructions
+    );
+  }
+
+  releaseLock();
+  process.stderr.write("taskpilot: runtime ready\n");
+  return venvPy;
+}
+
+function copySetupLogAndTail(setupLog, failureLog) {
+  try {
+    fs.copyFileSync(setupLog, failureLog);
+    const logContent = fs.readFileSync(failureLog, "utf8");
+    const lines = logContent.trim().split("\n");
+    return lines.slice(-40).join("\n");
+  } catch {
+    return "(setup log unavailable)";
+  }
+}
+
+/**
+ * Delete the partial runtime cache directory.
+ * Does not remove unrelated caches.
+ */
+function deletePartialCache(runtimePath) {
+  if (fs.existsSync(runtimePath)) {
+    try {
+      fs.rmSync(runtimePath, { recursive: true, force: true });
+      process.stderr.write("taskpilot: removed partial cache\n");
+    } catch (err) {
+      process.stderr.write(`taskpilot: warning: could not remove partial cache at ${runtimePath}: ${err.message}\n`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Command handling
+// ---------------------------------------------------------------------------
+
+function fail(message) {
+  process.stderr.write(`taskpilot: ${message}\n`);
+  process.exit(1);
+}
+
+function main() {
+  const args = process.argv.slice(2);
+
+  if (args.length === 1 && args[0] === "--version") {
+    process.stdout.write(`${packageJson.version}\n`);
+    process.exit(0);
+  }
+
+  if (args.length >= 1 && args[0] === "doctor" && args.includes("--rebuild-runtime")) {
+    const python = discoverPython();
+    const pyVersion = getPythonVersion(python);
+    const runtimePath = getRuntimePath(packageJson.version, pyVersion);
+
+    process.stderr.write(`taskpilot: rebuilding runtime for ${pyVersion}...\n`);
+    deletePartialCache(runtimePath);
+    ensureRuntime(python, runtimePath);
+    process.stderr.write("taskpilot: runtime rebuilt successfully\n");
+    process.exit(0);
+  }
+
+  // --- resolve python ---
+  const python = discoverPython();
+  const pyVersion = getPythonVersion(python);
+  const runtimePath = getRuntimePath(packageJson.version, pyVersion);
+
+  // --- ensure runtime is ready ---
+  const venvPy = ensureRuntime(python, runtimePath);
+
+  // --- resolve WebUI assets path ---
+  const packageDir = path.resolve(__dirname, "..");
+  const webDist = path.join(packageDir, "web-dist");
+
+  // --- delegate to Python ---
+  delegateToPython(venvPy, webDist, args);
+}
+
+// ---------------------------------------------------------------------------
+// T7: Delegate to Python
+// ---------------------------------------------------------------------------
+
+/**
+ * Forward all arguments to the bundled Python implementation.
+ * Sets TASKPILOT_WEB_DIST to the staged WebUI assets directory.
+ * Forwards exit code and signals.
+ */
+function delegateToPython(venvPy, webDist, args) {
+  const packageDir = path.resolve(__dirname, "..");
+  const srcDir = path.join(packageDir, "src");
+
+  const child = spawn(
+    venvPy,
+    ["-m", "taskpilot.cli.app", ...args],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        TASKPILOT_WEB_DIST: webDist,
+        PYTHONPATH: srcDir,
+      },
+    }
+  );
+
+  const signalHandlers = {};
+  const sigs = process.platform === "win32"
+    ? ["SIGINT", "SIGTERM"]
+    : ["SIGINT", "SIGTERM", "SIGHUP"];
+
+  child.on("error", (err) => {
+    fail(`Failed to launch Python (${venvPy}): ${err.message}`);
+  });
+
+  child.on("close", (code, signal) => {
+    // Remove signal listeners
+    sigs.forEach((sig) => {
+      process.removeListener(sig, signalHandlers[sig]);
+    });
+
+    if (signal) {
+      // Child was killed by a signal; exit with convention 128+N
+      const sigNum = { SIGINT: 2, SIGTERM: 15, SIGHUP: 1 }[signal] || 1;
+      process.exit(128 + sigNum);
+    }
+    process.exit(code || 0);
+  });
+
+  sigs.forEach((sig) => {
+    const handler = () => child.kill(sig);
+    signalHandlers[sig] = handler;
+    process.on(sig, handler);
+  });
+}
+
+main();

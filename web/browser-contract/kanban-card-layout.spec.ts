@@ -66,6 +66,11 @@ async function mockLayoutProject(page: Page) {
   );
 }
 
+async function selectDropdownOption(page: Page, testId: string, option: string) {
+  await page.locator(`[data-test-id="${testId}"]`).click();
+  await page.getByRole("listbox").getByRole("option", { name: option }).click();
+}
+
 test.describe("Kanban card layout", () => {
   test("card titles reserve two visible lines and keep cards the same height", async ({
     page,
@@ -74,9 +79,7 @@ test.describe("Kanban card layout", () => {
     await mockLayoutProject(page);
 
     await page.goto("/");
-    await page
-      .locator('[data-test-id="project-selector"]')
-      .selectOption({ label: "TaskPilot Layout (TL)" });
+    await selectDropdownOption(page, "project-selector", "TaskPilot Layout (TL)");
 
     const titleMetrics = await Promise.all(
       items.map((item) =>

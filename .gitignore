@@ -13,6 +13,8 @@ venv/
 # Build artifacts
 build/
 dist/
+staging/
+node_modules/
 
 # testing
 .playwright/

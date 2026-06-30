@@ -5,6 +5,8 @@ human renderers, the global ``--json`` flag carried through Typer's context, and
 the service-error -> exit-code translation.
 """
 
+import re
+
 import typer
 from typer.testing import CliRunner
 
@@ -19,6 +21,7 @@ from taskpilot.services.errors import (
 )
 
 runner = CliRunner()
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 # --- JSON output (F003-R8) ---------------------------------------------------
@@ -129,4 +132,4 @@ def test_unexpected_service_error_exits_2():
 def test_root_help_lists_json_flag():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--json" in result.output
+    assert "--json" in ANSI_ESCAPE_RE.sub("", result.output)
