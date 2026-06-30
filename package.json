@@ -1,6 +1,6 @@
 {
-  "name": "taskpilot",
-  "version": "0.0.0",
+  "name": "@alexey_platkovsky/taskpilot",
+  "version": "0.1.0-beta.1",
   "description": "Local-first, file-based task management. Markdown/YAML files are the source of truth.",
   "license": "SEE LICENSE IN LICENSE",
   "bin": {

@@ -1,141 +1,174 @@
 # TaskPilot
 
-Local-first, file-based task management. Markdown/YAML files under `.taskpilot/` are the canonical
-source of truth; everything else (indexes, UI state) is disposable. TaskPilot works offline with no
-accounts or hidden synchronization.
+TaskPilot is local-first task management for software projects. It keeps project work in
+Git-friendly files inside your repository, so humans and coding agents can share the same durable,
+inspectable task state without accounts, hosted services, or hidden synchronization.
 
-See [`docs/`](docs/) for the product concept, specifications, and architecture decisions.
+TaskPilot is currently published as a beta npm package.
 
-## Workspace layout
+## Why TaskPilot
 
-A TaskPilot project lives inside its repository under `.taskpilot/`:
+- Local-first: task data lives in your repo under `.taskpilot/`.
+- File-based: YAML items and Markdown comments are the canonical source of truth.
+- Agent-friendly: CLI output can be human-readable or deterministic JSON.
+- Offline by default: normal usage works after the first runtime setup.
+- Git-friendly: one file per item and append-style comments reduce merge conflicts.
 
-```text
-repo-root/
-  .taskpilot/
-    project.yaml          # canonical project identity
-    items/
-      TP-1.yaml           # one YAML file per item
-    comments/
-      TP-1/
-        2026-06-23T10-00-00Z.md   # append-only Markdown comments per item
-```
+## Install
 
-## Development
-
-This is a Python project managed with [`uv`](https://docs.astral.sh/uv/).
+TaskPilot is distributed through npm. The beta release supports global npm installation.
 
 ```bash
-uv sync          # create the environment and install dev dependencies
-uv run pytest    # run the test suite
+npm install -g @alexey_platkovsky/taskpilot
 ```
 
-Source lives under `src/taskpilot/` (core domain layer); tests live under `tests/`.
+Prerequisites:
 
-## Installation
+- Node.js 18 or newer.
+- Python 3.11 or newer with `venv` and `pip`.
 
-TaskPilot is distributed as an npm package. The first release supports **npm global install only**.
-
-**Prerequisites:**
-- Node.js >= 18 (required by npm)
-- Python >= 3.11 with `venv` and `pip` (discovered automatically at runtime)
-
-```bash
-npm install -g taskpilot
-```
-
-The first run sets up a Python runtime environment in your user cache directory
-(keyed by TaskPilot npm version and Python major.minor version). Subsequent runs
-reuse the cached environment and are fast. During setup, logs are written to
-`<cache>/runtimes/npm-<version>/py<major.minor>/setup.log`.
-
-**Specifying a Python interpreter:**
-
-Set `TASKPILOT_PYTHON` to the full path of a compatible Python executable:
+TaskPilot finds Python automatically on first run. To use a specific interpreter:
 
 ```bash
 TASKPILOT_PYTHON=/opt/homebrew/bin/python3.11 taskpilot --help
 ```
 
-**Cache location by platform:**
+## Quick Start
+
+Initialize TaskPilot in a project repository:
+
+```bash
+cd my-project
+taskpilot init .
+```
+
+Create and inspect work items:
+
+```bash
+taskpilot item create --title "Add login form" --type task
+taskpilot item list
+taskpilot item show MP-1
+```
+
+Update workflow state:
+
+```bash
+taskpilot item update MP-1 --status in_progress
+taskpilot item comment MP-1 "Started implementation."
+```
+
+Use JSON output for scripts and AI agents:
+
+```bash
+taskpilot --json item list
+taskpilot --json validate
+```
+
+Start the local WebUI:
+
+```bash
+taskpilot serve
+```
+
+Then open `http://127.0.0.1:7152/`.
+
+## Data Layout
+
+A TaskPilot workspace is stored inside the repository:
+
+```text
+repo-root/
+  .taskpilot/
+    project.yaml
+    items/
+      MP-1.yaml
+    comments/
+      MP-1/
+        2026-06-23T10-00-00Z.md
+```
+
+The files under `.taskpilot/` are the product data. Indexes, caches, local server state, and UI
+state are disposable.
+
+## CLI
+
+Common commands:
+
+```bash
+taskpilot init .
+taskpilot project list
+taskpilot item list
+taskpilot item show MP-1
+taskpilot item create --title "Write docs" --type task
+taskpilot item update MP-1 --status done
+taskpilot item parent CHILD-1 PARENT-1
+taskpilot item blocks BLOCKER-1 TARGET-1
+taskpilot item relates ITEM-1 ITEM-2
+taskpilot item comment MP-1 "Context for the next pass."
+taskpilot validate
+taskpilot serve
+```
+
+Run `taskpilot --help` or any subcommand with `--help` for the complete option list.
+
+## WebUI and Local API
+
+`taskpilot serve` starts the local WebUI and REST API server for an initialized workspace.
+
+```bash
+taskpilot serve
+```
+
+By default TaskPilot binds to `127.0.0.1:7152`.
+
+- WebUI: `http://127.0.0.1:7152/`
+- REST API: `http://127.0.0.1:7152/api`
+- OpenAPI docs: `http://127.0.0.1:7152/docs`
+
+If the packaged WebUI assets are missing, the root URL shows a packaging error page and the REST
+API remains available.
+
+## Offline Use and Runtime Cache
+
+The first TaskPilot run creates a Python runtime environment in your user cache directory. This
+setup may need network access to install the locked Python dependencies. After setup, normal
+TaskPilot commands work offline and reuse the cached runtime.
+
+Default cache locations:
 
 | Platform | Cache directory |
 | --- | --- |
 | macOS | `~/Library/Caches/taskpilot/` |
-| Linux | `~/.cache/taskpilot/` (XDG) |
+| Linux | `~/.cache/taskpilot/` |
 | Windows | `%LOCALAPPDATA%/taskpilot/Cache/` |
 
-## Offline and Setup Failures
-
-Normal TaskPilot runtime works offline after the first-run setup. First-run
-setup requires network access to install Python dependencies from the bundled
-`requirements.lock`.
-
-If setup fails:
-- The partial cache is deleted automatically.
-- The setup log is preserved at
-  `<cache>/runtimes/npm-<version>/py<major.minor>.setup.log`.
-- The setup log path and last 20-40 lines of `pip` output are printed.
-- For network failures, the error includes instructions to connect and retry.
-- For other failures, run `taskpilot doctor --rebuild-runtime` to retry.
-
-## Cache Rebuild
+If setup fails, TaskPilot removes the partial runtime and preserves a setup log. Rebuild the runtime
+with:
 
 ```bash
 taskpilot doctor --rebuild-runtime
 ```
 
-Deletes the matching runtime cache for the current npm version and Python
-version, then rebuilds it immediately. Exits after rebuild without delegating
-to Python.
+## Package Support
 
-## Releasing
+The beta release supports global npm installation. `pnpm`, `yarn`, `npx`, and other package
+managers are not guaranteed to work yet.
 
-### Publishing a Beta version
+## Development
 
-1. Update `version` in both `package.json` and `pyproject.toml`.
-2. Add a `## [x.y.z]` section to `CHANGELOG.md`.
-3. Merge the version/changelog change.
-4. In GitHub Actions, run the **Release** workflow manually.
-5. Enter the exact version.
+This repository uses Python and `uv` for local development.
 
-The manual workflow runs the full release gate, Ubuntu and Windows package
-smoke checks, rebuilds the staging package, runs `npm publish --dry-run`, then
-publishes to npm with the `beta` dist-tag.
+```bash
+uv sync
+uv run pytest
+```
 
-Beta publishing uses npm Trusted Publishing from GitHub Actions. Before the
-first publish, configure the npm package trusted publisher for this repository,
-workflow `.github/workflows/release.yml`, and environment `npm-beta`. The
-publish job requests GitHub's OIDC token through `id-token: write` and does not
-require a long-lived `NPM_TOKEN` secret.
+Project documentation lives under [`docs/`](docs/), including the product concept, accepted specs,
+architecture notes, and roadmap.
 
-Local publish scripts remain available for emergency/manual verification:
+Release helpers are available as npm scripts for maintainers:
 
 ```bash
 npm run quality-gates
 npm run release:dry-run
-npm run release:publish
 ```
-
-Local publish scripts also default to the `beta` dist-tag. Set
-`NPM_DIST_TAG=latest` only when intentionally promoting a stable release.
-
-### Rolling back a bad release
-
-Do **not** use `npm unpublish` except for exceptional secret, legal, or
-security incidents. Instead:
-
-1. Deprecate the bad version:
-   ```bash
-   npm deprecate taskpilot@x.y.z "This version has a defect. Use taskpilot@x.y.z+1 instead."
-   ```
-2. Publish a corrected follow-up version with an incremented version number.
-
-This keeps the npm registry history intact and prevents breaking existing
-installations that have pinned or cached the bad version.
-
-### Package manager support
-
-The first release supports **npm only**. `pnpm`, `yarn`, `npx`, and other
-package managers are not guaranteed to work and are out of scope for the
-initial release.

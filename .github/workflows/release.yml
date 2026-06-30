@@ -199,7 +199,9 @@ jobs:
       - windows-smoke
     environment: npm-beta
     permissions:
-      contents: read
+      contents: write
+      issues: write
+      pull-requests: write
       id-token: write
 
     steps:
