@@ -40,20 +40,14 @@ Use for a feature or non-trivial bug fix that changes TaskPilot production behav
 2. Run `spec-driven-development` unless an accepted specification already covers the requested
    behavior. Require `Skill: spec-driven-development - output below`.
 3. Run `test-change` for tests-first coverage. Require `Skill: test-change - output below`.
-4. Delegate to the `.claude/agents/code-reviewer.md` agent in an isolated read-only
-   context when the conditional gates require test-scope review. Pass the full diff
-   scope, governing specification, and acceptance criteria. Require
-   `Agent: code-reviewer - output below`. Do not write review conclusions inline as a
-   substitute for the agent output.
+4. Run `code-reviewer` on the test scope when the conditional gates require it. Require
+   `Agent: code-reviewer - output below`.
 5. Run `implement-change`. Require `Skill: implement-change - output below`.
 6. Run `test-change` for post-implementation test execution and gaps. Require
    `Skill: test-change - output below`.
 7. Run `validate-change`. Require `Skill: validate-change - output below`.
-8. Delegate to the `.claude/agents/code-reviewer.md` agent in an isolated read-only
-   context when the manager classified risk as medium, high, or system-level. Pass the
-   full diff scope, governing specification, and acceptance criteria. Require
-   `Agent: code-reviewer - output below`. Do not write review conclusions inline as a
-   substitute for the agent output.
+8. Run `code-reviewer` when the manager classified risk as medium, high, or system-level. Require
+   `Agent: code-reviewer - output below`.
 
 Stop on a blocked or failed step and return control to the manager. The manager owns documentation
 maintenance and task-complete after this pipeline.

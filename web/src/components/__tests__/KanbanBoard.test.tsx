@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KanbanBoard } from "../KanbanBoard";
 import { resolveDropTarget } from "../kanban-utils";
@@ -136,6 +137,210 @@ describe("KanbanBoard", () => {
     );
     expect(disabledOnes.length).toBe(1);
     expect(vp1Sortables.length).toBe(1);
+  });
+
+  describe("board filters", () => {
+    async function selectBoardFilterOption(
+      user: ReturnType<typeof userEvent.setup>,
+      filterLabel: string,
+      optionLabel: string,
+    ) {
+      await user.click(
+        screen.getByRole("button", { name: new RegExp(`^${filterLabel}:`) }),
+      );
+      await user.click(screen.getByRole("option", { name: optionLabel }));
+    }
+
+    it("renders filter bar with type, priority, updated, and created dropdowns above the board", async () => {
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Test", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(<KanbanBoard projectId="VP" />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByTestId("kanban-board-filters")).toBeInTheDocument();
+      });
+      expect(screen.getByRole("button", { name: /^Type:/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^Priority:/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^Updated:/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^Created:/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Clear filters" })).toBeInTheDocument();
+    });
+
+    it("filters cards by type", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Bug item", type: "bug", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Task item", type: "task", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(<KanbanBoard projectId="VP" />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("Bug item")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Type", "Bug");
+
+      expect(screen.getByText("Bug item")).toBeInTheDocument();
+      expect(screen.queryByText("Task item")).not.toBeInTheDocument();
+    });
+
+    it("filters cards by priority", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "High item", priority: "high", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Low item", priority: "low", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(<KanbanBoard projectId="VP" />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("High item")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Priority", "High");
+
+      expect(screen.getByText("High item")).toBeInTheDocument();
+      expect(screen.queryByText("Low item")).not.toBeInTheDocument();
+    });
+
+    it("filters cards by updated time range", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Recent", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Old", updated_at: "2026-05-20T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+      await waitFor(() => {
+        expect(screen.getByText("Recent")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Updated", "Last 7 days");
+
+      expect(screen.getByText("Recent")).toBeInTheDocument();
+      expect(screen.queryByText("Old")).not.toBeInTheDocument();
+    });
+
+    it("filters cards by created time range", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Recent creation", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Old creation", created_at: "2026-05-20T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+      await waitFor(() => {
+        expect(screen.getByText("Recent creation")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Created", "Last 7 days");
+
+      expect(screen.getByText("Recent creation")).toBeInTheDocument();
+      expect(screen.queryByText("Old creation")).not.toBeInTheDocument();
+    });
+
+    it("combines type, priority, and date filters", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Match", type: "bug", priority: "high", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Wrong type", type: "task", priority: "high", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-3", title: "Wrong priority", type: "bug", priority: "low", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-4", title: "Old", type: "bug", priority: "high", updated_at: "2026-05-20T10:00:00Z", created_at: "2026-05-20T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+      await waitFor(() => {
+        expect(screen.getByText("Match")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Type", "Bug");
+      await selectBoardFilterOption(user, "Priority", "High");
+      await selectBoardFilterOption(user, "Updated", "Last 7 days");
+      await selectBoardFilterOption(user, "Created", "Last 7 days");
+
+      expect(screen.getByText("Match")).toBeInTheDocument();
+      expect(screen.queryByText("Wrong type")).not.toBeInTheDocument();
+      expect(screen.queryByText("Wrong priority")).not.toBeInTheDocument();
+      expect(screen.queryByText("Old")).not.toBeInTheDocument();
+    });
+
+    it("clears all filters and restores all cards", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Bug", type: "bug", priority: "high", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Task", type: "task", priority: "low", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+      await waitFor(() => {
+        expect(screen.getByText("Bug")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Type", "Bug");
+      expect(screen.queryByText("Task")).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Clear filters" }));
+
+      expect(screen.getByText("Bug")).toBeInTheDocument();
+      expect(screen.getByText("Task")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Type: All types" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Priority: All priorities" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Updated: Any time" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Created: Any time" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows all five columns even when no cards match filters", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Bug", type: "bug", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(<KanbanBoard projectId="VP" />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("Bug")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Type", "Task");
+
+      expect(screen.getByTestId("kanban-column-backlog")).toBeInTheDocument();
+      expect(screen.getByTestId("kanban-column-ready")).toBeInTheDocument();
+      expect(screen.getByTestId("kanban-column-in_progress")).toBeInTheDocument();
+      expect(screen.getByTestId("kanban-column-done")).toBeInTheDocument();
+      expect(screen.getByTestId("kanban-column-cancelled")).toBeInTheDocument();
+      expect(screen.getByTestId("kanban-filtered-empty")).toBeInTheDocument();
+      expect(screen.getByText("No items match the selected filters.")).toBeInTheDocument();
+    });
+
+    it("does not change item status or column when filtering", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Done bug", type: "bug", status: "done", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Backlog task", type: "task", status: "backlog", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      render(<KanbanBoard projectId="VP" />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("Done bug")).toBeInTheDocument();
+      });
+
+      await selectBoardFilterOption(user, "Type", "Bug");
+
+      const doneColumn = screen.getByTestId("kanban-column-done");
+      expect(doneColumn.querySelector("[data-item-id='VP-1']")).toBeInTheDocument();
+      const backlogColumn = screen.getByTestId("kanban-column-backlog");
+      expect(backlogColumn.querySelector("[data-item-id='VP-2']")).toBeNull();
+    });
   });
 
   describe("resolveDropTarget", () => {

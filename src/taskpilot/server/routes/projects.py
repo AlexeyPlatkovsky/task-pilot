@@ -172,20 +172,23 @@ def get_ui_state(request: Request) -> UIStateOut:
 @router.patch("/ui-state", response_model=UIStateOut)
 def patch_ui_state(request: Request, body: UIStatePatch) -> UIStateOut:
     registry_dir: str = request.app.state.registry_dir
+    fields = body.model_dump(exclude_unset=True)
+    last_opened_project_id = fields.get("last_opened_project_id")
 
-    if body.last_opened_project_id is not None:
+    if last_opened_project_id is not None:
         found = False
         for entry in registry_list(Path(registry_dir)):
-            if entry.id == body.last_opened_project_id and entry.active:
+            if entry.id == last_opened_project_id and entry.active:
                 found = True
                 break
         if not found:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unknown or inactive project: {body.last_opened_project_id!r}",
+                detail=f"Unknown or inactive project: {last_opened_project_id!r}",
             )
 
     current = ui_state_svc.load_ui_state()
-    current.last_opened_project_id = body.last_opened_project_id
-    ui_state_svc.save_ui_state(current)
+    if "last_opened_project_id" in fields:
+        current.last_opened_project_id = last_opened_project_id
+        ui_state_svc.save_ui_state(current)
     return UIStateOut(last_opened_project_id=current.last_opened_project_id)

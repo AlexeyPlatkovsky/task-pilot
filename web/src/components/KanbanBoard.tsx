@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -24,16 +24,31 @@ import {
   resolveDropTarget,
   groupByStatus,
 } from "./kanban-utils";
+import { DropdownSelect } from "./DropdownSelect";
+import { FilterBar } from "./FilterBar";
+import type { BoardFilters } from "./filters";
+import {
+  DEFAULT_BOARD_FILTERS,
+  TYPE_FILTER_OPTIONS,
+  PRIORITY_FILTER_OPTIONS,
+  UPDATED_FILTER_OPTIONS,
+  CREATED_FILTER_OPTIONS,
+  isWithinTimeRange,
+} from "./filters";
 import styles from "./KanbanBoard.module.css";
 
 interface Props {
   projectId: string;
+  now?: Date;
 }
 
-export function KanbanBoard({ projectId }: Props) {
+export function KanbanBoard({ projectId, now }: Props) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
   const [droppedItemId, setDroppedItemId] = useState<string | null>(null);
+  const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
+  const [defaultNow] = useState(() => new Date());
+  const filterNow = now ?? defaultNow;
 
   const queryClient = useQueryClient();
 
@@ -127,8 +142,30 @@ export function KanbanBoard({ projectId }: Props) {
     [items, mutate],
   );
 
-  const groups = groupByStatus(items ?? []);
-  const isEmpty = Array.from(groups.values()).every((g) => g.length === 0);
+  const hasActiveBoardFilters =
+    boardFilters.type !== DEFAULT_BOARD_FILTERS.type ||
+    boardFilters.priority !== DEFAULT_BOARD_FILTERS.priority ||
+    boardFilters.updatedRange !== DEFAULT_BOARD_FILTERS.updatedRange ||
+    boardFilters.createdRange !== DEFAULT_BOARD_FILTERS.createdRange;
+
+  const filteredItems = useMemo(
+    () =>
+      (items ?? []).filter((item) => {
+        if (boardFilters.type && item.type !== boardFilters.type) return false;
+        if (boardFilters.priority && item.priority !== boardFilters.priority) return false;
+        if (!isWithinTimeRange(item, boardFilters.updatedRange, "updated_at", filterNow)) return false;
+        if (!isWithinTimeRange(item, boardFilters.createdRange, "created_at", filterNow)) return false;
+        return true;
+      }),
+    [items, boardFilters, filterNow],
+  );
+
+  const groups = groupByStatus(filteredItems);
+  const hasItems = (items?.length ?? 0) > 0;
+  const allColumnsEmpty = Array.from(groups.values()).every((g) => g.length === 0);
+  const isEmpty = !hasItems;
+  const showEmptyPrompt = isEmpty || (allColumnsEmpty && !hasActiveBoardFilters);
+  const showFilteredEmpty = hasItems && allColumnsEmpty && hasActiveBoardFilters;
 
   if (isLoading) {
     return (
@@ -151,6 +188,46 @@ export function KanbanBoard({ projectId }: Props) {
 
   return (
     <>
+      <FilterBar
+        hasActiveFilters={hasActiveBoardFilters}
+        onClear={() => setBoardFilters(DEFAULT_BOARD_FILTERS)}
+        ariaLabel="Board filters"
+        dataTestId="kanban-board-filters"
+      >
+        <DropdownSelect
+          id="board-filter-type"
+          label="Type"
+          value={boardFilters.type}
+          options={TYPE_FILTER_OPTIONS}
+          fieldDataTestId="board-filter-field"
+          onChange={(type) => setBoardFilters((current) => ({ ...current, type }))}
+        />
+        <DropdownSelect
+          id="board-filter-priority"
+          label="Priority"
+          value={boardFilters.priority}
+          options={PRIORITY_FILTER_OPTIONS}
+          fieldDataTestId="board-filter-field"
+          onChange={(priority) => setBoardFilters((current) => ({ ...current, priority }))}
+        />
+        <DropdownSelect
+          id="board-filter-updated"
+          label="Updated"
+          value={boardFilters.updatedRange}
+          options={UPDATED_FILTER_OPTIONS}
+          fieldDataTestId="board-filter-field"
+          onChange={(updatedRange) => setBoardFilters((current) => ({ ...current, updatedRange }))}
+        />
+        <DropdownSelect
+          id="board-filter-created"
+          label="Created"
+          value={boardFilters.createdRange}
+          options={CREATED_FILTER_OPTIONS}
+          fieldDataTestId="board-filter-field"
+          onChange={(createdRange) => setBoardFilters((current) => ({ ...current, createdRange }))}
+        />
+      </FilterBar>
+
       <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}
@@ -172,13 +249,18 @@ export function KanbanBoard({ projectId }: Props) {
               />
             );
           })}
-          {isEmpty && (
+          {showEmptyPrompt && (
             <div className={styles.emptyPrompt} data-test-id="kanban-empty-prompt">
               <p>No items yet.</p>
               <p>
                 Create your first item with:{" "}
                 <code>taskpilot item create</code>
               </p>
+            </div>
+          )}
+          {showFilteredEmpty && (
+            <div className={styles.filteredEmpty} data-test-id="kanban-filtered-empty">
+              No items match the selected filters.
             </div>
           )}
         </div>

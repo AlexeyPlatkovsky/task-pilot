@@ -564,6 +564,20 @@ class TestUIState:
         assert r.status_code == 200
         assert r.json() == {"last_opened_project_id": None}
 
+    def test_patch_empty_body_preserves_last_opened_project_id(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot"},
+        )
+
+        r = client.patch("/api/ui-state", json={})
+
+        assert r.status_code == 200
+        assert r.json() == {"last_opened_project_id": "voice-pilot"}
+
     def test_patch_rejects_unknown_fields(self, client):
         r = client.patch(
             "/api/ui-state",

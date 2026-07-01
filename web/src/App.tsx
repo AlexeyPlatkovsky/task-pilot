@@ -23,10 +23,10 @@ function App() {
 
     async function restore() {
       try {
-        const [state, projList] = await Promise.all([
-          fetchUIState().catch(() => null),
-          fetchProjects().catch(() => []),
-        ]);
+        const state = await fetchUIState().catch(() => null);
+        if (cancelled) return;
+
+        const projList = await fetchProjects().catch(() => []);
         if (cancelled) return;
 
         setProjects(projList);

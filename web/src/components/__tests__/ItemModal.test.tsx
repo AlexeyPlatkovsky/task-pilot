@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ItemModal } from "../ItemModal";
 import type { ItemDetail } from "../../types";
@@ -129,6 +130,50 @@ describe("ItemModal", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
     });
+  });
+
+  it("keeps dirty edit fields while refreshing clean fields after item refetch", async () => {
+    const user = userEvent.setup();
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    mockFetchItem
+      .mockResolvedValueOnce(
+        makeItem({
+          title: "Initial title",
+          priority: "normal",
+          status: "backlog",
+        }),
+      )
+      .mockResolvedValueOnce(
+        makeItem({
+          title: "Server title",
+          priority: "high",
+          status: "done",
+        }),
+      );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ItemModal projectId="VP" itemId="VP-1" onClose={vi.fn()} />
+      </QueryClientProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: "Edit" }));
+
+    const titleInput = screen.getByLabelText("Title");
+    await user.clear(titleInput);
+    await user.type(titleInput, "Local draft title");
+
+    await queryClient.invalidateQueries({
+      queryKey: ["item", "VP", "VP-1"],
+    });
+
+    await waitFor(() => {
+      expect(mockFetchItem).toHaveBeenCalledTimes(2);
+      expect(screen.getByLabelText("Priority")).toHaveValue("high");
+      expect(screen.getByLabelText("Status")).toHaveValue("done");
+    });
+    expect(screen.getByLabelText("Title")).toHaveValue("Local draft title");
   });
 
   it("shows validation findings for invalid items", async () => {

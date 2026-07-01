@@ -88,4 +88,26 @@ describe("App", () => {
       );
     });
   });
+
+  it("loads UI state before loading projects on startup", async () => {
+    let resolveUIState:
+      | ((state: { last_opened_project_id: string | null }) => void)
+      | undefined;
+    mockFetchUIState.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveUIState = resolve;
+      }),
+    );
+
+    renderApp();
+
+    expect(mockFetchUIState).toHaveBeenCalledOnce();
+    expect(mockFetchProjects).not.toHaveBeenCalled();
+
+    resolveUIState?.({ last_opened_project_id: null });
+
+    await waitFor(() => {
+      expect(mockFetchProjects).toHaveBeenCalledOnce();
+    });
+  });
 });
