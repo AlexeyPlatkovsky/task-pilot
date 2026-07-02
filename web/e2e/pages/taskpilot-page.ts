@@ -159,14 +159,6 @@ export class TaskPilotPage {
     );
   }
 
-  async switchToTreeView() {
-    await this.byTestId("workspace-tab-tree").click();
-    await expect(this.byTestId("workspace-tab-tree")).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  }
-
   async expectListReady() {
     await expect(this.byTestId("item-list-table")).toBeVisible();
     await expect(this.byTestId("item-list-open-TP-2")).toBeVisible();
