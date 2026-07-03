@@ -1,64 +1,71 @@
 /* TaskPilot design tokens — single source of truth for all CSS custom properties.
-   Light theme is the default (:root). Dark theme is applied automatically via
-   prefers-color-scheme and can be overridden explicitly with data-theme on <html>. */
+   Each theme-dependent variable uses light-dark(lightValue, darkValue) so every
+   token is defined once.  :root sets color-scheme: light dark so the browser
+   picks the correct value based on OS preference.  data-theme on <html>
+   overrides via color-scheme alone — no repeated value blocks. */
 
 :root {
+  color-scheme: light dark;
+
   /* Surface */
-  --surface-app:     #f8fafc;
-  --surface-base:    #ffffff;
-  --surface-raised:  #ffffff;
-  --surface-overlay: rgba(0, 0, 0, 0.5);
-  --surface-muted:   #f1f5f9;
-  --surface-column:  #e5eaf0;
+  --surface-app:     light-dark(#f8fafc, #111113);
+  --surface-base:    light-dark(#ffffff, #1c1c1e);
+  --surface-raised:  light-dark(#ffffff, #2c2c2e);
+  --surface-overlay: light-dark(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+  --surface-muted:   light-dark(#f1f5f9, #28282a);
+  --surface-column:  light-dark(#e5eaf0, #2c2c2e);
 
   /* Border */
-  --border-subtle:  #e5eaf0;
-  --border-default: #d9e2ec;
-  --border-strong:  #9fb3c8;
+  --border-subtle:  light-dark(#e5eaf0, #3a3a3c);
+  --border-default: light-dark(#d9e2ec, #48484a);
+  --border-strong:  light-dark(#9fb3c8, #636366);
 
-  /* Text — all pairs verified WCAG AA on surface-base */
-  --text-primary:   #102a43;
-  --text-secondary: #486581;
-  --text-muted:     #5d7892;
-  --text-disabled:  #9fb3c8;
+  /* Text */
+  --text-primary:   light-dark(#102a43, #f5f5f7);
+  --text-secondary: light-dark(#486581, #aeaeb2);
+  --text-muted:     light-dark(#5d7892, #8e8e93);
+  --text-disabled:  light-dark(#9fb3c8, #48484a);
   --text-inverse:   #ffffff;
 
   /* Accent */
-  --brand-accent:  #c65d2e;
-  --accent:        #a94a22;
-  --accent-hover:  #8c3d1c;
-  --accent-fg:     #ffffff;
-  --accent-subtle: #f6d6c6;
+  --brand-accent:  light-dark(#c65d2e, #c65d2e);
+  --accent:        light-dark(#a94a22, #e08a5d);
+  --accent-hover:  light-dark(#8c3d1c, #f2b08b);
+  --accent-fg:     light-dark(#ffffff, #1a1a1a);
+  --accent-subtle: light-dark(#f6d6c6, #3a1d12);
 
   /* Status */
-  --status-backlog-bg:    #6c757d;
-  --status-backlog-fg:    #ffffff;
-  --status-ready-bg:      #0f7a8a; /* darkened from #17a2b8 for WCAG AA: #fff on #0f7a8a ≈ 4.6:1 */
+  --status-backlog-bg:    light-dark(#6c757d, #48484a);
+  --status-backlog-fg:    light-dark(#ffffff, #f5f5f7);
+  --status-ready-bg:      light-dark(#0f7a8a, #0a7d8c);
   --status-ready-fg:      #ffffff;
-  --status-inprogress-bg: #a94a22;
-  --status-inprogress-fg: #ffffff;
-  --status-done-bg:       #1e7d34; /* darkened from #28a745 for WCAG AA: #fff on #1e7d34 ≈ 4.8:1 */
+  --status-inprogress-bg: light-dark(#a94a22, #e08a5d);
+  --status-inprogress-fg: light-dark(#ffffff, #1a1a1a);
+  --status-done-bg:       light-dark(#1e7d34, #1e7d34);
   --status-done-fg:       #ffffff;
-  --status-cancelled-bg:  #ffc107;
-  --status-cancelled-fg:  #343a40; /* dark text: #ffc107 fails AA with white */
-  --status-deleted-bg:    #dc3545;
+  --status-cancelled-bg:  light-dark(#ffc107, #b38600);
+  --status-cancelled-fg:  light-dark(#343a40, #1a1a1a);
+  --status-deleted-bg:    light-dark(#dc3545, #b02a37);
   --status-deleted-fg:    #ffffff;
 
   /* Priority */
-  --priority-low-bg:    #d1ecf1;
-  --priority-low-fg:    #0c5460;
-  --priority-normal-bg: #e2e3e5;
-  --priority-normal-fg: #383d41;
-  --priority-high-bg:   #f8d7da;
-  --priority-high-fg:   #721c24;
+  --priority-low-bg:    light-dark(#d1ecf1, #0c3d47);
+  --priority-low-fg:    light-dark(#0c5460, #7dd3e8);
+  --priority-normal-bg: light-dark(#e2e3e5, #3a3a3c);
+  --priority-normal-fg: light-dark(#383d41, #aeaeb2);
+  --priority-high-bg:   light-dark(#f8d7da, #4a1a1f);
+  --priority-high-fg:   light-dark(#721c24, #f28b95);
 
   /* Feedback */
-  --feedback-error:       #dc3545;
-  --feedback-error-bg:    #f8d7da;
-  --feedback-warning:     #856404;
-  --feedback-warning-bg:  #fff3cd;
-  --feedback-success:     #155724; /* #155724 on #d4edda ≈ 9.1:1 — WCAG AA */
-  --feedback-success-bg:  #d4edda;
+  --feedback-error:       light-dark(#dc3545, #f28b95);
+  --feedback-error-bg:    light-dark(#f8d7da, #4a1a1f);
+  --feedback-warning:     light-dark(#856404, #ffc107);
+  --feedback-warning-bg:  light-dark(#fff3cd, #3d2e00);
+  --feedback-success:     light-dark(#155724, #75b798);
+  --feedback-success-bg:  light-dark(#d4edda, #0f2914);
+
+  /* Validation */
+  --validation-success-muted: light-dark(#228B22, #7492a5);
 
   /* Spacing — invariant across themes */
   --space-1:   0.25rem;
@@ -106,155 +113,6 @@
   --kanban-column-max: 320px;
 }
 
-/* Dark theme — auto via OS preference */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface-app:     #111113;
-    --surface-base:    #1c1c1e;
-    --surface-raised:  #2c2c2e;
-    --surface-overlay: rgba(0, 0, 0, 0.7);
-    --surface-muted:   #28282a;
-    --surface-column:  #2c2c2e;
-
-    --border-subtle:  #3a3a3c;
-    --border-default: #48484a;
-    --border-strong:  #636366;
-
-    --text-primary:   #f5f5f7;
-    --text-secondary: #aeaeb2;
-    --text-muted:     #8e8e93;
-    --text-disabled:  #48484a;
-
-    --brand-accent:  #c65d2e;
-    --accent:        #e08a5d;
-    --accent-hover:  #f2b08b;
-    --accent-fg:     #1a1a1a;
-    --accent-subtle: #3a1d12;
-
-    --status-backlog-bg:    #48484a;
-    --status-backlog-fg:    #f5f5f7;
-    --status-ready-bg:      #0a7d8c;
-    --status-inprogress-bg: #e08a5d;
-    --status-inprogress-fg: #1a1a1a;
-    --status-done-bg:       #1e7d34;
-    --status-cancelled-bg:  #b38600;
-    --status-cancelled-fg:  #1a1a1a; /* #fff on #b38600 = 3.09:1, fails AA; dark text ≈ 5.9:1 */
-    --status-deleted-bg:    #b02a37;
-
-    --priority-low-bg:    #0c3d47;
-    --priority-low-fg:    #7dd3e8;
-    --priority-normal-bg: #3a3a3c;
-    --priority-normal-fg: #aeaeb2;
-    --priority-high-bg:   #4a1a1f;
-    --priority-high-fg:   #f28b95;
-
-    --feedback-error:       #f28b95;
-    --feedback-error-bg:    #4a1a1f;
-    --feedback-warning:     #ffc107;
-    --feedback-warning-bg:  #3d2e00;
-    --feedback-success:     #75b798;
-    --feedback-success-bg:  #0f2914;
-
-    --validation-success-muted: #9eaeb8; /* lighter than body text, WCAG AA on dark surface */
-  }
-}
-
-/* Explicit light override — beats prefers-color-scheme: dark */
-[data-theme="light"] {
-  --surface-app:     #f8fafc;
-  --surface-base:    #ffffff;
-  --surface-raised:  #ffffff;
-  --surface-overlay: rgba(0, 0, 0, 0.5);
-  --surface-muted:   #f1f5f9;
-  --surface-column:  #e5eaf0;
-
-  --border-subtle:  #e5eaf0;
-  --border-default: #d9e2ec;
-  --border-strong:  #9fb3c8;
-
-  --text-primary:   #102a43;
-  --text-secondary: #486581;
-  --text-muted:     #5d7892;
-  --text-disabled:  #9fb3c8;
-
-  --brand-accent:  #c65d2e;
-  --accent:        #a94a22;
-  --accent-hover:  #8c3d1c;
-  --accent-fg:     #ffffff;
-  --accent-subtle: #f6d6c6;
-
-  --status-backlog-bg:    #6c757d;
-  --status-backlog-fg:    #ffffff;
-  --status-ready-bg:      #0f7a8a;
-  --status-inprogress-bg: #a94a22;
-  --status-inprogress-fg: #ffffff;
-  --status-done-bg:       #1e7d34;
-  --status-cancelled-bg:  #ffc107;
-  --status-cancelled-fg:  #343a40;
-  --status-deleted-bg:    #dc3545;
-
-  --priority-low-bg:    #d1ecf1;
-  --priority-low-fg:    #0c5460;
-  --priority-normal-bg: #e2e3e5;
-  --priority-normal-fg: #383d41;
-  --priority-high-bg:   #f8d7da;
-  --priority-high-fg:   #721c24;
-
-  --feedback-error:       #dc3545;
-  --feedback-error-bg:    #f8d7da;
-  --feedback-warning:     #856404;
-  --feedback-warning-bg:  #fff3cd;
-  --feedback-success:     #155724;
-  --feedback-success-bg:  #d4edda;
-}
-
-/* Explicit dark override — beats prefers-color-scheme: light */
-[data-theme="dark"] {
-  --surface-app:     #111113;
-  --surface-base:    #1c1c1e;
-  --surface-raised:  #2c2c2e;
-  --surface-overlay: rgba(0, 0, 0, 0.7);
-  --surface-muted:   #28282a;
-  --surface-column:  #2c2c2e;
-
-  --border-subtle:  #3a3a3c;
-  --border-default: #48484a;
-  --border-strong:  #636366;
-
-  --text-primary:   #f5f5f7;
-  --text-secondary: #aeaeb2;
-  --text-muted:     #8e8e93;
-  --text-disabled:  #48484a;
-
-  --brand-accent:  #c65d2e;
-  --accent:        #e08a5d;
-  --accent-hover:  #f2b08b;
-  --accent-fg:     #1a1a1a;
-  --accent-subtle: #3a1d12;
-
-  --status-backlog-bg:    #48484a;
-  --status-backlog-fg:    #f5f5f7;
-  --status-ready-bg:      #0a7d8c;
-  --status-inprogress-bg: #e08a5d;
-  --status-inprogress-fg: #1a1a1a;
-  --status-done-bg:       #1e7d34;
-  --status-cancelled-bg:  #b38600;
-  --status-cancelled-fg:  #1a1a1a;
-  --status-deleted-bg:    #b02a37;
-
-  --priority-low-bg:    #0c3d47;
-  --priority-low-fg:    #7dd3e8;
-  --priority-normal-bg: #3a3a3c;
-  --priority-normal-fg: #aeaeb2;
-  --priority-high-bg:   #4a1a1f;
-  --priority-high-fg:   #f28b95;
-
-  --feedback-error:       #f28b95;
-  --feedback-error-bg:    #4a1a1f;
-  --feedback-warning:     #ffc107;
-  --feedback-warning-bg:  #3d2e00;
-  --feedback-success:     #75b798;
-  --feedback-success-bg:  #0f2914;
-
-  --validation-success-muted: #7492a5; /* lighter than body text, WCAG AA on light surface */
-}
+/* Explicit overrides — just flip color-scheme, no repeated values */
+[data-theme="light"] { color-scheme: light; }
+[data-theme="dark"]  { color-scheme: dark; }
