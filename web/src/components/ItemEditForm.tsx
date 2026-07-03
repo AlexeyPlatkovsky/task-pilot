@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { updateItem } from "../api";
 import type { ItemDetail, EditableStatus } from "../types";
 import { EDITABLE_STATUSES, PRIORITIES } from "../types";
@@ -16,12 +17,30 @@ const itemEditSchema = z.object({
 });
 
 type ItemEditFormData = z.infer<typeof itemEditSchema>;
+const EDITABLE_FIELDS: (keyof ItemEditFormData)[] = [
+  "title",
+  "description",
+  "priority",
+  "status",
+];
 
 interface Props {
   projectId: string;
   item: ItemDetail;
   onSave: () => void;
   onCancel: () => void;
+}
+
+function formValuesFromItem(item: ItemDetail): ItemEditFormData {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    priority: item.priority,
+    status:
+      item.status === "deleted"
+        ? ("backlog" as EditableStatus)
+        : (item.status as EditableStatus),
+  };
 }
 
 export function ItemEditForm({
@@ -35,19 +54,26 @@ export function ItemEditForm({
   const {
     register,
     handleSubmit,
+    getFieldState,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<ItemEditFormData>({
     resolver: zodResolver(itemEditSchema),
-    defaultValues: {
-      title: item.title,
-      description: item.description ?? "",
-      priority: item.priority,
-      status:
-        item.status === "deleted"
-          ? ("backlog" as EditableStatus)
-          : (item.status as EditableStatus),
-    },
+    defaultValues: formValuesFromItem(item),
   });
+
+  useEffect(() => {
+    const nextValues = formValuesFromItem(item);
+    for (const field of EDITABLE_FIELDS) {
+      if (!getFieldState(field).isDirty) {
+        setValue(field, nextValues[field], {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        });
+      }
+    }
+  }, [getFieldState, item, setValue]);
 
   const mutation = useMutation({
     mutationFn: (data: ItemEditFormData) =>

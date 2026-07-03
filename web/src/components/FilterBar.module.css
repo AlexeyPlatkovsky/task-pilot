@@ -1,0 +1,46 @@
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  margin-bottom: var(--space-3);
+  padding: var(--space-2);
+  background: var(--surface-column);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline-start: auto;
+}
+
+.clearButton {
+  padding: var(--space-2) var(--space-3);
+  color: var(--accent);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.clearButton:hover:not(:disabled) {
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+
+.clearButton:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.clearButton:focus-visible {
+  outline: thin solid var(--accent);
+  outline-offset: var(--space-1);
+}

@@ -74,3 +74,13 @@ class ItemUpdateInput(BaseModel):
     description: str | None = None
     priority: str | None = None
     status: str | None = None
+
+
+class UIStateOut(BaseModel):
+    last_opened_project_id: str | None = None
+
+
+class UIStatePatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    last_opened_project_id: str | None = None

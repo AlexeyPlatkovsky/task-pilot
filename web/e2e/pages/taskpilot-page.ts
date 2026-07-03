@@ -159,14 +159,6 @@ export class TaskPilotPage {
     );
   }
 
-  async switchToTreeView() {
-    await this.byTestId("workspace-tab-tree").click();
-    await expect(this.byTestId("workspace-tab-tree")).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  }
-
   async expectListReady() {
     await expect(this.byTestId("item-list-table")).toBeVisible();
     await expect(this.byTestId("item-list-open-TP-2")).toBeVisible();
@@ -205,10 +197,6 @@ export class TaskPilotPage {
       "data-item-id",
       itemId,
     );
-  }
-
-  async expandTreeItem(itemId: string) {
-    await this.byTestId(`item-tree-expand-${itemId}`).click();
   }
 
   async openTreeItem(itemId: string) {

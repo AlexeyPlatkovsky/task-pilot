@@ -65,8 +65,8 @@ test.describe("Design token themes (AC-3, AC-4, AC-5)", () => {
         surfaceApp: style.getPropertyValue("--surface-app").trim(),
         surfaceBase: style.getPropertyValue("--surface-base").trim(),
         textPrimary: style.getPropertyValue("--text-primary").trim(),
-        // These two are set to #1a1a1a by the dark @media block;
-        // [data-theme="light"] must explicitly reset them to light values.
+        // These two are #1a1a1a in dark; [data-theme="light"] flips
+        // color-scheme so light-dark() returns the light value.
         accentFg: style.getPropertyValue("--accent-fg").trim(),
         statusInprogressFg: style
           .getPropertyValue("--status-inprogress-fg")

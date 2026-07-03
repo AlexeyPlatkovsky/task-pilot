@@ -7,12 +7,16 @@ import App from "../App";
 const mockFetchProjects = vi.fn();
 const mockFetchItems = vi.fn();
 const mockFetchValidationReport = vi.fn();
+const mockFetchUIState = vi.fn();
+const mockPatchUIState = vi.fn();
 
 vi.mock("../api", () => ({
   fetchProjects: (...args: unknown[]) => mockFetchProjects(...args),
   fetchItems: (...args: unknown[]) => mockFetchItems(...args),
   fetchValidationReport: (...args: unknown[]) =>
     mockFetchValidationReport(...args),
+  fetchUIState: (...args: unknown[]) => mockFetchUIState(...args),
+  patchUIState: (...args: unknown[]) => mockPatchUIState(...args),
 }));
 
 vi.mock("../components/KanbanBoard", () => ({
@@ -36,6 +40,8 @@ function renderApp() {
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFetchUIState.mockResolvedValue({ last_opened_project_id: null });
+    mockPatchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
     mockFetchProjects.mockResolvedValue([
       {
         id: "voice-pilot",
@@ -80,6 +86,28 @@ describe("App", () => {
       expect(screen.getByTestId("kanban-board")).toHaveTextContent(
         "Board view for voice-pilot",
       );
+    });
+  });
+
+  it("loads UI state before loading projects on startup", async () => {
+    let resolveUIState:
+      | ((state: { last_opened_project_id: string | null }) => void)
+      | undefined;
+    mockFetchUIState.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveUIState = resolve;
+      }),
+    );
+
+    renderApp();
+
+    expect(mockFetchUIState).toHaveBeenCalledOnce();
+    expect(mockFetchProjects).not.toHaveBeenCalled();
+
+    resolveUIState?.({ last_opened_project_id: null });
+
+    await waitFor(() => {
+      expect(mockFetchProjects).toHaveBeenCalledOnce();
     });
   });
 });

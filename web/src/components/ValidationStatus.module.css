@@ -3,7 +3,7 @@
 }
 
 .valid {
-  color: var(--feedback-success);
+  color: var(--validation-success-muted);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
 }

@@ -527,6 +527,90 @@ class TestAppFactory:
             create_app_from_env()
 
 
+class TestUIState:
+    """F010-T6/F010-T12: GET /api/ui-state and PATCH /api/ui-state."""
+
+    def test_get_returns_default_when_no_file(self, client):
+        r = client.get("/api/ui-state")
+        assert r.status_code == 200
+        assert r.json() == {"last_opened_project_id": None}
+
+    def test_patch_saves_and_returns_last_opened_project_id(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        r = client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot"},
+        )
+        assert r.status_code == 200
+        assert r.json() == {"last_opened_project_id": "voice-pilot"}
+
+        r2 = client.get("/api/ui-state")
+        assert r2.json() == {"last_opened_project_id": "voice-pilot"}
+
+    def test_patch_null_clears_last_opened_project_id(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot"},
+        )
+        r = client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": None},
+        )
+        assert r.status_code == 200
+        assert r.json() == {"last_opened_project_id": None}
+
+    def test_patch_empty_body_preserves_last_opened_project_id(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot"},
+        )
+
+        r = client.patch("/api/ui-state", json={})
+
+        assert r.status_code == 200
+        assert r.json() == {"last_opened_project_id": "voice-pilot"}
+
+    def test_patch_rejects_unknown_fields(self, client):
+        r = client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot", "foo": "bar"},
+        )
+        assert r.status_code == 422
+        assert "detail" in r.json()
+
+    def test_patch_rejects_unknown_project_id(self, client):
+        r = client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "ghost"},
+        )
+        assert r.status_code == 400
+        assert "Unknown or inactive project" in r.json()["detail"]
+
+    def test_patch_rejects_inactive_project(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        registry_dir = tmp_path / "registry"
+        from taskpilot.services.registry import load_registry, save_registry
+
+        reg = load_registry(registry_dir)
+        reg.projects[0].active = False
+        save_registry(registry_dir, reg)
+
+        r = client.patch(
+            "/api/ui-state",
+            json={"last_opened_project_id": "voice-pilot"},
+        )
+        assert r.status_code == 400
+        assert "Unknown or inactive project" in r.json()["detail"]
+
+
 class TestWebUIServing:
     """F009-T8: WebUI static serving with TASKPILOT_WEB_DIST."""
 

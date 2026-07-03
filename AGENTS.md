@@ -44,6 +44,13 @@ Non-trivial includes behavior changes, public contracts, persistence, cross-laye
 architecture, production dependencies, multi-file workflows, and changes requiring coordinated
 validation. A user saying "implement," "fix," or equivalent triggers this gate again.
 
+When a user requests multiple tasks in a single instruction (for example "implement the rest of
+the tasks" or "do T5 through T10"), re-enter the routing gate for each requested task. At
+minimum, produce one manager artifact that names every requested task, classifies each one
+individually, and lists the ordered per-task handoffs. A blocked or failed task stops subsequent
+tasks in the same batch unless the manager artifact explicitly marks them as independent. Do not
+treat a batch of tasks as a single classification.
+
 Do not advance between routed steps without the visible output artifact required by the manager or
 pipeline. Raw command output is evidence, not a routed artifact.
 

@@ -118,3 +118,7 @@ export interface ItemUpdateInput {
 export interface ApiError {
   detail: string;
 }
+
+export interface UIState {
+  last_opened_project_id: string | null;
+}

@@ -30,7 +30,7 @@ export function ViewTabs({
 }) {
   return (
     <div className={styles.tabs} role="tablist" aria-label="Workspace views">
-      {(["board", "list", "tree"] as const).map((view) => (
+      {(["board", "list"] as const).map((view) => (
         <button
           key={view}
           role="tab"

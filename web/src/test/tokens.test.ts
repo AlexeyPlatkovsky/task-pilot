@@ -15,7 +15,7 @@ const KANBAN_COLUMN_CSS_PATH = resolve(
   __dirname,
   "../components/KanbanColumn.module.css",
 );
-const ROOT_TOKEN_COUNT = 74;
+const ROOT_TOKEN_COUNT = 75;
 
 describe("tokens.css — token definitions (AC-2)", () => {
   let css: string;
@@ -193,8 +193,9 @@ describe("tokens.css — token definitions (AC-2)", () => {
     expect(columnCss).toContain("padding-inline-start: var(--space-2)");
   });
 
-  it("includes a dark theme via prefers-color-scheme media query", () => {
-    expect(css).toContain("prefers-color-scheme: dark");
+  it("uses light-dark() for theme switching instead of duplicated blocks", () => {
+    expect(css).toContain("light-dark(");
+    expect(css).toContain("color-scheme: light dark");
   });
 
   it("includes explicit data-theme=dark override block", () => {
