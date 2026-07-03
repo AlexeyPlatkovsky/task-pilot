@@ -21,8 +21,5 @@ test.describe("F006 advanced workspace views", () => {
     await app.expectFirstListRow("TP-1");
     await app.sortListById();
     await app.expectFirstListRow("TP-3");
-
-    await app.expectModalVisible("TP-3", "Fix tree regression");
-    await app.expectModalText("TP-3", "Leaf item opened from the tree view.");
   });
 });

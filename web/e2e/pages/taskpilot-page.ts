@@ -199,10 +199,6 @@ export class TaskPilotPage {
     );
   }
 
-  async expandTreeItem(itemId: string) {
-    await this.byTestId(`item-tree-expand-${itemId}`).click();
-  }
-
   async openTreeItem(itemId: string) {
     await this.byTestId(`item-tree-open-${itemId}`).click();
   }
