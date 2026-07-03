@@ -23,6 +23,7 @@ docs/
   <extension docs, optional: api.md, db.md, security.md, operations.md, ...>
   decisions/ADR-NNN-<slug>.md
   features/F<NNN>_<short-name>/{requirements.md,tasks.md,scenarios.md}
+  features/archive/F<NNN>_<short-name>/{requirements.md,tasks.md,scenarios.md}
 ```
 
 The authoritative documentation root is `docs/`. If a project already keeps authoritative
@@ -84,7 +85,13 @@ subfolder `docs/<domain>/` with its own mini-index, and link to that index from
 
 ## Feature Folder Schema
 
-Each feature is a folder `features/F<NNN>_<short-name>/` containing exactly:
+Each active feature is a folder `docs/features/F<NNN>_<short-name>/` containing exactly:
+
+When all tasks for a feature are fully implemented and validated, the feature folder is moved
+from `docs/features/` to `docs/archive/` under the same folder name. Archived features remain in
+the INDEX.md feature registry with their completed status. New features are always created under
+`docs/features/`. Archived features can be moved back to `docs/features/` if new tasks are
+required; update INDEX.md status accordingly after the move.
 
 - `requirements.md` — feature summary, links up to the `idea.md`/`roadmap.md` item it
   serves, functional requirements (each with an ID), acceptance criteria, constraints,

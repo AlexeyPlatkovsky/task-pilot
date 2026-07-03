@@ -28,7 +28,7 @@ If the docs root cannot be located, report it as a blocker.
 Apply the Stop Conditions throughout; halt and report when any is met.
 
 1. Scan the docs root for present main docs and extension docs.
-2. Scan `features/` for `F<NNN>_*` folders; for each, count requirements, tasks, and
+2. Scan `features/` and `features/archive/` for `F<NNN>_*` folders; for each, count requirements, tasks, and
    scenarios by their IDs and read the feature status if recorded.
 3. Scan `decisions/` for `ADR-*` files and read each status.
 4. Render `INDEX.md` from the template: the document table (present docs only), the feature

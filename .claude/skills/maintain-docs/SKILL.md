@@ -14,9 +14,21 @@ Read `.claude/conventions/reference-docs.md` and
    known failure modes changed.
 4. Update only affected authoritative sections and their indexes or links.
 5. Update specification status and acceptance evidence when implementation completed.
-6. Create an ADR only for a durable architecture decision with meaningful alternatives and
+6. When all tasks for a feature are implemented and the feature has passed pipeline validation,
+   archive the feature:
+   a. Read `docs/features/F<NNN>_<short-name>/tasks.md` and confirm every task has a terminal
+      status (implemented, completed, or equivalent). If `tasks.md` is missing or unparseable,
+      skip archiving and report a blocker. Skip archiving if any task is not terminal.
+   b. Move the feature folder from `docs/features/F<NNN>_<short-name>/` to
+      `docs/features/archive/F<NNN>_<short-name>/`. Create the archive target directory if it does not exist.
+   c. Run `sdd-index-sync` to refresh INDEX.md with the archive path.
+   This step is evaluated during documentation maintenance after the implementing pipeline
+   completes. It applies when the pipeline's change completes the last remaining task of a feature.
+   The validation gate is already enforced by the pipeline's `validate-change` step before this
+   skill runs; the tasks.md terminal-status check is the file-state gate.
+7. Create an ADR only for a durable architecture decision with meaningful alternatives and
    consequences.
-7. Verify commands, paths, examples, names, and links against repository facts.
+8. Verify commands, paths, examples, names, and links against repository facts.
 
 Do not modify production code or tests. Report rather than guess when documentation should change
 but the correct contract is unclear or outside scope.
