@@ -8,15 +8,22 @@ description: Implements production behavior from an accepted TaskPilot specifica
 Prerequisites: an accepted specification or explicit behavior, known success criteria, and a
 planned validation route.
 
-1. Read affected code, tests, conventions, and decisions.
+1. If the request is purely a task-tracking operation with no implementation scope, do not proceed
+   with this skill — redirect to `.claude/skills/track-with-taskpilot/SKILL.md` directly.
+2. If the manager's output or the user's instruction identifies a TaskPilot item ID for this work
+   (task-backed), load `.claude/skills/track-with-taskpilot/SKILL.md` and read the item state to
+   confirm it exists, capture current status, and prepare for status transitions
+   (e.g. backlog → in_progress). If the skill cannot be loaded or the item does not exist, report
+   a blocker and stop.
+3. Read affected code, tests, conventions, and decisions.
    For WebUI component-library or existing-page UI work, include
    `.claude/conventions/ui-component-library.md`.
-2. Verify the implementation scope still matches accepted specs, roadmap, design docs, and recorded
+4. Verify the implementation scope still matches accepted specs, roadmap, design docs, and recorded
    open questions. If implementation would expand or narrow release scope, change an accepted
    editable/read-only field boundary, alter persistence or API contracts, or resolve an open product
    question without explicit approval, stop and report a scope-delta blocker. Do not convert an
    ambiguous request into implemented behavior.
-3. For every requirement in scope, enumerate boundary conditions:
+5. For every requirement in scope, enumerate boundary conditions:
    - null / empty / missing / unrecognized inputs (in PATCH semantics
      ``null`` = explicitly cleared field, ``missing`` = not sent — distinct);
    - conflicting or duplicate state (existing project, repeated id, etc.);
@@ -30,18 +37,22 @@ planned validation route.
    not a replacement. When the pipeline deferred tests (mapping-only mode),
    this step must check that the existing mapping is complete and add any
    boundaries discovered during implementation.
-4. Implement the smallest complete vertical slice.
-5. Keep domain rules in services and translation in adapters.
-6. Preserve canonical-file-first writes and deterministic outputs.
-7. Add only production and directly required support changes; test implementation belongs to
+6. Implement the smallest complete vertical slice.
+7. Keep domain rules in services and translation in adapters.
+8. Preserve canonical-file-first writes and deterministic outputs.
+9. Add only production and directly required support changes; test implementation belongs to
    `test-change`.
-8. Run narrow compile or static checks needed to catch implementation errors
-   and code-quality issues — including unused parameters, unused imports,
-   and dead code. Use the project's configured linter for the language
-   (ruff for Python, ESLint for TypeScript). If no linter is configured,
-   propose installing one; add it only with user approval, or document
-   the gap as a blocker.
-9. Inspect the implementation diff for unrelated churn, leaked abstractions, and missing errors.
+10. Run narrow compile or static checks needed to catch implementation errors
+    and code-quality issues — including unused parameters, unused imports,
+    and dead code. Use the project's configured linter for the language
+    (ruff for Python, ESLint for TypeScript). If no linter is configured,
+    propose installing one; add it only with user approval, or document
+    the gap as a blocker.
+11. Inspect the implementation diff for unrelated churn, leaked abstractions, and missing errors.
+12. If the work was task-backed, load `.claude/skills/track-with-taskpilot/SKILL.md` and update the
+    item status (e.g. ``in_progress`` → ``done``) when implementation is complete. If the update
+    fails, report the error and do not claim completion. Do not modify
+    ``.taskpilot/items/*.yaml`` files directly — always use the track-with-taskpilot skill.
 
 Stop for an unapproved breaking contract, canonical migration, production dependency, destructive
 operation, security model, or architecture choice.

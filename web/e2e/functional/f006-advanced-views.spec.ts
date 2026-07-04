@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 import { TaskPilotPage } from "../pages/taskpilot-page";
 
 test.describe("F006 advanced workspace views", () => {
-  test("switches views, filters and sorts the list, and opens a tree item", async ({
+  test("switches views, filters and sorts the release list", async ({
     page,
   }) => {
     const app = new TaskPilotPage(page);
@@ -20,6 +20,6 @@ test.describe("F006 advanced workspace views", () => {
     await app.sortListById();
     await app.expectFirstListRow("TP-1");
     await app.sortListById();
-    await app.expectFirstListRow("TP-3");
+    await app.expectFirstListRow("TP-5");
   });
 });

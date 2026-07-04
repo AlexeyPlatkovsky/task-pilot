@@ -61,6 +61,13 @@ test.describe("F004 core workspace flows", () => {
       status: "Ready",
       priority: "High",
       description: "Parent item for the functional e2e hierarchy.",
+      linkedTo: [
+        "Linked to",
+        "Child: TP-2 Build list filtering",
+        "Blocks: TP-3 Fix tree regression",
+        "Blocked by: TP-5 Test feature label color",
+        "Related to: TP-4 Test epic label color",
+      ],
     });
   });
 

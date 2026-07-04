@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from taskpilot.core.models import Item
 
@@ -52,6 +52,24 @@ class ItemSummary(BaseModel):
     findings: list[ValidationFindingOut] = []
 
 
+class ItemRelationshipSummary(BaseModel):
+    id: str
+    title: str
+    type: str
+    status: str
+    priority: str
+    valid: bool = True
+
+
+class ItemRelationships(BaseModel):
+    parent: ItemRelationshipSummary | None = None
+    children: list[ItemRelationshipSummary] = Field(default_factory=list)
+    blocks: list[ItemRelationshipSummary] = Field(default_factory=list)
+    blocked_by: list[ItemRelationshipSummary] = Field(default_factory=list)
+    relates_to: list[ItemRelationshipSummary] = Field(default_factory=list)
+    related_to: list[ItemRelationshipSummary] = Field(default_factory=list)
+
+
 class ItemDetail(Item):
     """Full item representation returned by detail and patch endpoints.
 
@@ -65,6 +83,7 @@ class ItemDetail(Item):
     )
 
     comments: list[CommentOut] = []
+    relationships: ItemRelationships = Field(default_factory=ItemRelationships)
     valid: bool = True
     findings: list[ValidationFindingOut] = []
 

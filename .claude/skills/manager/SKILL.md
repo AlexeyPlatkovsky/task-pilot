@@ -102,7 +102,16 @@ Size definitions (choose the highest that applies):
 - Other read-only review request: `.claude/pipelines/code-review.md`.
 - Open high-impact choice with materially different outcomes: `.claude/skills/brainstorm/SKILL.md`.
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.
+- Direct task tracking (list, create, update, show TaskPilot items): `.claude/skills/track-with-taskpilot/SKILL.md`.
+  Route only when the request explicitly references the project's own TaskPilot workspace
+  (``.taskpilot/``). If the request is about a different project or task system, stop and report
+  that this skill only manages the local TaskPilot workspace.
 - Project instruction-system creation or material change: `.claude/pipelines/instruction-change.md`.
+
+When a single request names both a task-tracking operation and a non-tracking work goal, treat
+the full request as non-trivial and route through the appropriate feature-change, test-change, or
+ui-change pipeline (whichever matches the non-tracking part), invoking ``track-with-taskpilot``
+inline through that pipeline's implementation skill.
 
 Framework stages under `.manifesto/`, including `02_review.md`, are invoked explicitly by
 the user. They are framework workflows, not project routing targets.

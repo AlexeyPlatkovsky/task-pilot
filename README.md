@@ -4,7 +4,7 @@ TaskPilot is local-first task management for software projects. It keeps project
 Git-friendly files inside your repository, so humans and coding agents can share the same durable,
 inspectable task state without accounts, hosted services, or hidden synchronization.
 
-TaskPilot is currently published as a beta npm package.
+TaskPilot is published as the `taskpilot` npm package.
 
 ## Why TaskPilot
 
@@ -16,10 +16,10 @@ TaskPilot is currently published as a beta npm package.
 
 ## Install
 
-TaskPilot is distributed through npm. The beta release supports global npm installation.
+TaskPilot is distributed through npm. The stable release supports global npm installation.
 
 ```bash
-npm install -g @alexey_platkovsky/taskpilot
+npm install -g taskpilot
 ```
 
 Prerequisites:
@@ -70,7 +70,9 @@ Start the local WebUI:
 taskpilot serve
 ```
 
-Then open `http://127.0.0.1:7152/`.
+Then open `http://127.0.0.1:7152/`. The WebUI can be started from any directory; it loads
+registered projects from your local TaskPilot registry and restores the last valid project when
+available.
 
 ## Data Layout
 
@@ -113,7 +115,8 @@ Run `taskpilot --help` or any subcommand with `--help` for the complete option l
 
 ## WebUI and Local API
 
-`taskpilot serve` starts the local WebUI and REST API server for an initialized workspace.
+`taskpilot serve` starts the local WebUI and REST API server. It can be run from any directory and
+uses the local TaskPilot registry to list initialized projects.
 
 ```bash
 taskpilot serve
@@ -127,6 +130,12 @@ By default TaskPilot binds to `127.0.0.1:7152`.
 
 If the packaged WebUI assets are missing, the root URL shows a packaging error page and the REST
 API remains available.
+
+To validate a specific workspace before starting the server, pass `--workspace`:
+
+```bash
+taskpilot serve --workspace /path/to/repo
+```
 
 ## Offline Use and Runtime Cache
 
@@ -151,7 +160,7 @@ taskpilot doctor --rebuild-runtime
 
 ## Package Support
 
-The beta release supports global npm installation. `pnpm`, `yarn`, `npx`, and other package
+The stable release supports global npm installation. `pnpm`, `yarn`, `npx`, and other package
 managers are not guaranteed to work yet.
 
 ## Development

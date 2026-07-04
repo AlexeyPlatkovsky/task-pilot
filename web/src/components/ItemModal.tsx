@@ -1,4 +1,4 @@
-import { useState, useMemo, type ReactNode } from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
 import {
   Bug,
   CheckSquare,
@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { fetchItem } from "../api";
-import type { ItemDetail } from "../types";
+import type { ItemDetail, ItemRelationshipSummary } from "../types";
 import { STATUS_LABELS, PRIORITY_LABELS, TYPE_LABELS } from "../types/labels";
 import { Icon } from "./ui/Icon";
 import { CommentThread } from "./CommentThread";
@@ -36,6 +36,17 @@ const TYPE_SHORT_LABELS: Record<ItemDetail["type"], string> = {
   bug: "BUG",
 };
 
+const EMPTY_RELATIONSHIPS = {
+  parent: null,
+  children: [],
+  blocks: [],
+  blocked_by: [],
+  relates_to: [],
+  related_to: [],
+};
+
+const RELATIONSHIP_TITLE_MAX_LENGTH = 80;
+
 interface Props {
   projectId: string;
   itemId: string | null;
@@ -43,8 +54,15 @@ interface Props {
 }
 
 export function ItemModal({ projectId, itemId, onClose }: Props) {
+  const [currentItemId, setCurrentItemId] = useState(itemId);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setCurrentItemId(itemId);
+    setIsEditing(false);
+    setIsDeleting(false);
+  }, [itemId]);
 
   const {
     data: item,
@@ -52,15 +70,22 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["item", projectId, itemId],
-    queryFn: () => fetchItem(projectId, itemId!),
-    enabled: !!itemId,
+    queryKey: ["item", projectId, currentItemId],
+    queryFn: () => fetchItem(projectId, currentItemId!),
+    enabled: !!currentItemId,
   });
 
   const handleClose = () => {
     setIsEditing(false);
     setIsDeleting(false);
+    setCurrentItemId(itemId);
     onClose();
+  };
+
+  const handleRelationshipSelect = (linkedItemId: string) => {
+    setIsEditing(false);
+    setIsDeleting(false);
+    setCurrentItemId(linkedItemId);
   };
 
   const handleSave = () => {
@@ -91,7 +116,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
                 item
                   ? `${TYPE_LABELS[item.type]} ${item.id} ${item.title}`
                   : itemId
-                    ? `${itemId} Item Detail`
+                    ? `${currentItemId ?? itemId} Item Detail`
                     : undefined
               }
             >
@@ -105,10 +130,10 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
                     {item.title}
                   </span>
                 </>
-              ) : itemId ? (
+              ) : currentItemId ? (
                 <>
                   <span className={styles.itemId} data-test-id="item-modal-id">
-                    {itemId}
+                    {currentItemId}
                   </span>
                   <span className={styles.itemTitle} data-test-id="item-modal-item-title">
                     Item Detail
@@ -180,16 +205,16 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
             )}
 
             {item && !isEditing && (
-              <ItemDetailView item={item} />
+              <ItemDetailView item={item} onRelationshipSelect={handleRelationshipSelect} />
             )}
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
 
-      {itemId && isDeleting && (
+      {currentItemId && isDeleting && (
         <DeleteConfirmDialog
           projectId={projectId}
-          itemId={itemId}
+          itemId={currentItemId}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setIsDeleting(false)}
         />
@@ -198,7 +223,13 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
   );
 }
 
-function ItemDetailView({ item }: { item: ItemDetail }) {
+function ItemDetailView({
+  item,
+  onRelationshipSelect,
+}: {
+  item: ItemDetail;
+  onRelationshipSelect: (itemId: string) => void;
+}) {
   const descriptionHtml = useMemo(
     () =>
       item.description
@@ -316,6 +347,13 @@ function ItemDetailView({ item }: { item: ItemDetail }) {
         </InfoGroup>
       </DetailSection>
 
+      <DetailSection title="Linked to">
+        <Relationships
+          relationships={item.relationships ?? EMPTY_RELATIONSHIPS}
+          onSelectItem={onRelationshipSelect}
+        />
+      </DetailSection>
+
       <DetailSection title="Comments">
         <CommentThread comments={item.comments} />
       </DetailSection>
@@ -399,6 +437,93 @@ function InfoGroup({
       {children}
     </div>
   );
+}
+
+function Relationships({
+  relationships,
+  onSelectItem,
+}: {
+  relationships: NonNullable<ItemDetail["relationships"]>;
+  onSelectItem: (itemId: string) => void;
+}) {
+  const rows = [
+    {
+      label: "Parent",
+      items: relationships.parent ? [relationships.parent] : [],
+    },
+    { label: "Child", items: relationships.children },
+    { label: "Blocks", items: relationships.blocks },
+    { label: "Blocked by", items: relationships.blocked_by },
+    {
+      label: "Related to",
+      items: [...relationships.relates_to, ...relationships.related_to],
+    },
+  ].flatMap((group) =>
+    group.items.map((item, index) => ({
+      key: `${group.label}-${item.id}-${index}`,
+      label: group.label,
+      item,
+    })),
+  );
+
+  if (rows.length === 0) {
+    return <p className={styles.emptyState}>No linked items.</p>;
+  }
+
+  return (
+    <ul className={styles.relationshipList} data-test-id="item-modal-linked-to">
+      {rows.map((row) => (
+        <RelationshipItem
+          key={row.key}
+          label={row.label}
+          item={row.item}
+          onSelectItem={onSelectItem}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function RelationshipItem({
+  label,
+  item,
+  onSelectItem,
+}: {
+  label: string;
+  item: ItemRelationshipSummary;
+  onSelectItem: (itemId: string) => void;
+}) {
+  const displayTitle = truncateRelationshipTitle(item.title);
+
+  return (
+    <li
+      className={`${styles.relationshipItem} ${
+        item.valid ? "" : styles.relationshipInvalid
+      }`}
+    >
+      <span className={styles.relationshipLabel}>{label}: </span>
+      <a
+        className={styles.relationshipLink}
+        href={`#item-${encodeURIComponent(item.id)}`}
+        title={`${item.id} ${item.title}`}
+        onClick={(event) => {
+          event.preventDefault();
+          onSelectItem(item.id);
+        }}
+      >
+        <span className={styles.relationshipId}>{item.id}</span>{" "}
+        <span className={styles.relationshipTitle}>{displayTitle}</span>
+      </a>
+      {!item.valid && (
+        <span className={styles.relationshipState}>missing or invalid</span>
+      )}
+    </li>
+  );
+}
+
+function truncateRelationshipTitle(title: string) {
+  if (title.length <= RELATIONSHIP_TITLE_MAX_LENGTH) return title;
+  return `${title.slice(0, RELATIONSHIP_TITLE_MAX_LENGTH - 3)}...`;
 }
 
 function Checklist({ title, items }: { title: string; items: string[] }) {

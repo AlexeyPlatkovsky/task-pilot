@@ -1,8 +1,8 @@
 """Tests for ``taskpilot serve`` (task F005-T6, requirement F005-R6).
 
-The command must fail clearly when no workspace is found or when the supplied
-workspace path is not fully initialized (missing project.yaml), while keeping
-its --host/--port/--workspace options parseable.
+The command starts the local WebUI/API from any directory by using the machine
+registry. An explicit ``--workspace`` remains a strict validation request for a
+specific initialized workspace.
 """
 
 from pathlib import Path
@@ -14,18 +14,55 @@ from taskpilot.cli.app import app
 runner = CliRunner()
 
 
-def test_serve_reports_no_workspace_and_exits_user_error(tmp_path, monkeypatch):
+def test_serve_starts_without_workspace_from_any_directory(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    calls: list[dict[str, object]] = []
+
+    def fake_run(app_factory, *, factory, host, port):
+        calls.append(
+            {
+                "app_factory": app_factory,
+                "factory": factory,
+                "host": host,
+                "port": port,
+            }
+        )
+
+    monkeypatch.setattr("taskpilot.cli.commands.serve.uvicorn.run", fake_run)
+
     result = runner.invoke(app, ["serve"])
-    assert result.exit_code == 1
-    assert "No TaskPilot workspace" in result.stderr
+    assert result.exit_code == 0
+    assert "TaskPilot server starting on http://127.0.0.1:7152" in result.output
+    assert calls == [
+        {
+            "app_factory": "taskpilot.server.app:create_app_from_env",
+            "factory": True,
+            "host": "127.0.0.1",
+            "port": 7152,
+        }
+    ]
 
 
 def test_serve_accepts_port_option(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    calls: list[dict[str, object]] = []
+
+    def fake_run(app_factory, *, factory, host, port):
+        calls.append(
+            {
+                "app_factory": app_factory,
+                "factory": factory,
+                "host": host,
+                "port": port,
+            }
+        )
+
+    monkeypatch.setattr("taskpilot.cli.commands.serve.uvicorn.run", fake_run)
+
     result = runner.invoke(app, ["serve", "--port", "8080"])
-    assert result.exit_code == 1
-    assert "No TaskPilot workspace" in result.stderr
+    assert result.exit_code == 0
+    assert "http://127.0.0.1:8080" in result.output
+    assert calls[0]["port"] == 8080
 
 
 def test_serve_is_listed_in_help():
@@ -59,12 +96,28 @@ def test_serve_workspace_nonexistent_path(tmp_path: Path):
     assert "Error:" in result.stderr
 
 
-def test_serve_autodetect_missing_project_yaml(tmp_path: Path, monkeypatch):
+def test_serve_ignores_incomplete_workspace_in_current_directory(
+    tmp_path: Path, monkeypatch
+):
     (tmp_path / ".taskpilot").mkdir()
     monkeypatch.chdir(tmp_path)
+    calls: list[dict[str, object]] = []
+
+    def fake_run(app_factory, *, factory, host, port):
+        calls.append(
+            {
+                "app_factory": app_factory,
+                "factory": factory,
+                "host": host,
+                "port": port,
+            }
+        )
+
+    monkeypatch.setattr("taskpilot.cli.commands.serve.uvicorn.run", fake_run)
+
     result = runner.invoke(app, ["serve"])
-    assert result.exit_code == 1
-    assert "project.yaml" in result.stderr
+    assert result.exit_code == 0
+    assert calls[0]["port"] == 7152
 
 
 def test_serve_module_does_not_import_server_adapter():

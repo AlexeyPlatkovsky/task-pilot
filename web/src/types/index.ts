@@ -53,6 +53,24 @@ export interface ItemLinks {
   relates_to?: string[];
 }
 
+export interface ItemRelationshipSummary {
+  id: string;
+  title: string;
+  type: ItemType | "unknown";
+  status: Status | "unknown";
+  priority: Priority | "unknown";
+  valid: boolean;
+}
+
+export interface ItemRelationships {
+  parent?: ItemRelationshipSummary | null;
+  children: ItemRelationshipSummary[];
+  blocks: ItemRelationshipSummary[];
+  blocked_by: ItemRelationshipSummary[];
+  relates_to: ItemRelationshipSummary[];
+  related_to: ItemRelationshipSummary[];
+}
+
 export interface ItemSummary {
   id: string;
   title: string;
@@ -86,6 +104,7 @@ export interface ItemDetail {
   performed_by?: string;
   external_refs?: string[];
   comments: Comment[];
+  relationships?: ItemRelationships;
   valid: boolean;
   findings?: ValidationFinding[];
 }

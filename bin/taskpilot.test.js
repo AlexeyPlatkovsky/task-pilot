@@ -16,6 +16,7 @@ const os = require("os");
 const path = require("path");
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
+const packageJson = require("../package.json");
 
 const WRAPPER = path.resolve(__dirname, "taskpilot");
 const TEST_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "taskpilot-wrapper-test-"));
@@ -132,7 +133,7 @@ describe("--version", () => {
   it("prints package version and exits 0", { skip: !hasPython }, async () => {
     const { code, stdout, stderr } = await run(["--version"]);
     assert.strictEqual(code, 0, `exit code ${code}, stderr: ${stderr}`);
-    assert.match(stdout, /^\d+\.\d+\.\d+\n?$/);
+    assert.strictEqual(stdout.trim(), packageJson.version);
     assert.strictEqual(stderr, "");
   });
 

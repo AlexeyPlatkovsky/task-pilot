@@ -57,19 +57,38 @@ def _mount_webui(app: FastAPI) -> None:
 
     web_dist_path = Path(web_dist)
 
-    if web_dist_path.is_dir() and (web_dist_path / "index.html").is_file():
+    assets_path = web_dist_path / "assets"
+
+    if (
+        web_dist_path.is_dir()
+        and (web_dist_path / "index.html").is_file()
+        and assets_path.is_dir()
+    ):
         # Mount static assets (JS, CSS, SVGs, etc.)
         app.mount(
             "/assets",
-            StaticFiles(directory=str(web_dist_path / "assets")),
+            StaticFiles(directory=str(assets_path)),
             name="webui_assets",
         )
 
         # SPA fallback: serve index.html for all non-API routes
         index_path = web_dist_path / "index.html"
 
+        web_dist_root = web_dist_path.resolve()
+
+        @app.api_route(
+            "/api/{full_path:path}",
+            methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+            include_in_schema=False,
+        )
+        async def _api_not_found(request: Request, full_path: str) -> JSONResponse:
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
         @app.get("/{full_path:path}", include_in_schema=False)
         async def _spa_fallback(request: Request, full_path: str) -> FileResponse:
+            asset_response = _static_webui_file(web_dist_root, full_path)
+            if asset_response is not None:
+                return asset_response
             return FileResponse(index_path)
 
         @app.get("/", include_in_schema=False)
@@ -86,6 +105,18 @@ def _mount_webui(app: FastAPI) -> None:
         @app.get("/", include_in_schema=False)
         async def _root_packaging_error(request: Request) -> HTMLResponse:
             return HTMLResponse(content=error_body, status_code=503)
+
+
+def _static_webui_file(web_dist_root: Path, full_path: str) -> FileResponse | None:
+    """Return an existing WebUI build file, preserving SPA fallback for routes."""
+    candidate = (web_dist_root / full_path).resolve()
+    try:
+        candidate.relative_to(web_dist_root)
+    except ValueError:
+        return None
+    if candidate.is_file() and candidate.name != "index.html":
+        return FileResponse(candidate)
+    return None
 
 
 _PACKAGING_ERROR_HTML = """\

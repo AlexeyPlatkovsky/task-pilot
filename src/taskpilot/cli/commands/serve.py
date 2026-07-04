@@ -1,8 +1,8 @@
-"""``taskpilot serve`` — start the local REST API server (task F005-T6, requirement F005-R6).
+"""``taskpilot serve`` — start the local WebUI/API server (task F005-T6, requirement F005-R6).
 
-Resolves the TaskPilot workspace and registry, then runs the FastAPI application
-via uvicorn. The server binds to ``127.0.0.1`` on port ``7152`` by default,
-matching the Vite dev proxy target in ``web/vite.config.ts``.
+Resolves the machine registry, then runs the FastAPI application via uvicorn.
+The server binds to ``127.0.0.1`` on port ``7152`` by default, matching the
+Vite dev proxy target in ``web/vite.config.ts``.
 """
 
 from __future__ import annotations
@@ -14,9 +14,7 @@ import typer
 import uvicorn
 
 from taskpilot.cli.exit_codes import EXIT_USER_ERROR
-from taskpilot.cli.workspace import find_workspace
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.services.errors import NotFound
 from taskpilot.services.registry import default_registry_dir
 
 #: Import-string for uvicorn's app factory. Passing a string (not an imported symbol)
@@ -38,10 +36,10 @@ def serve_command(
     workspace: str | None = typer.Option(
         None,
         "--workspace",
-        help="Workspace root path (default: auto-detect from cwd).",
+        help="Validate this workspace root before startup.",
     ),
 ) -> None:
-    """Start the local REST API server."""
+    """Start the local WebUI/API server."""
     if workspace is not None:
         ws = WorkspacePaths.for_root(Path(workspace))
         if not _validate_workspace(ws):
@@ -51,24 +49,11 @@ def serve_command(
                 err=True,
             )
             raise typer.Exit(EXIT_USER_ERROR)
-    else:
-        try:
-            ws = find_workspace()
-        except NotFound as exc:
-            typer.echo(f"Error: {exc}", err=True)
-            raise typer.Exit(EXIT_USER_ERROR) from exc
-
-    if not _validate_workspace(ws):
-        typer.echo(
-            f"Error: workspace at {ws.root} is missing project.yaml",
-            err=True,
-        )
-        raise typer.Exit(EXIT_USER_ERROR)
 
     registry_dir = default_registry_dir()
     os.environ[_REGISTRY_DIR_ENV] = str(registry_dir)
 
-    typer.echo(f"TaskPilot API server starting on http://{host}:{port}")
+    typer.echo(f"TaskPilot server starting on http://{host}:{port}")
     typer.echo(f"OpenAPI docs at http://{host}:{port}/docs")
     uvicorn.run(_APP_FACTORY, factory=True, host=host, port=port)
 

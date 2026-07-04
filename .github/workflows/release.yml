@@ -197,7 +197,7 @@ jobs:
       - macos-full
       - ubuntu-smoke
       - windows-smoke
-    environment: npm-beta
+    environment: npm-release
     permissions:
       contents: write
       issues: write
@@ -255,12 +255,12 @@ jobs:
 
       - name: Dry-run npm publish
         env:
-          NPM_DIST_TAG: beta
+          NPM_DIST_TAG: latest
         run: npm publish --dry-run --access public --tag "$NPM_DIST_TAG" --provenance
         working-directory: staging
 
       - name: Publish to npm
         env:
-          NPM_DIST_TAG: beta
+          NPM_DIST_TAG: latest
         run: npm publish --access public --tag "$NPM_DIST_TAG" --provenance
         working-directory: staging

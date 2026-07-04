@@ -17,7 +17,7 @@ from taskpilot.services.registry import (
 )
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.app import create_app
-from taskpilot.services import item_service, project_service
+from taskpilot.services import item_service, link_service, project_service
 
 
 @pytest.fixture
@@ -288,6 +288,128 @@ class TestGetItem:
         )
         assert r.status_code == 200
         assert r.json()["status"] == "done"
+
+    def test_detail_includes_derived_relationships(self, client, tmp_path, workspace):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Parent epic",
+            type="epic",
+            now="2026-06-25T10:00:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Target feature",
+            type="feature",
+            parent_id="VP-1",
+            now="2026-06-25T10:01:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Child task",
+            type="task",
+            parent_id="VP-2",
+            now="2026-06-25T10:02:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Blocked target",
+            type="task",
+            now="2026-06-25T10:03:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Related target",
+            type="task",
+            now="2026-06-25T10:04:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Incoming blocker",
+            type="task",
+            now="2026-06-25T10:05:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Incoming related",
+            type="task",
+            now="2026-06-25T10:06:00Z",
+        )
+        link_service.add_link(workspace, "VP-2", "blocks", "VP-4")
+        link_service.add_link(workspace, "VP-2", "relates_to", "VP-5")
+        link_service.add_link(workspace, "VP-6", "blocks", "VP-2")
+        link_service.add_link(workspace, "VP-7", "relates_to", "VP-2")
+
+        r = client.get("/api/projects/voice-pilot/items/VP-2")
+
+        assert r.status_code == 200
+        relationships = r.json()["relationships"]
+        assert relationships["parent"] == {
+            "id": "VP-1",
+            "title": "Parent epic",
+            "type": "epic",
+            "status": "backlog",
+            "priority": "normal",
+            "valid": True,
+        }
+        assert relationships["children"] == [
+            {
+                "id": "VP-3",
+                "title": "Child task",
+                "type": "task",
+                "status": "backlog",
+                "priority": "normal",
+                "valid": True,
+            }
+        ]
+        assert relationships["blocks"][0]["id"] == "VP-4"
+        assert relationships["relates_to"][0]["id"] == "VP-5"
+        assert relationships["blocked_by"][0]["id"] == "VP-6"
+        assert relationships["related_to"][0]["id"] == "VP-7"
+
+    def test_detail_keeps_missing_relationship_ids_visible(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        workspace.items_dir.mkdir(parents=True, exist_ok=True)
+        workspace.item_file("VP-1").write_text(
+            "schema_version: 1\n"
+            "id: VP-1\n"
+            "title: Item with broken relationships\n"
+            "priority: normal\n"
+            "type: feature\n"
+            "status: backlog\n"
+            "created_at: '2026-06-25T10:00:00Z'\n"
+            "updated_at: '2026-06-25T10:00:00Z'\n"
+            "parent_id: VP-404\n"
+            "links:\n"
+            "  blocks:\n"
+            "    - VP-405\n",
+            encoding="utf-8",
+        )
+
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+
+        assert r.status_code == 200
+        relationships = r.json()["relationships"]
+        assert relationships["parent"] == {
+            "id": "VP-404",
+            "title": "[missing item]",
+            "type": "unknown",
+            "status": "unknown",
+            "priority": "unknown",
+            "valid": False,
+        }
+        assert relationships["blocks"] == [
+            {
+                "id": "VP-405",
+                "title": "[missing item]",
+                "type": "unknown",
+                "status": "unknown",
+                "priority": "unknown",
+                "valid": False,
+            }
+        ]
 
 
 class TestValidateProject:
@@ -634,6 +756,14 @@ class TestWebUIServing:
         assets = dist / "assets"
         assets.mkdir()
         (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
+        (dist / "favicon.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"><title>Favicon</title></svg>',
+            encoding="utf-8",
+        )
+        (dist / "task-pilot-compass-board.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"><title>Logo</title></svg>',
+            encoding="utf-8",
+        )
         return dist
 
     def test_no_web_dist_env_serves_only_api(self, webui_app):
@@ -656,6 +786,14 @@ class TestWebUIServing:
         assets = dist / "assets"
         assets.mkdir()
         (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
+        (dist / "favicon.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"><title>Favicon</title></svg>',
+            encoding="utf-8",
+        )
+        (dist / "task-pilot-compass-board.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"><title>Logo</title></svg>',
+            encoding="utf-8",
+        )
 
         monkeypatch.setenv("TASKPILOT_WEB_DIST", str(dist))
         from taskpilot.server.app import create_app
@@ -676,6 +814,67 @@ class TestWebUIServing:
         r = c.get("/assets/main.js")
         assert r.status_code == 200
         assert r.text == "console.log('test');"
+        r = c.get("/favicon.svg")
+        assert r.status_code == 200
+        assert "image/svg+xml" in r.headers["content-type"]
+        assert "<title>Favicon</title>" in r.text
+        r = c.get("/task-pilot-compass-board.svg")
+        assert r.status_code == 200
+        assert "image/svg+xml" in r.headers["content-type"]
+        assert "<title>Logo</title>" in r.text
+
+    def test_valid_web_dist_does_not_spa_fallback_unknown_api(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Unknown API routes must stay API 404s rather than serving index.html."""
+        dist = tmp_path / "web-dist"
+        dist.mkdir()
+        (dist / "index.html").write_text(
+            "<!DOCTYPE html><html><head><title>TaskPilot</title></head><body>App</body></html>",
+            encoding="utf-8",
+        )
+        assets = dist / "assets"
+        assets.mkdir()
+        (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
+
+        monkeypatch.setenv("TASKPILOT_WEB_DIST", str(dist))
+        from taskpilot.server.app import create_app
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
+        app = create_app(registry_dir=str(registry_dir))
+        c = TestClient(app)
+
+        r = c.get("/api/nope")
+        assert r.status_code == 404
+        assert r.headers["content-type"] == "application/json"
+        assert r.json() == {"detail": "Not Found"}
+
+    def test_web_dist_missing_assets_returns_packaging_error(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """An incomplete WebUI build reports the packaging error instead of crashing."""
+        dist = tmp_path / "web-dist"
+        dist.mkdir()
+        (dist / "index.html").write_text(
+            "<!DOCTYPE html><html><head><title>TaskPilot</title></head><body>App</body></html>",
+            encoding="utf-8",
+        )
+
+        monkeypatch.setenv("TASKPILOT_WEB_DIST", str(dist))
+        from taskpilot.server.app import create_app
+
+        registry_dir = tmp_path / "registry"
+        registry_dir.mkdir()
+        monkeypatch.setenv("TASKPILOT_HOME", str(registry_dir))
+        app = create_app(registry_dir=str(registry_dir))
+        c = TestClient(app)
+
+        assert c.get("/api/health").status_code == 200
+        r = c.get("/")
+        assert r.status_code == 503
+        assert "WebUI assets are not available" in r.text
 
     def test_missing_web_dist_returns_packaging_error(
         self, tmp_path, monkeypatch: pytest.MonkeyPatch

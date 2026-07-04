@@ -8,6 +8,7 @@ from taskpilot.services.registry import RegistryEntry, list_projects as registry
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.schemas import (
     ItemDetail,
+    ItemRelationshipSummary,
     ItemSummary,
     ItemUpdateInput,
     ProjectSummary,
@@ -19,8 +20,9 @@ from taskpilot.server.schemas import (
 from taskpilot.core.validation import validate_workspace
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
+from taskpilot.services import reverse_links as reverse_link_svc
 from taskpilot.services import ui_state as ui_state_svc
-from taskpilot.services.errors import ValidationFailed
+from taskpilot.services.errors import NotFound, ValidationFailed
 
 router = APIRouter(tags=["projects"])
 
@@ -56,6 +58,78 @@ def _item_summary(item) -> dict:
     return d
 
 
+def _numeric_id_key(item_id: str) -> tuple[int, str]:
+    _, _, suffix = item_id.rpartition("-")
+    return (int(suffix), item_id) if suffix.isdigit() else (-1, item_id)
+
+
+def _relationship_summary(item) -> dict:
+    return ItemRelationshipSummary(
+        id=item.id,
+        title=item.title,
+        type=item.type,
+        status=item.status,
+        priority=item.priority,
+        valid=True,
+    ).model_dump()
+
+
+def _broken_relationship_summary(item_id: str, title: str) -> dict:
+    return ItemRelationshipSummary(
+        id=item_id,
+        title=title,
+        type="unknown",
+        status="unknown",
+        priority="unknown",
+        valid=False,
+    ).model_dump()
+
+
+def _relationship_summary_for_id(ws: WorkspacePaths, item_id: str) -> dict:
+    try:
+        return _relationship_summary(item_svc.read_item(ws, item_id))
+    except NotFound:
+        return _broken_relationship_summary(item_id, "[missing item]")
+    except ValidationFailed:
+        return _broken_relationship_summary(item_id, "[invalid item]")
+
+
+def _relationship_summaries_for_ids(
+    ws: WorkspacePaths, item_ids: list[str]
+) -> list[dict]:
+    summaries: list[dict] = []
+    for linked_id in sorted(item_ids, key=_numeric_id_key):
+        summaries.append(_relationship_summary_for_id(ws, linked_id))
+    return summaries
+
+
+def _item_relationships(item, ws: WorkspacePaths) -> dict:
+    parent = (
+        _relationship_summary_for_id(ws, item.parent_id)
+        if item.parent_id is not None
+        else None
+    )
+    children = [
+        _relationship_summary(child)
+        for child in item_svc.list_items(ws, include_deleted=True)
+        if child.parent_id == item.id
+    ]
+    links = item.links.model_dump() if item.links is not None else {}
+    reverse = reverse_link_svc.reverse_links_for(ws, item.id)
+    return {
+        "parent": parent,
+        "children": children,
+        "blocks": _relationship_summaries_for_ids(ws, links.get("blocks", [])),
+        "blocked_by": _relationship_summaries_for_ids(
+            ws, reverse.get("blocked_by", [])
+        ),
+        "relates_to": _relationship_summaries_for_ids(ws, links.get("relates_to", [])),
+        "related_to": _relationship_summaries_for_ids(
+            ws, reverse.get("related_to", [])
+        ),
+    }
+
+
 def _item_detail(item, ws: WorkspacePaths) -> dict:
     d = item.model_dump()
     try:
@@ -63,6 +137,7 @@ def _item_detail(item, ws: WorkspacePaths) -> dict:
         d["comments"] = [c.model_dump() for c in comments]
     except ValidationFailed:
         d["comments"] = []
+    d["relationships"] = _item_relationships(item, ws)
     d["valid"] = True
     return d
 

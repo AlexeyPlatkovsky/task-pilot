@@ -99,6 +99,7 @@ export class TaskPilotPage {
     status,
     priority,
     description,
+    linkedTo,
   }: {
     itemId: string;
     title: string;
@@ -106,6 +107,7 @@ export class TaskPilotPage {
     status: string;
     priority: string;
     description: string;
+    linkedTo?: string[];
   }) {
     const modal = this.itemModal(itemId);
     await expect(modal).toBeVisible();
@@ -115,6 +117,9 @@ export class TaskPilotPage {
     await expect(modal).toContainText(status);
     await expect(modal).toContainText(priority);
     await expect(modal).toContainText(description);
+    for (const linkedText of linkedTo ?? []) {
+      await expect(modal).toContainText(linkedText);
+    }
     await expect(this.byTestId("item-modal-edit")).toBeVisible();
     await expect(this.byTestId("item-modal-delete")).toBeVisible();
   }

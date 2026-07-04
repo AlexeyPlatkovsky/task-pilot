@@ -1,6 +1,6 @@
 # Beta Item Detail Redesign
 
-Status: accepted
+Status: implemented
 
 ## Outcome
 
@@ -17,33 +17,30 @@ modal editing as the workspace pattern, and `docs/specs/0002-alpha-product-and-s
 keeps the modal on the current page with Alpha editing limited to title, description, priority,
 and status.
 
-This specification settles the information architecture and inline editing behavior for the Beta
-polish pass without changing canonical task data formats. The WebUI may expose existing item YAML
-fields through the REST API, but canonical files remain the source of truth and comments remain
-append-style Markdown files.
+This specification settles the information architecture for the Beta polish pass without changing
+canonical task data. It adds a REST detail contract for derived relationship context while keeping
+reverse links derived rather than persisted.
 
 ## Scope
 
 In scope:
 
-- restructure the existing item modal into a header, two-column summary, content groups, comments
-  section, and validation area;
-- keep users in the same modal when edit mode is active instead of replacing the detail view with a
-  separate form;
-- make title, description, DOR, DOD, resources, and new comments editable in edit mode;
+- restructure the existing item modal view mode into a header, two-column summary, Info section,
+  comments section, and validation area;
+- keep title, status, priority, and description as the only editable WebUI fields;
 - keep the requested read-only context visible when present: priority, status, timestamps,
-  description, readiness, resources, comments, and validation findings;
+  description, readiness, resources, linked items, comments, and validation findings;
 - show absent checklist, resource, and comment groups as explicit empty states where
   that absence is useful for day-to-day task review;
-- keep delete confirmation layered over the current modal instead of hiding the item detail;
+- preserve the existing soft-delete confirmation behavior;
 - preserve invalid item visibility and show validation findings inside the modal;
 - keep the modal usable in the supported desktop viewport range.
 
 Out of scope:
 
 - new canonical item fields or serialization rules;
-- REST API additions for child items, reverse links, existing-comment mutation, or hard delete;
-- editing tags, parent, or non-parent links;
+- REST API additions for comment mutation or hard delete;
+- editing DOR, DOD, tags, attachments, external references, parent, or non-parent links;
 - WebUI item creation;
 - project-configured workflow statuses;
 - permanent item delete safeguards;
@@ -60,8 +57,8 @@ and Bug red. Item ID shall be visually stronger than the type label.
 F2. The item summary shall render under `aria-label="Item summary"` as two metadata columns: the
 left column contains Priority and Status, and the right column contains Created and Updated.
 
-F3. The modal shall show Description, Readiness, and Resources as adjacent content groups without an
-extra "Info" section heading. It shall show a clear empty state when the item has no description.
+F3. The view mode shall group Description, Readiness, and Resources under an Info section and shall
+show a clear empty state when the item has no description.
 
 F4. The view mode shall group DOR and DOD checklists together, preserving item order and showing
 empty checklist states when either list is absent.
@@ -69,32 +66,30 @@ empty checklist states when either list is absent.
 F5. The view mode shall group tags, attachments, and external references together, preserving item
 order and showing an explicit no-resources state when all are absent.
 
-F6. Existing comments shall remain chronological through the existing comment thread. Edit mode
-shall allow adding a new comment through the append-only comment service without mutating or
-deleting existing comment files.
+F6. The modal shall show a Linked to section between Info and Comments. It shall render direct
+parent, direct children, stored forward links, and derived reverse links when present. Each linked
+item shall render as one row in a one-column list with the relationship label followed by a link
+containing item ID and title, for example `Parent: TP-5 Base Epic for test`. The item ID and title
+shall use one font and size, with the ID bold. Relationship links shall open the target item in the
+same modal. Long titles shall be trimmed for stable layout. Rows shall preserve deterministic order:
+Parent, Children, Blocks, Blocked by, and Related to. Stored `relates_to` and derived `related_to`
+rows shall both appear under Related to. The section shall use an empty state when the item has no
+relationships. Broken relationship targets shall remain visible by item ID with a missing or
+invalid state instead of disappearing from the section.
 
-F7. Invalid item findings shall remain visible in the modal and shall include severity, message,
+F7. Comments shall remain read-only and chronological through the existing comment thread.
+
+F8. Invalid item findings shall remain visible in the modal and shall include severity, message,
 and field when available.
 
-F8. Edit mode shall keep the same modal layout and make title, Description, DOR, DOD, Resources,
-and Comments editable. Priority and Status remain displayed in the summary unless a later accepted
-scope explicitly changes them.
+F9. Edit mode shall continue to edit only title, description, priority, and status. Cancel shall
+return to view mode without committing changes.
 
-F9. Edit and Delete shall be icon-only buttons in the upper-right action group near Close. Delete
-shall show the confirmation dialog over the existing modal and continue to use soft-delete
-behavior.
+F10. Edit and Delete shall be icon-only buttons in the upper-right action group near Close. Delete
+shall continue to use the existing confirmation dialog and soft-delete behavior.
 
-F10. The modal shall not fetch or derive child items or reverse links beyond the current item
-detail response.
-
-F11. DOR and DOD shall render as checklist groups with checkboxes. In edit mode, each group shall
-show a plus icon that inserts a new editable item. Checklist text is limited to 60 characters; an
-item clicked in edit mode becomes an inline text field, blur commits the value, and the inline
-delete icon removes the item without confirmation.
-
-F12. Resources shall render attachments and links with edit-mode actions for Attach and Link.
-Every resource row shall have an icon-only delete action in edit mode. Resource deletion shall ask
-for confirmation over the current modal before updating the item.
+F11. The modal shall not fetch relationship details independently. It shall render relationships
+from the current item detail response.
 
 ### Quality
 
@@ -115,82 +110,90 @@ Q5. The modal shall remain readable and stable at the supported desktop minimum 
 
 ### Domain and invariants
 
-No canonical format rules change. Markdown/YAML item files remain canonical. Reverse links remain
-derived by services and are not stored twice. Invalid files remain visible and actionable. Comment
-creation remains append-only through separate Markdown files.
+No canonical file format rules change. Markdown/YAML item files remain canonical. Reverse links and
+children remain derived by services and are not stored twice. Invalid files remain visible and
+actionable.
 
 ### Canonical file effects
 
-Title, description, DOR, DOD, attachments, and external references may be rewritten through the
-validated item update path. Comment creation writes a new timestamped Markdown file and does not
-rewrite the item YAML.
+None. The redesign and relationship section are read-only except for the existing edit and
+soft-delete paths.
 
 ### Service operations
 
-No new item service operation is required; existing validated `update_item` semantics handle
-existing YAML fields. The existing comment service handles new comment creation.
+No write service operation is required. The REST adapter derives relationship context from existing
+item, hierarchy, and reverse-link services.
 
 ### CLI / API contracts
 
-The REST item patch contract exposes existing `ItemDetail` fields needed by edit mode:
-`description`, `dor`, `dod`, `attachments`, and `external_refs`. A REST comment creation endpoint
-may append a comment and return the refreshed item detail. CLI contracts do not change.
+`ItemDetail` adds a read-only `relationships` object containing:
+
+- `parent`: the direct parent item summary, or null;
+- `children`: direct child item summaries;
+- `blocks` and `relates_to`: stored forward link target summaries;
+- `blocked_by` and `related_to`: derived reverse link source summaries.
+
+Relationship summaries include item ID, title, type, status, and priority. CLI contracts do not
+change. Missing or invalid relationship targets are returned with `valid: false`, the requested
+item ID, and placeholder title/status/type/priority values so the UI can surface the broken link.
 
 ### UI states
 
 - Loading: show the modal shell with the requested item ID and loading text.
 - Load error: show failure text and retry action.
-- View mode: show header, summary, Description, Readiness, Resources, Comments, and validation
-  findings when applicable.
+- View mode: show header, summary, Info, Linked to, comments, and
+  validation findings when applicable. Linked to rows are one-column links that switch the modal to
+  the linked item.
 - Empty groups: show no-description, no-checklist, no-resources, and no-comments
   states where relevant.
-- Edit mode: keep the detail layout in place, make scoped fields editable inline, and preserve
-  mutation/error visibility.
-- Delete confirm: show the existing destructive confirmation dialog over the still-visible modal.
-- Resource delete confirm: show a scoped confirmation dialog over the still-visible modal.
+- Edit mode: show the existing edit form and preserve current mutation/error behavior.
+- Delete confirm: show the existing destructive confirmation dialog.
 - Invalid item: show validation findings without hiding parsed fields.
 
 ## Acceptance Criteria
 
 1. Given an item with type, status, priority, description, tags, DOR, DOD, attachments, external
-   references, comments, and timestamps, when the modal opens, then each field appears in the
-   correct grouped area with readable labels.
+   references, relationships, comments, and timestamps, when the modal opens, then each field
+   appears in the correct grouped area with readable labels.
 2. Given an item with no description, checklist content, resources, or comments,
    when the modal opens, then the modal shows explicit empty states for those groups.
 3. Given an invalid item with validation findings, when the modal opens, then validation findings
    remain visible with severity, message, and field where available.
-4. Given a user enters edit mode, when they inspect the modal, then the same modal remains visible
-   and title, description, DOR, DOD, resources, and new-comment input are editable in place.
-5. Given a user edits a DOR or DOD item, when the inline field blurs, then the item is saved through
-   the item patch path and remains in list order.
-6. Given a user adds a DOR or DOD item, when they type more than 60 characters, then the UI prevents
-   or rejects the excess before saving.
-7. Given a user deletes a DOR or DOD item in edit mode, when they click the row delete icon, then
-   the item is removed without a confirmation dialog.
-8. Given a user adds or removes a link or attachment resource, when the action is confirmed where
-   required, then the corresponding `external_refs` or `attachments` field is updated without
-   changing unrelated fields.
-9. Given a user adds a comment in edit mode, when the comment is submitted, then a new append-only
-   comment appears in chronological order and the item YAML is not rewritten for the comment.
-10. Given a user opens the item delete action, when the confirmation appears, then the item modal
-    remains visible behind it and the existing soft-delete confirmation path is used.
+4. Given an item with a parent, children, forward links, and reverse links, when the modal opens,
+   then the Linked to section lists one row per relationship in Parent, Children, Blocks,
+   Blocked by, Related to order, and each row exposes a link containing the linked item ID and
+   title.
+5. Given an item with no relationships, when the modal opens, then the Linked to section shows a
+   no-linked-items empty state.
+6. Given an item has a relationship pointing at a missing or invalid item, when the modal opens,
+   then the Linked to section still shows the linked item ID and a missing/invalid state.
+7. Given a user activates a Linked to row link, when the target item can be loaded, then the same
+   modal shows the target item detail without closing the board context.
+8. Given a user enters edit mode, when they inspect the form, then only title, description,
+   priority, and status are editable.
+9. Given a user cancels edit mode, when the view returns, then no mutation is submitted.
+10. Given a user opens the delete action, when the confirmation appears, then the existing
+   soft-delete confirmation path is used.
 11. Given the modal is rendered at the supported desktop minimum width, then header, actions,
-    summary columns, sections, and long item IDs do not overlap.
+   summary columns, sections, and long item IDs do not overlap.
 
 ## Test Strategy
 
-- Component tests cover grouped rendering, empty states, invalid findings, inline edit-mode scope,
-  checklist editing, resource deletion confirmation, comment append affordance, and delete
-  confirmation continuity.
-- API tests cover item patch fields for DOR, DOD, attachments, and external references plus the
-  comment append endpoint when introduced.
-- Functional E2E coverage exercises the major modal edit workflow through the page object.
-- Browser contract evidence covers layout and stacked confirmation behavior where component tests
-  cannot prove browser placement.
+- API tests cover the read-only relationship payload for parent, children, forward links, and
+  reverse links, including missing relationship targets.
+- Component tests cover grouped rendering, ordered relationship links, same-modal relationship
+  navigation, empty relationship state, invalid relationship state, invalid findings, edit-mode
+  scope, and delete confirmation continuity.
+- Existing `ItemEditForm` tests continue to cover field validation, save behavior, and dirty-field
+  preservation.
+- Functional E2E coverage opens an item with relationship data and verifies the Linked to section
+  is visible from the board modal.
+- Browser contract evidence is required for layout only if component tests cannot prove the
+  supported desktop minimum-width behavior.
 
 ## Implementation Evidence
 
-- Previous view-mode polish was implemented in `web/src/components/ItemModal.tsx` and
+- Implemented in `web/src/components/ItemModal.tsx` and
   `web/src/components/ItemModal.module.css`.
 - Component coverage lives in `web/src/components/__tests__/ItemModal.test.tsx`.
 - Existing modal journey coverage remains in `web/e2e/functional/f004-core-workspace.spec.ts`
@@ -200,6 +203,12 @@ may append a comment and return the refreshed item detail. CLI contracts do not 
   `npm run test:e2e:functional -- f004-core-workspace.spec.ts`.
 - Browser contract evidence for the 1280px long-ID no-overlap layout passes through
   `npm run test:browser-contract`.
+- Full relationship section implemented through the REST `relationships` payload and WebUI
+  `Linked to` section.
+- Relationship validation commands passed for this slice: `uv run pytest tests/server/test_api.py`,
+  `npm run test`, `npm run lint`, `npm run build`, `npm run test:e2e:functional --
+  f004-core-workspace.spec.ts`, `npm run test:browser-contract`, `ruff format --check .`, and
+  `uv run taskpilot validate`.
 
 ## Implementation Slices
 
@@ -213,11 +222,10 @@ may append a comment and return the refreshed item detail. CLI contracts do not 
 
 - Rendering empty states may add visible text in areas that previously disappeared. This is
   intentional for release readiness and does not change data.
-- The current API does not expose child items or reverse links. The modal must not imply those are
-  complete until an API/domain contract adds them.
-- Existing comment edit/delete remains out of scope to preserve append-only comment behavior.
-- Inline blur-save can produce multiple small canonical item rewrites; tests must prove unrelated
-  fields are preserved and failed saves are visible.
+- The relationship payload duplicates item summary facts in a detail response. Tests must guard the
+  REST contract so future item-summary field changes do not silently drift.
+- Full field editing and comment mutation are deferred from 1.0.0 unless a later
+  accepted scope explicitly pulls them back in.
 
 ## Assumptions
 
@@ -225,14 +233,10 @@ may append a comment and return the refreshed item detail. CLI contracts do not 
   discovery gate.
 - The Beta polish pass should improve the existing local WebUI, not introduce OD or Pencil design
   artifacts.
-- Child item visibility and reverse-link visibility require API/domain work and are therefore
-  outside this modal-only slice.
+- Child item visibility and reverse-link visibility are approved for this full relationship slice.
 
-## Open Questions
+## Post-Beta Questions
 
-- Should a later Beta slice add child item and reverse-link fields to `ItemDetail`, or should the
-  modal derive that context from the already loaded item list?
-- Should comment add/edit/delete ship in Beta, or should release scope narrow Beta to read-only
-  comments for the first npm beta?
-- Should full item field editing remain in Beta, or be split into separate post-modal slices for
-  checklist, resource, and relationship editors?
+- Should comment add/edit/delete ship in a later Beta, or remain a post-Beta workflow?
+- Should full item field editing be split into separate post-modal slices for checklist, resource,
+  and relationship editors?

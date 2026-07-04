@@ -11,27 +11,24 @@
 Goal: make the core item-management loop release-ready, defer non-essential surfaces, and make
 the first release repeatable through an npm-distributed CLI package.
 
-Prerequisites and gaps:
-- The Board and List date filter contract includes both `updated_at` and `created_at` time ranges,
-  using `Any time`, `Last 7 days`, `Last 14 days`, and `Last 30 days`.
-- The Tree view is implemented and F006 still records it as a visible advanced view, but it is not
-  release-ready. The next release should hide it rather than spend release capacity refining a
-  secondary surface.
-- The WebUI currently keeps the selected project in page state only. A reload or app restart does
-  not reopen the last project by default.
-- The WebUI currently refreshes after its own mutations and normal query staleness. CLI/API/file
-  changes made outside the current browser interaction are not guaranteed to appear without a page
-  reload within a release-defined freshness window.
-- The current item detail modal already exposes many fields, but the release needs a clearer task
-  view hierarchy and relationship/child visibility for day-to-day item management.
+Implemented release-readiness scope:
+- Board and List date filters include both `updated_at` and `created_at` ranges using `Any time`,
+  `Last 7 days`, `Last 14 days`, and `Last 30 days`.
+- The Tree implementation remains in code, but the release WebUI navigation exposes only Board and
+  List.
+- The WebUI stores the last opened project in local UI state and restores it when the project is
+  still available.
+- Board, List, selected item detail, and validation status refresh on polling and focus return so
+  external CLI/API/file changes become visible without a page reload.
+- The item detail modal has a release task-view hierarchy with relationship and child visibility.
 - The release package target is the unscoped npm CLI package `taskpilot`. The current WebUI package
   is private and named `web`, so release work must create clean npm package metadata/staging rather
   than publishing the current `web/package.json` package as-is.
 - The npm package bundles Python source and built WebUI assets. It requires user Python `>=3.11`
   with `venv` and `pip`, then lazily creates a user-cache runtime from a bundled
   `requirements.lock`.
-- Beta publishing is manual from GitHub Actions. The workflow validates the release, performs an
-  npm dry-run, and publishes to npm through Trusted Publishing with the `beta` dist-tag.
+- Stable publishing is manual from GitHub Actions. The workflow validates the release, performs an
+  npm dry-run, and publishes to npm through Trusted Publishing with the `latest` dist-tag.
 - Settings, Git helpers, MCP, advanced relation visualization, import/export, search, hosted sync,
   accounts, and other non-core surfaces should stay out of this release unless already required by
   the item-management path below.
@@ -129,16 +126,18 @@ Acceptance:
 The first task detail redesign pass is implemented by
 `docs/specs/0004-beta-item-detail-redesign.md`. The release modal now has a settled information
 architecture for the current requested task review flow: header, two-column summary, Info,
-comments, and validation issues.
+Linked to, comments, and validation issues.
 
 Implemented scope:
 - keep Board/List context by opening a modal rather than navigating away;
 - show compact task type, item ID, title, priority, status, created/updated timestamps,
   description, DOR/DOD, tags, attachments, external references, comments, and validation findings;
+- show read-only relationship context for parent, children, stored forward links, and derived
+  reverse links without persisting duplicate reverse data;
 - keep title, description, priority, and status as the only WebUI-editable fields;
-- show explicit empty states for missing description, checklist items, resources, and comments;
-- keep relationships, child items, reverse links, and author metadata out of this modal slice until
-  a future accepted contract adds them back.
+- show explicit empty states for missing description, checklist items, resources, linked items, and
+  comments;
+- keep author metadata out of this modal slice until a future accepted contract adds it back.
 
 Acceptance:
 - The release modal exposes the grouped task context defined in spec 0004.
@@ -147,13 +146,10 @@ Acceptance:
 - Component, functional E2E, browser-contract, build, and lint checks validate the implemented
   modal slice.
 
-Remaining Beta gaps:
-- parent/outgoing relationship display is intentionally not part of this reworked detail layout;
-- child item visibility and reverse links are not shown in the modal because the current item
-  detail API does not expose them;
+Post-1.0 deferrals:
 - full item field editing for DOR, DOD, tags, attachments, external references, parent, and links
   remains unimplemented;
-- comment add/edit/delete remains unresolved for the first Beta release scope.
+- comment add/edit/delete remains deferred from 1.0.0.
 
 ### 6. Validation Success Contrast
 
@@ -206,36 +202,37 @@ Open questions after first npm release:
 - Should `npx`, pnpm, or yarn become supported install paths?
 - Should a future release include a managed Python runtime or vendored wheels for fully offline
   fresh installs?
-- After the manual Beta flow is proven, should a future release trigger use tag push, GitHub
-  Release creation, or another explicit release command, and should it promote to the `latest`
-  npm dist-tag?
+- After the manual release flow is proven, should a future release trigger use tag push, GitHub
+  Release creation, or another explicit release command?
 
 ## Release Readiness Review
 
 Current implementation snapshot:
 - Board, List, validation panel, project selector, and item modal exist as the current WebUI
   management loop.
-- List filters and sorting are ahead of Board; Board still needs parity filters.
-- Tree exists but should be hidden for release because the refinement contract is unsettled.
+- Board and List filters use the shared release filter pattern, including created and updated date
+  ranges.
+- Tree exists in code but is hidden from release-facing navigation because the refinement contract
+  is unsettled.
+- Last opened project restore and UI-state persistence are implemented.
 - Item detail now has the first release-quality task-view redesign for fields available in the
   current item detail response.
-- API item updates write through the same local service layer, but the WebUI does not yet guarantee
-  visible refresh after external CLI/API updates without reload.
+- API item updates write through the same local service layer, and the WebUI refreshes project item
+  data on a polling/focus cadence for external updates.
 - Release automation has requirements, tasks, and scenarios under
-  `docs/features/F009_release-automation/`, but implementation is still a release blocker.
+  `docs/features/archive/F009_release-automation/` and is implemented.
 - Release UI readiness has requirements, tasks, and scenarios under
-  `docs/features/F010_release-ui-readiness/`, but implementation is still a release blocker.
+  `docs/features/archive/F010_release-ui-readiness/` and is implemented.
 
-Release blockers:
-- Board filter parity and List created time range filtering.
-- Tree view hidden from the release UI.
-- Last opened project persistence with safe fallback.
-- WebUI refresh/freshness for external task updates.
-- Remaining item detail Beta gaps: child/reverse-link visibility, full field editing, and comment
-  mutation decision.
-- `All items valid` contrast correction.
-- F009 npm release automation implementation and validation.
-- F010 release UI readiness implementation and validation.
+Release blockers before publishing:
+- pass the full release quality suite and npm dry-run from the final release candidate;
+- verify npm Trusted Publishing and maintainer approval for the `npm-release` environment.
+
+Deferred from 1.0.0 unless explicitly re-scoped:
+- full item field editing for DOR, DOD, tags, attachments, external references, parent, and links;
+- comment add/edit/delete;
+- permanent item delete safeguards;
+- project-configured workflow statuses beyond the current fixed workflow.
 
 Explicitly skipped for this release unless already required by a blocker above:
 - settings or preferences screens;

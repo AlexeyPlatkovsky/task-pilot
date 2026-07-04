@@ -94,24 +94,27 @@ View mode is organized for scanning:
 - header: compact item type chip, item ID, item title, and icon-only Edit/Delete/Close actions;
 - summary: two-column metadata with Priority and Status on the left, Created and Updated on the
   right;
-- content: description, readiness, and resources grouped directly without an extra Info heading;
+- info: description, readiness, and resources grouped under one section;
 - description: rendered Markdown when present, explicit empty state when absent;
 - readiness: DOR and DOD checklist groups, preserving stored order;
 - resources: tags, attachments, and external references;
-- comments: chronological thread, with edit mode supporting append-only comment creation;
+- linked to: parent, children, stored forward links, and derived reverse links;
+- comments: existing read-only chronological thread;
 - validation: invalid item findings with severity, message, and field where available.
 
-The modal does not display child items, reverse links, or editable relationship controls until a
-future API/domain contract exposes that data.
+The Linked to section sits after Info and before Comments. It renders a one-column list of
+relationship rows in this order: Parent, Children, Blocks, Blocked by, Related to. Each row uses
+the form `Parent: TP-5 Base Epic for test`: the relationship label is text, and the item ID plus
+title is a link that opens the target item in the same modal. The linked ID and title share one
+font family and size; the ID is bold. Long titles are trimmed visually, with the full title kept as
+hover text. Parent and forward-link rows come from stored item fields; children and reverse-link
+rows are derived by services and are never persisted separately. Stored `relates_to` and derived
+`related_to` rows both appear as Related to rows. Broken relationship targets remain visible as
+item IDs with a missing or invalid state instead of disappearing.
 
-Edit mode keeps the same modal and task layout visible rather than swapping to a separate form.
-Editable fields are scoped to title, description, DOR, DOD, resources, and new comments. Priority
-and status stay visible in the summary. DOR and DOD render as checkbox lists; in edit mode, each
-group has an icon-only add action, row text becomes editable on click, blur saves through the item
-patch path, row text is limited to 60 characters, and row deletion is immediate. Resources expose
-icon-only Link and Attach actions in edit mode, and each resource row has an icon-only delete action
-that confirms over the current modal before patching the item. Comment creation appends a new
-comment file; existing comments are not edited or deleted in the WebUI.
+The modal does not display editable relationship controls until a future API/domain contract
+defines relationship editing. Edit mode keeps the existing Alpha editable field set: title,
+description, priority, and status. All other item fields are visible read-only.
 
 Empty groups use concise muted text rather than disappearing when absence is meaningful for task
 review: no description, no checklist items, no resources, and no comments.
@@ -122,7 +125,6 @@ Layout contract:
 - body sections may use borders, muted surfaces, grids, lists, and chips;
 - action buttons stay in the upper-right corner near Close and use icon-only controls with
   accessible names;
-- delete and resource-delete confirmations layer over the still-visible item modal;
 - supported desktop minimum width is `1280px`; the dialog may scroll vertically but text and
   controls must not overlap.
 

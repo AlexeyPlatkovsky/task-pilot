@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { readFileSync } from "node:fs";
@@ -146,6 +146,16 @@ describe("ItemModal", () => {
     expect(modalCss).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
   });
 
+  it("renders Linked to as a one-column tokenized link list", () => {
+    expect(modalCss).toContain(".relationshipList");
+    expect(modalCss).toContain("grid-template-columns: minmax(0, 1fr);");
+    expect(modalCss).toContain(".relationshipLink");
+    expect(modalCss).toContain("color: var(--accent);");
+    expect(modalCss).toContain("text-overflow: ellipsis;");
+    expect(modalCss).toContain(".relationshipId");
+    expect(modalCss).toContain("font-weight: var(--font-weight-semibold);");
+  });
+
   it("renders item summary metadata in two labelled columns", async () => {
     mockFetchItem.mockResolvedValueOnce(makeItem());
     render(
@@ -182,6 +192,66 @@ describe("ItemModal", () => {
         dod: ["Component tests pass"],
         attachments: ["docs/modal.png"],
         external_refs: ["https://example.test/spec"],
+        relationships: {
+          parent: {
+            id: "VP-0",
+            title: "Beta release",
+            type: "epic",
+            status: "ready",
+            priority: "high",
+            valid: true,
+          },
+          children: [
+            {
+              id: "VP-4",
+              title: "Modal QA task",
+              type: "task",
+              status: "backlog",
+              priority: "normal",
+              valid: true,
+            },
+          ],
+          blocks: [
+            {
+              id: "VP-9",
+              title: "Legacy modal",
+              type: "bug",
+              status: "in_progress",
+              priority: "high",
+              valid: true,
+            },
+          ],
+          blocked_by: [
+            {
+              id: "VP-6",
+              title: "API contract",
+              type: "task",
+              status: "ready",
+              priority: "normal",
+              valid: true,
+            },
+          ],
+          relates_to: [
+            {
+              id: "VP-7",
+              title: "Workspace layout",
+              type: "feature",
+              status: "done",
+              priority: "normal",
+              valid: true,
+            },
+          ],
+          related_to: [
+            {
+              id: "VP-8",
+              title: "Review notes",
+              type: "task",
+              status: "backlog",
+              priority: "low",
+              valid: true,
+            },
+          ],
+        },
         created_by: "Aleksei",
         performed_by: "Codex",
         comments: [
@@ -218,9 +288,121 @@ describe("ItemModal", () => {
     expect(screen.getByText("beta")).toBeInTheDocument();
     expect(screen.getByText("docs/modal.png")).toBeInTheDocument();
     expect(screen.getByText("https://example.test/spec")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Relationships" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Linked to" })).toBeInTheDocument();
+    const linkedTo = screen.getByTestId("item-modal-linked-to");
+    const rows = within(linkedTo).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "Parent: VP-0 Beta release",
+      "Child: VP-4 Modal QA task",
+      "Blocks: VP-9 Legacy modal",
+      "Blocked by: VP-6 API contract",
+      "Related to: VP-7 Workspace layout",
+      "Related to: VP-8 Review notes",
+    ]);
+    expect(within(linkedTo).getByRole("link", { name: "VP-0 Beta release" })).toBeInTheDocument();
+    expect(within(linkedTo).getByRole("link", { name: "VP-4 Modal QA task" })).toBeInTheDocument();
+    expect(within(linkedTo).getByRole("link", { name: "VP-9 Legacy modal" })).toBeInTheDocument();
+    expect(within(linkedTo).getByRole("link", { name: "VP-6 API contract" })).toBeInTheDocument();
+    expect(within(linkedTo).getByRole("link", { name: "VP-7 Workspace layout" })).toBeInTheDocument();
+    expect(within(linkedTo).getByRole("link", { name: "VP-8 Review notes" })).toBeInTheDocument();
+    expect(screen.queryByText("Relates to")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Audit" })).not.toBeInTheDocument();
     expect(screen.getByText("Looks good.")).toBeInTheDocument();
+  });
+
+  it("opens a linked item in the same modal when a relationship link is clicked", async () => {
+    const user = userEvent.setup();
+    mockFetchItem
+      .mockResolvedValueOnce(
+        makeItem({
+          relationships: {
+            parent: {
+              id: "VP-0",
+              title: "Beta release",
+              type: "epic",
+              status: "ready",
+              priority: "high",
+              valid: true,
+            },
+            children: [],
+            blocks: [],
+            blocked_by: [],
+            relates_to: [],
+            related_to: [],
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        makeItem({
+          id: "VP-0",
+          title: "Loaded parent detail",
+          type: "epic",
+          status: "ready",
+          priority: "high",
+          relationships: {
+            parent: null,
+            children: [],
+            blocks: [],
+            blocked_by: [],
+            relates_to: [],
+            related_to: [],
+          },
+        }),
+      );
+
+    render(
+      <ItemModal projectId="VP" itemId="VP-1" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    const link = await screen.findByRole("link", { name: "VP-0 Beta release" });
+    await user.click(link);
+
+    await waitFor(() => {
+      expect(mockFetchItem).toHaveBeenLastCalledWith("VP", "VP-0");
+    });
+    expect(
+      await screen.findByRole("heading", { name: "Epic VP-0 Loaded parent detail" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Beta release")).not.toBeInTheDocument();
+  });
+
+  it("trims long relationship titles in link rows", async () => {
+    const longTitle =
+      "This related item title is intentionally long enough to exceed the relationship row display limit by a wide margin";
+    const trimmedTitle = `${longTitle.slice(0, 77)}...`;
+    mockFetchItem.mockResolvedValueOnce(
+      makeItem({
+        relationships: {
+          parent: null,
+          children: [],
+          blocks: [],
+          blocked_by: [],
+          relates_to: [
+            {
+              id: "VP-80",
+              title: longTitle,
+              type: "feature",
+              status: "backlog",
+              priority: "normal",
+              valid: true,
+            },
+          ],
+          related_to: [],
+        },
+      }),
+    );
+
+    render(
+      <ItemModal projectId="VP" itemId="VP-1" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    const link = await screen.findByRole("link", {
+      name: `VP-80 ${trimmedTitle}`,
+    });
+    expect(link).toHaveAttribute("title", `VP-80 ${longTitle}`);
+    expect(screen.queryByText(longTitle)).not.toBeInTheDocument();
   });
 
   it("shows explicit empty states for absent optional groups", async () => {
@@ -236,7 +418,50 @@ describe("ItemModal", () => {
     expect(screen.getByText("No Definition of Ready items.")).toBeInTheDocument();
     expect(screen.getByText("No Definition of Done items.")).toBeInTheDocument();
     expect(screen.getByText("No tags, attachments, or links.")).toBeInTheDocument();
+    expect(screen.getByText("No linked items.")).toBeInTheDocument();
     expect(screen.getByText("No comments")).toBeInTheDocument();
+  });
+
+  it("keeps missing linked items visible in the relationship section", async () => {
+    mockFetchItem.mockResolvedValueOnce(
+      makeItem({
+        relationships: {
+          parent: {
+            id: "VP-404",
+            title: "[missing item]",
+            type: "unknown",
+            status: "unknown",
+            priority: "unknown",
+            valid: false,
+          },
+          children: [],
+          blocks: [
+            {
+              id: "VP-405",
+              title: "[missing item]",
+              type: "unknown",
+              status: "unknown",
+              priority: "unknown",
+              valid: false,
+            },
+          ],
+          blocked_by: [],
+          relates_to: [],
+          related_to: [],
+        },
+      }),
+    );
+    render(
+      <ItemModal projectId="VP" itemId="VP-1" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Linked to" })).toBeInTheDocument();
+    });
+    expect(screen.getByRole("link", { name: "VP-404 [missing item]" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "VP-405 [missing item]" })).toBeInTheDocument();
+    expect(screen.getAllByText("missing or invalid")).toHaveLength(2);
   });
 
   it("renders description as Markdown HTML", async () => {

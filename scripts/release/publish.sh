@@ -12,7 +12,7 @@
 #   bash scripts/release/publish.sh --dry-run     # validate the package
 #   bash scripts/release/publish.sh --publish     # real publish (prompts for approval)
 #
-# Set NPM_DIST_TAG to override the default npm dist-tag. Beta releases default to "beta".
+# Set NPM_DIST_TAG to override the default npm dist-tag. Stable releases default to "latest".
 #
 
 set -euo pipefail
@@ -20,7 +20,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 STAGING="$PROJECT_ROOT/staging"
-NPM_DIST_TAG="${NPM_DIST_TAG:-beta}"
+NPM_DIST_TAG="${NPM_DIST_TAG:-latest}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

@@ -103,45 +103,44 @@ The core interaction surface for viewing and editing an item.
 Displays a scannable read-only task view:
 - header with task type, item ID, title, and icon-only Edit/Delete/Close actions;
 - two-column summary with Priority and Status on the left, Created and Updated on the right;
-- description, DOR/DOD readiness, and resources shown directly without an extra Info heading;
+- Info section containing description, DOR/DOD readiness, and resources;
 - description rendered from Markdown, with an explicit empty state when absent;
 - DOR and DOD checklist groups;
 - resources for tags, attachments, and external references;
+- Linked to section for parent, children, stored links, and derived reverse links;
 - comments thread;
 - validation findings when the item is invalid.
 
-Child items and reverse links are not shown until the API/domain contract exposes them to the
-modal. This is a known Beta gap, not a hidden UI omission.
+The Linked to section appears after Info and before Comments. It shows a one-column relationship
+list ordered as Parent, Children, Blocks, Blocked by, and Related to. Each row is one line in the
+form `Parent: TP-5 Base Epic for test`: the relationship label is plain text, and the item ID plus
+title is a link that opens the target item in the same modal. The ID and title share one font and
+size; only the ID is bold. Long titles are trimmed in the row. Children and reverse-link rows are
+derived through the API; they are not stored as duplicate canonical data. Stored `relates_to` and
+derived `related_to` rows both appear as Related to. Broken relationship targets remain visible by
+item ID with a missing or invalid state.
 
 ### Edit mode
 
-Toggled by an Edit icon. The same modal stays open and the task detail layout remains visible.
-Editable areas:
+Toggled by an Edit button. Alpha fields become editable:
 - title (text input);
 - description (textarea or Markdown editor);
-- DOR and DOD checklist items;
-- resources: link and attach actions, plus delete actions per resource;
-- new comment input.
+- priority (dropdown: low, normal, high);
+- status (dropdown: backlog, ready, in_progress, done, cancelled).
 
-DOR and DOD use checkbox-style lists. In edit mode, each group has a plus icon to create a new
-editable item, row text becomes editable on click, blur saves, text is limited to 60 characters,
-and the row delete icon removes the item without confirmation. Resource deletion confirms over the
-current modal before saving. Priority and status remain visible in the summary.
+All other Alpha item fields are visible read-only until later phases.
 
-Field blur or row actions commit scoped changes. Validation errors surface inline near the
-offending field.
+Save commits changes. Cancel reverts. Validation errors surface inline near the offending field.
 
 ### Comment thread
 
-Comments display in chronological order with author and timestamp. Edit mode supports adding a new
-comment through the append-only comment path. Existing comment editing and deletion remain out of
-scope.
+Comments display in chronological order with author and timestamp. Comments are read-only in the
+Alpha WebUI. Comment creation is available through the CLI and moves into the WebUI later.
 
 ### Actions
 
 - Edit icon (toggle edit mode);
-- Delete icon (sets status: deleted, with confirmation dialog layered over the still-visible item
-  modal);
+- Delete icon (sets status: deleted, with confirmation dialog);
 - Close icon.
 
 ### States

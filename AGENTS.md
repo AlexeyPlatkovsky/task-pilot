@@ -135,6 +135,7 @@ Routing:
 Skills:
 
 - Brainstorming: `.claude/skills/brainstorm/SKILL.md`
+- Task tracking: `.claude/skills/track-with-taskpilot/SKILL.md`
 - Work preparation: `.claude/skills/work-with-git/SKILL.md`
 - Specification: `.claude/skills/spec-driven-development/SKILL.md`
 - Implementation: `.claude/skills/implement-change/SKILL.md`

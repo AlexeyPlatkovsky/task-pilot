@@ -54,7 +54,7 @@ run_check() {
 }
 
 npm_publish_dry_run_from_staging() {
-  (cd "$PROJECT_ROOT/staging" && npm publish --dry-run)
+  (cd "$PROJECT_ROOT/staging" && npm publish --dry-run --access public --tag latest)
 }
 
 # --- Python ---
