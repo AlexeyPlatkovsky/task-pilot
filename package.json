@@ -1,5 +1,5 @@
 {
-  "name": "taskpilot",
+  "name": "@alexey_platkovsky/taskpilot",
   "version": "1.0.0",
   "description": "Local-first, file-based task management. Markdown/YAML files are the source of truth.",
   "license": "SEE LICENSE IN LICENSE",
