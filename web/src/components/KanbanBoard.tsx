@@ -33,6 +33,7 @@ import {
   PRIORITY_FILTER_OPTIONS,
   UPDATED_FILTER_OPTIONS,
   CREATED_FILTER_OPTIONS,
+  filterReferenceTimeForItems,
   isWithinTimeRange,
 } from "./filters";
 import styles from "./KanbanBoard.module.css";
@@ -47,8 +48,6 @@ export function KanbanBoard({ projectId, now }: Props) {
   const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
   const [droppedItemId, setDroppedItemId] = useState<string | null>(null);
   const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
-  const [defaultNow] = useState(() => new Date());
-  const filterNow = now ?? defaultNow;
 
   const queryClient = useQueryClient();
 
@@ -61,6 +60,10 @@ export function KanbanBoard({ projectId, now }: Props) {
     queryKey: ["items", projectId],
     queryFn: () => fetchItems(projectId),
   });
+  const filterNow = useMemo(
+    () => filterReferenceTimeForItems(items, now),
+    [items, now],
+  );
 
   const { mutate, error: mutationError } = useMutation({
     mutationFn: ({

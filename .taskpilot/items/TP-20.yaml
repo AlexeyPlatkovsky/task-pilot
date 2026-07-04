@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-20
+title: 'F002-T4 Implement link service: add link, remove link, query links for an item'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:24Z'
+updated_at: '2026-07-04T14:20:24Z'
+parent_id: TP-16
+tags:
+- migrated-docs
+- F002
+- F002-T4
+- legacy-task
+description: 'Migrated from docs/features/archive/F002_domain-services/tasks.md.
+
+  Implements: F002-R4
+
+  Legacy status: done
+
+  Depends on: F002-T2'
+created_by: codex-migration

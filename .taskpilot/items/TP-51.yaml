@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-51
+title: 'F005-T7 Configure Vite dev proxy: add /api -> http://localhost:8000 proxy entry in vite.config.ts'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:52Z'
+updated_at: '2026-07-04T14:21:57Z'
+parent_id: TP-44
+tags:
+- migrated-docs
+- F005
+- F005-T7
+- legacy-task
+description: 'Migrated from docs/features/archive/F005_rest-api/tasks.md.
+
+  Implements: F005-R9
+
+  Legacy status: done
+
+  Depends on: F005-T1'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-35
+title: F004-T1 Scaffold React+Vite+TypeScript project with CSS Modules, Radix UI, TanStack Query, React Hook Form
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:38Z'
+updated_at: '2026-07-04T14:20:38Z'
+parent_id: TP-34
+tags:
+- migrated-docs
+- F004
+- F004-T1
+- legacy-task
+description: 'Migrated from docs/features/archive/F004_webui-workspace/tasks.md.
+
+  Implements: F004-R1
+
+  Legacy status: done
+
+  Depends on: -'
+created_by: codex-migration

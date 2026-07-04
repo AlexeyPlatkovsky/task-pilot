@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-34
+title: F004 WebUI Workspace
+priority: normal
+type: feature
+status: done
+created_at: '2026-07-04T14:20:37Z'
+updated_at: '2026-07-04T14:20:37Z'
+tags:
+- migrated-docs
+- F004
+- legacy-feature
+description: 'Migrated from docs/features/archive/F004_webui-workspace/requirements.md and docs/features/archive/F004_webui-workspace/tasks.md.
+
+
+  Summary: Implement the local browser-based WebUI with the Kanban board as the primary workspace page,'
+created_by: codex-migration

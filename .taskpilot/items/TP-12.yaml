@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-12
+title: F001-T6 Implement comment file writer with timestamp-based naming and collision disambiguation
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:17Z'
+updated_at: '2026-07-04T14:20:17Z'
+parent_id: TP-6
+tags:
+- migrated-docs
+- F001
+- F001-T6
+- legacy-task
+description: 'Migrated from docs/features/archive/F001_task-file-storage/tasks.md.
+
+  Implements: F001-R5
+
+  Legacy status: done
+
+  Depends on: F001-T5'
+created_by: codex-migration

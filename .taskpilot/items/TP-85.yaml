@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-85
+title: F009-T11 Add two-stage release workflow with required dry-run, manual approval, credentials check, and real npm publish
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:24Z'
+updated_at: '2026-07-04T14:21:24Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T11
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R10
+
+  Legacy status: done
+
+  Depends on: F009-T10'
+created_by: codex-migration

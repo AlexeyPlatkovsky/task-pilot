@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-77
+title: F009-T3 Implement Python discovery with TASKPILOT_PYTHON override, common command fallback, and >=3.11/venv/pip validation
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:17Z'
+updated_at: '2026-07-04T14:21:17Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T3
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R3
+
+  Legacy status: done
+
+  Depends on: F009-T1'
+created_by: codex-migration

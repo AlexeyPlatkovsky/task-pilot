@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-16
+title: F002 Domain Services
+priority: normal
+type: feature
+status: done
+created_at: '2026-07-04T14:20:20Z'
+updated_at: '2026-07-04T14:20:20Z'
+tags:
+- migrated-docs
+- F002
+- legacy-feature
+description: 'Migrated from docs/features/archive/F002_domain-services/requirements.md and docs/features/archive/F002_domain-services/tasks.md.
+
+
+  Summary: Implement the shared domain/service layer for project, item, comment, and link operations.'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-98
+title: F010-T10 Protect dirty item detail edit fields from background refresh overwrites while allowing clean data to refresh
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:35Z'
+updated_at: '2026-07-04T14:21:35Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T10
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R10
+
+  Legacy status: done
+
+  Depends on: F010-T9'
+created_by: codex-migration

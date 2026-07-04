@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-82
+title: 'F009-T8 Add server behavior for missing or unreadable packaged WebUI assets: API continues and WebUI route reports packaging error'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:21Z'
+updated_at: '2026-07-04T14:21:21Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T8
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R8
+
+  Legacy status: done
+
+  Depends on: F009-T7'
+created_by: codex-migration

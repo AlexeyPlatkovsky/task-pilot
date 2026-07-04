@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-53
+title: F006 Advanced Views
+priority: normal
+type: feature
+status: done
+created_at: '2026-07-04T14:20:54Z'
+updated_at: '2026-07-04T14:20:54Z'
+tags:
+- migrated-docs
+- F006
+- legacy-feature
+description: 'Migrated from docs/features/archive/F006_advanced-views/requirements.md and docs/features/archive/F006_advanced-views/tasks.md.
+
+
+  Summary: Extend the WebUI beyond the Alpha Kanban board with a list view with sorting and filtering, a tree'
+created_by: codex-migration

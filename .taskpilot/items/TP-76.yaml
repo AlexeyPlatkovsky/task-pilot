@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-76
+title: F009-T2 Build clean npm staging that copies Python source, release metadata, requirements.lock, wrapper files, and production WebUI assets
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:16Z'
+updated_at: '2026-07-04T14:21:16Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T2
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R2, F009-R7
+
+  Legacy status: done
+
+  Depends on: F009-T1'
+created_by: codex-migration

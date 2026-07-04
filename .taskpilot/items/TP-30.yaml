@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-30
+title: 'F003-T5 Implement explicit relationship commands: parent/unparent, blocks/unblocks, relates/unrelates'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:33Z'
+updated_at: '2026-07-04T14:20:33Z'
+parent_id: TP-25
+tags:
+- migrated-docs
+- F003
+- F003-T5
+- legacy-task
+description: 'Migrated from docs/features/archive/F003_cli-interface/tasks.md.
+
+  Implements: F003-R5
+
+  Legacy status: done
+
+  Depends on: F002-T4, F003-T1'
+created_by: codex-migration

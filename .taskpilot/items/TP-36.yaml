@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-36
+title: F004-T2 Implement project selector component with loading, empty, and error states
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:39Z'
+updated_at: '2026-07-04T14:20:39Z'
+parent_id: TP-34
+tags:
+- migrated-docs
+- F004
+- F004-T2
+- legacy-task
+description: 'Migrated from docs/features/archive/F004_webui-workspace/tasks.md.
+
+  Implements: F004-R1
+
+  Legacy status: done
+
+  Depends on: F004-T1, API endpoint for projects'
+created_by: codex-migration

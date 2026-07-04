@@ -355,6 +355,47 @@ describe("ItemListView", () => {
     expect(screen.queryByText("Old creation")).not.toBeInTheDocument();
   });
 
+  it("refreshes the date-filter reference time when new item data arrives", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-04T14:00:00Z"));
+
+    try {
+      const oldItem = makeItem({
+        id: "VP-1",
+        title: "Old creation",
+        created_at: "2026-06-01T10:00:00Z",
+      });
+      const { rerender } = render(
+        <ItemListView items={[oldItem]} onItemClick={vi.fn()} />,
+      );
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Created: Any time" }),
+      );
+      fireEvent.click(screen.getByRole("option", { name: "Last 7 days" }));
+      expect(screen.queryByText("Old creation")).not.toBeInTheDocument();
+
+      vi.setSystemTime(new Date("2026-07-04T14:10:00Z"));
+      rerender(
+        <ItemListView
+          items={[
+            oldItem,
+            makeItem({
+              id: "VP-2",
+              title: "Created after load",
+              created_at: "2026-07-04T14:05:00Z",
+            }),
+          ]}
+          onItemClick={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText("Created after load")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("combines updated and created range filters", async () => {
     const user = userEvent.setup();
     render(

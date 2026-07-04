@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-33
+title: F003-T8 Implement taskpilot serve command that starts FastAPI server
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-04T14:20:36Z'
+updated_at: '2026-07-04T14:20:36Z'
+parent_id: TP-25
+tags:
+- migrated-docs
+- F003
+- F003-T8
+- legacy-task
+description: 'Migrated from docs/features/archive/F003_cli-interface/tasks.md.
+
+  Implements: F003-R2
+
+  Legacy status: stub - blocked on F004
+
+  Depends on: F004 REST API/server layer'
+created_by: codex-migration

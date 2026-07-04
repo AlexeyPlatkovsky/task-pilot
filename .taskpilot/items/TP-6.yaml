@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-6
+title: F001 Task File Storage
+priority: normal
+type: feature
+status: done
+created_at: '2026-07-04T14:20:11Z'
+updated_at: '2026-07-04T14:20:11Z'
+tags:
+- migrated-docs
+- F001
+- legacy-feature
+description: 'Migrated from docs/features/archive/F001_task-file-storage/requirements.md and docs/features/archive/F001_task-file-storage/tasks.md.
+
+
+  Summary: Define the .taskpilot/ workspace folder layout and implement deterministic parsing and writing'
+created_by: codex-migration

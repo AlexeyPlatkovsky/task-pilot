@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-64
+title: 'F007-T4 Implement sync push: git add .taskpilot/, git commit, git push with confirmation'
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-04T14:21:05Z'
+updated_at: '2026-07-04T14:21:05Z'
+parent_id: TP-60
+tags:
+- migrated-docs
+- F007
+- F007-T4
+- legacy-task
+description: 'Migrated from docs/features/F007_git-helpers/tasks.md.
+
+  Implements: F007-R4
+
+  Legacy status: todo
+
+  Depends on: -'
+created_by: codex-migration

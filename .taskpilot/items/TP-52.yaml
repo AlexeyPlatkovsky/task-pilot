@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-52
+title: F005-T8 Write API integration tests using FastAPI TestClient covering all endpoints, 404 paths, 400 domain-validation errors, and 422 body-parse errors
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:53Z'
+updated_at: '2026-07-04T14:20:53Z'
+parent_id: TP-44
+tags:
+- migrated-docs
+- F005
+- F005-T8
+- legacy-task
+description: 'Migrated from docs/features/archive/F005_rest-api/tasks.md.
+
+  Implements: F005-R2, F005-R3, F005-R4, F005-R5, F005-R8
+
+  Legacy status: done
+
+  Depends on: F005-T2, F005-T3, F005-T4, F005-T5'
+created_by: codex-migration

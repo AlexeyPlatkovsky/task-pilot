@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-26
+title: F003-T1 Scaffold Typer CLI app with global --json flag and output formatter
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:30Z'
+updated_at: '2026-07-04T14:20:30Z'
+parent_id: TP-25
+tags:
+- migrated-docs
+- F003
+- F003-T1
+- legacy-task
+description: 'Migrated from docs/features/archive/F003_cli-interface/tasks.md.
+
+  Implements: F003-R8
+
+  Legacy status: done
+
+  Depends on: -'
+created_by: codex-migration

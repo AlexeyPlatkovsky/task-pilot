@@ -52,6 +52,24 @@ export const DEFAULT_BOARD_FILTERS = {
 
 export type BoardFilters = typeof DEFAULT_BOARD_FILTERS;
 
+export function filterReferenceTimeForItems(
+  items: ItemSummary[] | undefined,
+  now?: Date,
+): Date {
+  if (now) return now;
+
+  const latestItemTime =
+    items?.reduce((latest, item) => {
+      const timestamps = [item.created_at, item.updated_at]
+        .map((value) => (value ? new Date(value).getTime() : Number.NaN))
+        .filter((value) => !Number.isNaN(value));
+      if (timestamps.length === 0) return latest;
+      return Math.max(latest, ...timestamps);
+    }, Number.NEGATIVE_INFINITY) ?? Number.NEGATIVE_INFINITY;
+
+  return new Date(Math.max(Date.now(), latestItemTime));
+}
+
 export function isWithinTimeRange(
   item: ItemSummary,
   timeRange: TimeRange,

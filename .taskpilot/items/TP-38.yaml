@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-38
+title: F004-T4 Implement Kanban card component with ID, title, type icon, priority badge
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:41Z'
+updated_at: '2026-07-04T14:20:41Z'
+parent_id: TP-34
+tags:
+- migrated-docs
+- F004
+- F004-T4
+- legacy-task
+description: 'Migrated from docs/features/archive/F004_webui-workspace/tasks.md.
+
+  Implements: F004-R3
+
+  Legacy status: done
+
+  Depends on: F004-T3, API endpoint for items'
+created_by: codex-migration

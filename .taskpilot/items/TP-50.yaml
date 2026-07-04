@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-50
+title: F005-T6 Add taskpilot serve Typer command with --host, --port, and --workspace options; start uvicorn programmatically
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:52Z'
+updated_at: '2026-07-04T14:20:52Z'
+parent_id: TP-44
+tags:
+- migrated-docs
+- F005
+- F005-T6
+- legacy-task
+description: 'Migrated from docs/features/archive/F005_rest-api/tasks.md.
+
+  Implements: F005-R6
+
+  Legacy status: done
+
+  Depends on: F005-T1'
+created_by: codex-migration

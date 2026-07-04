@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-13
+title: 'F001-T7 Implement item validation: required fields, valid enums, unique IDs, valid references'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:18Z'
+updated_at: '2026-07-04T14:20:18Z'
+parent_id: TP-6
+tags:
+- migrated-docs
+- F001
+- F001-T7
+- legacy-task
+description: 'Migrated from docs/features/archive/F001_task-file-storage/tasks.md.
+
+  Implements: F001-R6
+
+  Legacy status: done
+
+  Depends on: F001-T3'
+created_by: codex-migration

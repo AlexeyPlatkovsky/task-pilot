@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-21
+title: 'F002-T5 Implement reverse link derivation: compute blocked_by and related_to from stored links'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:25Z'
+updated_at: '2026-07-04T14:20:25Z'
+parent_id: TP-16
+tags:
+- migrated-docs
+- F002
+- F002-T5
+- legacy-task
+description: 'Migrated from docs/features/archive/F002_domain-services/tasks.md.
+
+  Implements: F002-R5
+
+  Legacy status: done
+
+  Depends on: F002-T4'
+created_by: codex-migration

@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-66
+title: F008 MCP Adapter
+priority: normal
+type: feature
+status: backlog
+created_at: '2026-07-04T14:21:06Z'
+updated_at: '2026-07-04T14:21:06Z'
+tags:
+- migrated-docs
+- F008
+- legacy-feature
+description: 'Migrated from docs/features/F008_mcp-adapter/requirements.md and docs/features/F008_mcp-adapter/tasks.md.
+
+
+  Summary: Expose TaskPilot domain operations as MCP (Model Context Protocol) tools so MCP-native AI'
+created_by: codex-migration

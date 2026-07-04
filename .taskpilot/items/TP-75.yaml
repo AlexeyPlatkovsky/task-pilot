@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-75
+title: F009-T1 Define npm package metadata for unscoped taskpilot, taskpilot bin, included files, and package-name preflight
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:15Z'
+updated_at: '2026-07-04T14:21:15Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T1
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R1, F009-R2
+
+  Legacy status: done
+
+  Depends on: -'
+created_by: codex-migration

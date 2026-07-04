@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-95
+title: F010-T7 Wire WebUI startup to fetch UI state first, then projects, and silently restore or fall back according to active project availability
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:32Z'
+updated_at: '2026-07-04T14:21:32Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T7
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R7
+
+  Legacy status: done
+
+  Depends on: F010-T6'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-32
+title: F003-T7 Implement taskpilot validate command with structured error output and exit codes
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:35Z'
+updated_at: '2026-07-04T14:20:35Z'
+parent_id: TP-25
+tags:
+- migrated-docs
+- F003
+- F003-T7
+- legacy-task
+description: 'Migrated from docs/features/archive/F003_cli-interface/tasks.md.
+
+  Implements: F003-R7
+
+  Legacy status: done
+
+  Depends on: F001-T7, F003-T1'
+created_by: codex-migration

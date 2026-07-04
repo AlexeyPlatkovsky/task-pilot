@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-83
+title: F009-T9 Add release preflight for matching package.json/pyproject.toml versions and target-version CHANGELOG.md entry
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:22Z'
+updated_at: '2026-07-04T14:21:22Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T9
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R9
+
+  Legacy status: done
+
+  Depends on: F009-T1'
+created_by: codex-migration

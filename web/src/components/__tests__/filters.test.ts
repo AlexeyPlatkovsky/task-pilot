@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+  filterReferenceTimeForItems,
   isWithinTimeRange,
   TIME_RANGE_DAYS,
   DEFAULT_BOARD_FILTERS,
@@ -113,6 +114,30 @@ describe("TIME_RANGE_DAYS", () => {
     expect(TIME_RANGE_DAYS.last_7_days).toBe(7);
     expect(TIME_RANGE_DAYS.last_14_days).toBe(14);
     expect(TIME_RANGE_DAYS.last_30_days).toBe(30);
+  });
+});
+
+describe("filterReferenceTimeForItems", () => {
+  it("uses an explicit now value when provided", () => {
+    const explicitNow = new Date("2026-07-04T14:00:00Z");
+    const item = makeItem({ created_at: "2026-07-04T14:05:00Z" });
+
+    expect(filterReferenceTimeForItems([item], explicitNow)).toBe(explicitNow);
+  });
+
+  it("uses the newest item timestamp when refreshed data is newer than the local clock", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-04T14:00:00Z"));
+
+    try {
+      const referenceTime = filterReferenceTimeForItems([
+        makeItem({ created_at: "2026-07-04T14:05:00Z" }),
+      ]);
+
+      expect(referenceTime.toISOString()).toBe("2026-07-04T14:05:00.000Z");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

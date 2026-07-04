@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-47
+title: F005-T3 Implement GET /api/projects/{project_id}/items endpoint; exclude deleted items; serialize to ItemSummary response shape
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:49Z'
+updated_at: '2026-07-04T14:20:49Z'
+parent_id: TP-44
+tags:
+- migrated-docs
+- F005
+- F005-T3
+- legacy-task
+description: 'Migrated from docs/features/archive/F005_rest-api/tasks.md.
+
+  Implements: F005-R3, F005-R7, F005-R8
+
+  Legacy status: done
+
+  Depends on: F005-T1'
+created_by: codex-migration

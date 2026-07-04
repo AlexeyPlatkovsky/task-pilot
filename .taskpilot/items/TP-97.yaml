@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-97
+title: F010-T9 Configure WebUI item/project validation queries to refetch every 5 seconds and on focus/visibility return for Board, List, item detail, and validation status
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:34Z'
+updated_at: '2026-07-04T14:21:34Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T9
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R9
+
+  Legacy status: done
+
+  Depends on: F010-T7'
+created_by: codex-migration

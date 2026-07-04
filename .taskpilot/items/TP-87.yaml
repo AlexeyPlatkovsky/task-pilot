@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-87
+title: F009-T13 Document install path, npm-only support, Python prerequisite, cache/log locations, offline recovery, rebuild command, approval, credentials, and npm deprecate rollback
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:25Z'
+updated_at: '2026-07-04T14:21:25Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T13
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R12
+
+  Legacy status: done
+
+  Depends on: F009-T11, F009-T12'
+created_by: codex-migration

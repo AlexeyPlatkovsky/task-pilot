@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-84
+title: 'F009-T10 Wire full release quality gates: Python tests/lint/format, WebUI tests, browser contract, functional E2E, WebUI build, package build, and npm dry-run'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:23Z'
+updated_at: '2026-07-04T14:21:23Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T10
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R9, F009-R10
+
+  Legacy status: done
+
+  Depends on: F009-T2, F009-T9'
+created_by: codex-migration

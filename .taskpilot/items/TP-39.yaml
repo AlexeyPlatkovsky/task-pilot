@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-39
+title: 'F004-T5 Implement item detail modal in read mode: all fields, links, comments displayed'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:42Z'
+updated_at: '2026-07-04T14:20:42Z'
+parent_id: TP-34
+tags:
+- migrated-docs
+- F004
+- F004-T5
+- legacy-task
+description: 'Migrated from docs/features/archive/F004_webui-workspace/tasks.md.
+
+  Implements: F004-R4
+
+  Legacy status: done
+
+  Depends on: F004-T4, API endpoint for item details'
+created_by: codex-migration

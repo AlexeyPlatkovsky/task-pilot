@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-23
+title: 'F002-T7 Implement item deletion: set status to deleted, preserve file, handle already-deleted items'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:27Z'
+updated_at: '2026-07-04T14:20:27Z'
+parent_id: TP-16
+tags:
+- migrated-docs
+- F002
+- F002-T7
+- legacy-task
+description: 'Migrated from docs/features/archive/F002_domain-services/tasks.md.
+
+  Implements: F002-R7
+
+  Legacy status: done
+
+  Depends on: F002-T2'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-94
+title: F010-T6 Add GET /api/ui-state and PATCH /api/ui-state with partial-update validation, null clearing, unknown-field rejection, and active-project validation
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:31Z'
+updated_at: '2026-07-04T14:21:31Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T6
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R6
+
+  Legacy status: done
+
+  Depends on: F010-T5'
+created_by: codex-migration

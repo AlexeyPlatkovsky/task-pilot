@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-99
+title: F010-T11 Add validation-success-muted token and apply it to the all-valid validation success state
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:36Z'
+updated_at: '2026-07-04T14:21:36Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T11
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R11
+
+  Legacy status: done
+
+  Depends on: -'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-78
+title: F009-T4 Implement lazy user-cache runtime setup keyed by npm version and Python major/minor version
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:17Z'
+updated_at: '2026-07-04T14:21:17Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T4
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R4
+
+  Legacy status: done
+
+  Depends on: F009-T3'
+created_by: codex-migration

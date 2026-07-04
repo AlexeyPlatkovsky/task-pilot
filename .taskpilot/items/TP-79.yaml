@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-79
+title: F009-T5 Install dependencies from bundled requirements.lock, handle partial-cache deletion, setup progress, setup logs, pip output tail, and offline/setup errors
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:18Z'
+updated_at: '2026-07-04T14:21:18Z'
+parent_id: TP-74
+tags:
+- migrated-docs
+- F009
+- F009-T5
+- legacy-task
+description: 'Migrated from docs/features/archive/F009_release-automation/tasks.md.
+
+  Implements: F009-R5
+
+  Legacy status: done
+
+  Depends on: F009-T4'
+created_by: codex-migration

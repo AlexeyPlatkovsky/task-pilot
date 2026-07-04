@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-15
+title: 'F001-T9 Validate comment files: malformed/unreadable frontmatter and filename/created_at match'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:19Z'
+updated_at: '2026-07-04T14:20:19Z'
+parent_id: TP-6
+tags:
+- migrated-docs
+- F001
+- F001-T9
+- legacy-task
+description: 'Migrated from docs/features/archive/F001_task-file-storage/tasks.md.
+
+  Implements: F001-R7
+
+  Legacy status: done
+
+  Depends on: F001-T5, F001-T7'
+created_by: codex-migration

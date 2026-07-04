@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-100
+title: F010-T12 Add component, API, functional E2E, and browser-contract coverage for filters, Tree hiding, UI-state restore/save, refresh behavior, dirty edit protection, and validation contrast
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:37Z'
+updated_at: '2026-07-04T14:21:37Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T12
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R1, F010-R2, F010-R3, F010-R4, F010-R5, F010-R6, F010-R7, F010-R8, F010-R9, F010-R10, F010-R11
+
+  Legacy status: done
+
+  Depends on: F010-T2, F010-T3, F010-T4, F010-T6, F010-T8, F010-T10, F010-T11'
+created_by: codex-migration

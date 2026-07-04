@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-62
+title: 'F007-T2 Implement sync validate: run taskpilot validate with appropriate exit code'
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-04T14:21:03Z'
+updated_at: '2026-07-04T14:21:03Z'
+parent_id: TP-60
+tags:
+- migrated-docs
+- F007
+- F007-T2
+- legacy-task
+description: 'Migrated from docs/features/F007_git-helpers/tasks.md.
+
+  Implements: F007-R2
+
+  Legacy status: todo
+
+  Depends on: F003-T7'
+created_by: codex-migration

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-45
+title: F005-T1 Add fastapi and uvicorn[standard] to pyproject.toml; scaffold src/taskpilot/server/__init__.py, app.py, and routes/ package with a health-check route
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:47Z'
+updated_at: '2026-07-04T14:20:47Z'
+parent_id: TP-44
+tags:
+- migrated-docs
+- F005
+- F005-T1
+- legacy-task
+description: 'Migrated from docs/features/archive/F005_rest-api/tasks.md.
+
+  Implements: F005-R1
+
+  Legacy status: done
+
+  Depends on: -'
+created_by: codex-migration

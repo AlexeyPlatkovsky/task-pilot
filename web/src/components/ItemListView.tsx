@@ -22,6 +22,7 @@ import {
   PRIORITY_FILTER_OPTIONS,
   UPDATED_FILTER_OPTIONS,
   CREATED_FILTER_OPTIONS,
+  filterReferenceTimeForItems,
   type TimeRange,
 } from "./filters";
 import styles from "./ItemListView.module.css";
@@ -111,9 +112,11 @@ export function ItemListView({
   now,
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [defaultNow] = useState(() => new Date());
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const filterNow = now ?? defaultNow;
+  const filterNow = useMemo(
+    () => filterReferenceTimeForItems(items, now),
+    [items, now],
+  );
   const hasActiveFilters =
     filters.status !== DEFAULT_FILTERS.status ||
     filters.type !== DEFAULT_FILTERS.type ||

@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-90
+title: F010-T2 Add Board filters for type, priority, updated range, and created range with Clear behavior and filtered-empty column handling
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:21:28Z'
+updated_at: '2026-07-04T14:21:28Z'
+parent_id: TP-88
+tags:
+- migrated-docs
+- F010
+- F010-T2
+- legacy-task
+description: 'Migrated from docs/features/archive/F010_release-ui-readiness/tasks.md.
+
+  Implements: F010-R1, F010-R3
+
+  Legacy status: done
+
+  Depends on: F010-T1'
+created_by: codex-migration

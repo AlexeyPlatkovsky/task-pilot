@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-22
+title: 'F002-T6 Implement comment service: add comment with timestamp filename, list comments chronologically'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:26Z'
+updated_at: '2026-07-04T14:20:26Z'
+parent_id: TP-16
+tags:
+- migrated-docs
+- F002
+- F002-T6
+- legacy-task
+description: 'Migrated from docs/features/archive/F002_domain-services/tasks.md.
+
+  Implements: F002-R6
+
+  Legacy status: done
+
+  Depends on: F001-T5, F001-T6'
+created_by: codex-migration

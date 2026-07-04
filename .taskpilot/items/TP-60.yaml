@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-60
+title: F007 Git Helpers
+priority: normal
+type: feature
+status: backlog
+created_at: '2026-07-04T14:21:01Z'
+updated_at: '2026-07-04T14:21:01Z'
+tags:
+- migrated-docs
+- F007
+- legacy-feature
+description: 'Migrated from docs/features/F007_git-helpers/requirements.md and docs/features/F007_git-helpers/tasks.md.
+
+
+  Summary: Provide CLI commands that make Git-based synchronization transparent and safe. Commands wrap'
+created_by: codex-migration

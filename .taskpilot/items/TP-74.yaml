@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-74
+title: F009 Release Automation
+priority: normal
+type: feature
+status: done
+created_at: '2026-07-04T14:21:14Z'
+updated_at: '2026-07-04T14:21:14Z'
+tags:
+- migrated-docs
+- F009
+- legacy-feature
+description: 'Migrated from docs/features/archive/F009_release-automation/requirements.md and docs/features/archive/F009_release-automation/tasks.md.
+
+
+  Summary: Create the first TaskPilot release path as an npm-distributed CLI package named taskpilot. The'
+created_by: codex-migration

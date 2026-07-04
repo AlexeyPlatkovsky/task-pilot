@@ -1,0 +1,22 @@
+schema_version: 1
+id: TP-9
+title: F001-T3 Implement item YAML parser with Pydantic models for all mandatory and optional fields
+priority: normal
+type: task
+status: done
+created_at: '2026-07-04T14:20:14Z'
+updated_at: '2026-07-04T14:20:14Z'
+parent_id: TP-6
+tags:
+- migrated-docs
+- F001
+- F001-T3
+- legacy-task
+description: 'Migrated from docs/features/archive/F001_task-file-storage/tasks.md.
+
+  Implements: F001-R2
+
+  Legacy status: done
+
+  Depends on: F001-T1'
+created_by: codex-migration
