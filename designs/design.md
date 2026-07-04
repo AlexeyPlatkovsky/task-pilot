@@ -83,6 +83,51 @@ Every applicable product flow accounts for:
 
 ---
 
+## Item Detail Modal Pattern
+
+The Beta item detail modal is the core task review surface inside Board and List context. It uses
+Radix Dialog, keeps the close icon accessible through `Icon`, and preserves the current page rather
+than navigating to a detail route.
+
+View mode is organized for scanning:
+
+- header: compact item type chip, item ID, item title, and icon-only Edit/Delete/Close actions;
+- summary: two-column metadata with Priority and Status on the left, Created and Updated on the
+  right;
+- content: description, readiness, and resources grouped directly without an extra Info heading;
+- description: rendered Markdown when present, explicit empty state when absent;
+- readiness: DOR and DOD checklist groups, preserving stored order;
+- resources: tags, attachments, and external references;
+- comments: chronological thread, with edit mode supporting append-only comment creation;
+- validation: invalid item findings with severity, message, and field where available.
+
+The modal does not display child items, reverse links, or editable relationship controls until a
+future API/domain contract exposes that data.
+
+Edit mode keeps the same modal and task layout visible rather than swapping to a separate form.
+Editable fields are scoped to title, description, DOR, DOD, resources, and new comments. Priority
+and status stay visible in the summary. DOR and DOD render as checkbox lists; in edit mode, each
+group has an icon-only add action, row text becomes editable on click, blur saves through the item
+patch path, row text is limited to 60 characters, and row deletion is immediate. Resources expose
+icon-only Link and Attach actions in edit mode, and each resource row has an icon-only delete action
+that confirms over the current modal before patching the item. Comment creation appends a new
+comment file; existing comments are not edited or deleted in the WebUI.
+
+Empty groups use concise muted text rather than disappearing when absence is meaningful for task
+review: no description, no checklist items, no resources, and no comments.
+
+Layout contract:
+
+- the modal remains a single dialog, not nested cards;
+- body sections may use borders, muted surfaces, grids, lists, and chips;
+- action buttons stay in the upper-right corner near Close and use icon-only controls with
+  accessible names;
+- delete and resource-delete confirmations layer over the still-visible item modal;
+- supported desktop minimum width is `1280px`; the dialog may scroll vertically but text and
+  controls must not overlap.
+
+---
+
 ## Accessibility Baseline
 
 - All controls have accessible names.
@@ -217,6 +262,18 @@ All pairs verified WCAG AA.
 | `--priority-low` | `#d1ecf1` | `#0c5460` | `#0c3d47` | `#7dd3e8` |
 | `--priority-normal` | `#e2e3e5` | `#383d41` | `#3a3a3c` | `#aeaeb2` |
 | `--priority-high` | `#f8d7da` | `#721c24` | `#4a1a1f` | `#f28b95` |
+
+### Item Type
+
+Item type labels use icon plus text and a dedicated color family. Color reinforces type, but text
+and icon carry the meaning.
+
+| Token prefix | Light bg | Light fg | Dark bg | Dark fg | Usage |
+|---|---|---|---|---|---|
+| `--type-epic` | `#ede9fe` | `#5b21b6` | `#3b0764` | `#ddd6fe` | Purple epic label |
+| `--type-feature` | `#1e3a8a` | `#ffffff` | `#172554` | `#bfdbfe` | Dark blue feature label |
+| `--type-task` | `#e0f2fe` | `#075985` | `#082f49` | `#bae6fd` | Light blue task label |
+| `--type-bug` | `#f8d7da` | `#721c24` | `#4a1a1f` | `#f28b95` | Red bug label |
 
 ### Feedback
 

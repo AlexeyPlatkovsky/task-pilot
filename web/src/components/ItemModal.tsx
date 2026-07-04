@@ -1,5 +1,14 @@
-import { useState, useMemo } from "react";
-import { X } from "lucide-react";
+import { useState, useMemo, type ReactNode } from "react";
+import {
+  Bug,
+  CheckSquare,
+  Layers,
+  Pencil,
+  Trash2,
+  X,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { marked } from "marked";
@@ -12,6 +21,20 @@ import { CommentThread } from "./CommentThread";
 import { ItemEditForm } from "./ItemEditForm";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import styles from "./ItemModal.module.css";
+
+const TYPE_ICON_COMPONENTS: Record<ItemDetail["type"], LucideIcon> = {
+  epic: Layers,
+  feature: Zap,
+  task: CheckSquare,
+  bug: Bug,
+};
+
+const TYPE_SHORT_LABELS: Record<ItemDetail["type"], string> = {
+  epic: "EPIC",
+  feature: "FEAT",
+  task: "TASK",
+  bug: "BUG",
+};
 
 interface Props {
   projectId: string;
@@ -61,19 +84,76 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
             className={styles.content}
             data-test-id={item ? `item-modal-${item.id}` : "item-modal"}
           >
-            <Dialog.Title className={styles.title}>
-              {item ? `${item.id}: ${item.title}` : "Item Detail"}
+            <Dialog.Title
+              className={styles.title}
+              data-test-id="item-modal-title"
+              aria-label={
+                item
+                  ? `${TYPE_LABELS[item.type]} ${item.id} ${item.title}`
+                  : itemId
+                    ? `${itemId} Item Detail`
+                    : undefined
+              }
+            >
+              {item ? (
+                <>
+                  <TypeLabel type={item.type} />
+                  <span className={styles.itemId} data-test-id="item-modal-id">
+                    {item.id}
+                  </span>
+                  <span className={styles.itemTitle} data-test-id="item-modal-item-title">
+                    {item.title}
+                  </span>
+                </>
+              ) : itemId ? (
+                <>
+                  <span className={styles.itemId} data-test-id="item-modal-id">
+                    {itemId}
+                  </span>
+                  <span className={styles.itemTitle} data-test-id="item-modal-item-title">
+                    Item Detail
+                  </span>
+                </>
+              ) : (
+                "Item Detail"
+              )}
             </Dialog.Title>
             <Dialog.Description className={styles.srOnly}>
               {isEditing ? "Edit item" : "Item detail view"}
             </Dialog.Description>
 
-            <Dialog.Close
-              className={styles.closeButton}
-              data-test-id="item-modal-close"
-            >
-              <Icon icon={X} label="Close" size={20} />
-            </Dialog.Close>
+            <div className={styles.headerActions} data-test-id="item-modal-actions">
+              {item && !isEditing && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.iconButton} ${styles.editButton}`}
+                    data-test-id="item-modal-edit"
+                    onClick={() => setIsEditing(true)}
+                    aria-label="Edit"
+                  >
+                    <Icon icon={Pencil} label="Edit" size={18} />
+                  </button>
+                  {item.status !== "deleted" && (
+                    <button
+                      type="button"
+                      className={`${styles.iconButton} ${styles.deleteButton}`}
+                      data-test-id="item-modal-delete"
+                      onClick={() => setIsDeleting(true)}
+                      aria-label="Delete"
+                    >
+                      <Icon icon={Trash2} label="Delete" size={18} />
+                    </button>
+                  )}
+                </>
+              )}
+              <Dialog.Close
+                className={`${styles.iconButton} ${styles.closeButton}`}
+                data-test-id="item-modal-close"
+              >
+                <Icon icon={X} label="Close" size={20} />
+              </Dialog.Close>
+            </div>
 
             {isLoading && <div className={styles.loading}>Loading item...</div>}
 
@@ -100,29 +180,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
             )}
 
             {item && !isEditing && (
-              <>
-                <ItemDetailView item={item} />
-                <div className={styles.actions}>
-                  <button
-                    type="button"
-                    className={styles.editButton}
-                    data-test-id="item-modal-edit"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit
-                  </button>
-                  {item.status !== "deleted" && (
-                    <button
-                      type="button"
-                      className={styles.deleteButton}
-                      data-test-id="item-modal-delete"
-                      onClick={() => setIsDeleting(true)}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </>
+              <ItemDetailView item={item} />
             )}
           </Dialog.Content>
         </Dialog.Portal>
@@ -148,152 +206,122 @@ function ItemDetailView({ item }: { item: ItemDetail }) {
         : null,
     [item.description],
   );
+  const tags = item.tags ?? [];
+  const attachments = item.attachments ?? [];
+  const externalRefs = item.external_refs ?? [];
+  const hasResources =
+    tags.length > 0 || attachments.length > 0 || externalRefs.length > 0;
 
   return (
     <div className={styles.detail}>
-      <div className={styles.badges}>
-        <span className={`${styles.badge} ${styles.typeBadge}`}>
-          {TYPE_LABELS[item.type]}
-        </span>
-        <span
-          className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${item.status}`]}`}
-        >
-          {STATUS_LABELS[item.status]}
-        </span>
-        <span
-          className={`${styles.badge} ${styles.priorityBadge} ${styles[`priority-${item.priority}`]}`}
-        >
-          {PRIORITY_LABELS[item.priority]}
-        </span>
-      </div>
-
-      {descriptionHtml && (
-        <div className={styles.section}>
-          <h4>Description</h4>
-          <div
-            className={styles.description}
-            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-          />
-        </div>
-      )}
-
-      <div className={styles.section}>
-        <h4>Details</h4>
-        <dl className={styles.fields}>
-          <dt>Created</dt>
-          <dd>{new Date(item.created_at).toLocaleString()}</dd>
-          <dt>Updated</dt>
-          <dd>{new Date(item.updated_at).toLocaleString()}</dd>
-          {item.parent_id && (
-            <>
-              <dt>Parent</dt>
-              <dd>{item.parent_id}</dd>
-            </>
-          )}
-          {item.created_by && (
-            <>
-              <dt>Created by</dt>
-              <dd>{item.created_by}</dd>
-            </>
-          )}
-          {item.performed_by && (
-            <>
-              <dt>Performed by</dt>
-              <dd>{item.performed_by}</dd>
-            </>
-          )}
+      <section className={styles.summary} aria-label="Item summary">
+        <dl className={styles.summaryColumn}>
+          <SummaryField label="Priority">
+            <span
+              className={`${styles.badge} ${styles.priorityBadge} ${styles[`priority-${item.priority}`]}`}
+            >
+              {PRIORITY_LABELS[item.priority]}
+            </span>
+          </SummaryField>
+          <SummaryField label="Status">
+            <span
+              className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${item.status}`]}`}
+            >
+              {STATUS_LABELS[item.status]}
+            </span>
+          </SummaryField>
         </dl>
-      </div>
+        <dl className={styles.summaryColumn}>
+          <SummaryField label="Created">
+            <time dateTime={item.created_at}>
+              {new Date(item.created_at).toLocaleString()}
+            </time>
+          </SummaryField>
+          <SummaryField label="Updated">
+            <time dateTime={item.updated_at}>
+              {new Date(item.updated_at).toLocaleString()}
+            </time>
+          </SummaryField>
+        </dl>
+      </section>
 
-      {item.tags && item.tags.length > 0 && (
-        <div className={styles.section}>
-          <h4>Tags</h4>
-          <div className={styles.tags}>
-            {item.tags.map((tag) => (
-              <span key={tag} className={styles.tag}>
-                {tag}
-              </span>
-            ))}
+      <DetailSection title="Info">
+        <InfoGroup title="Description">
+          {descriptionHtml ? (
+            <div
+              className={styles.description}
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            />
+          ) : (
+            <p className={styles.emptyState}>No description yet.</p>
+          )}
+        </InfoGroup>
+
+        <InfoGroup title="Readiness">
+          <div className={styles.splitGrid}>
+            <Checklist title="Definition of Ready" items={item.dor ?? []} />
+            <Checklist title="Definition of Done" items={item.dod ?? []} />
           </div>
-        </div>
-      )}
+        </InfoGroup>
 
-      {item.dor && item.dor.length > 0 && (
-        <div className={styles.section}>
-          <h4>Definition of Ready</h4>
-          <ul className={styles.checklist}>
-            {item.dor.map((criterion) => (
-              <li key={criterion}>{criterion}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {item.dod && item.dod.length > 0 && (
-        <div className={styles.section}>
-          <h4>Definition of Done</h4>
-          <ul className={styles.checklist}>
-            {item.dod.map((criterion) => (
-              <li key={criterion}>{criterion}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {item.links && (
-        <div className={styles.section}>
-          <h4>Links</h4>
-          {item.links.blocks && item.links.blocks.length > 0 && (
-            <div>
-              <strong>Blocks:</strong> {item.links.blocks.join(", ")}
+        <InfoGroup title="Resources">
+          {hasResources ? (
+            <div className={styles.resourceGrid}>
+              {tags.length > 0 && (
+                <div className={styles.resourceGroup}>
+                  <h6>Tags</h6>
+                  <div className={styles.tags}>
+                    {tags.map((tag) => (
+                      <span key={tag} className={styles.tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {attachments.length > 0 && (
+                <div className={styles.resourceGroup}>
+                  <h6>Attachments</h6>
+                  <ul className={styles.compactList}>
+                    {attachments.map((attachment) => (
+                      <li key={attachment}>{attachment}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {externalRefs.length > 0 && (
+                <div className={styles.resourceGroup}>
+                  <h6>Links</h6>
+                  <ul className={styles.compactList}>
+                    {externalRefs.map((ref) => (
+                      <li key={ref}>
+                        {ref.startsWith("http") ? (
+                          <a href={ref} target="_blank" rel="noopener noreferrer">
+                            {ref}
+                          </a>
+                        ) : (
+                          ref
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
+          ) : (
+            <p className={styles.emptyState}>
+              No tags, attachments, or links.
+            </p>
           )}
-          {item.links.relates_to && item.links.relates_to.length > 0 && (
-            <div>
-              <strong>Relates to:</strong> {item.links.relates_to.join(", ")}
-            </div>
-          )}
-        </div>
-      )}
+        </InfoGroup>
+      </DetailSection>
 
-      {item.attachments && item.attachments.length > 0 && (
-        <div className={styles.section}>
-          <h4>Attachments</h4>
-          <ul>
-            {item.attachments.map((attachment) => (
-              <li key={attachment}>{attachment}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {item.external_refs && item.external_refs.length > 0 && (
-        <div className={styles.section}>
-          <h4>External References</h4>
-          <ul>
-            {item.external_refs.map((ref) => (
-              <li key={ref}>
-                {ref.startsWith("http") ? (
-                  <a href={ref} target="_blank" rel="noopener noreferrer">
-                    {ref}
-                  </a>
-                ) : (
-                  ref
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className={styles.section}>
-        <h4>Comments</h4>
+      <DetailSection title="Comments">
         <CommentThread comments={item.comments} />
-      </div>
+      </DetailSection>
 
       {!item.valid && item.findings && item.findings.length > 0 && (
-        <div className={styles.section}>
-          <h4>Validation Issues</h4>
+        <DetailSection title="Validation Issues">
           <ul className={styles.findings}>
             {item.findings.map((finding, index) => (
               <li
@@ -309,7 +337,82 @@ function ItemDetailView({ item }: { item: ItemDetail }) {
               </li>
             ))}
           </ul>
-        </div>
+        </DetailSection>
+      )}
+    </div>
+  );
+}
+
+function TypeLabel({ type }: { type: ItemDetail["type"] }) {
+  return (
+    <span
+      className={`${styles.typeBadge} ${styles[`type-${type}`]}`}
+      data-test-id="item-modal-type"
+      aria-label={`Type: ${TYPE_LABELS[type]}`}
+    >
+      <Icon icon={TYPE_ICON_COMPONENTS[type]} label={TYPE_LABELS[type]} />
+      {TYPE_SHORT_LABELS[type]}
+    </span>
+  );
+}
+
+function SummaryField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.summaryField}>
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+function DetailSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={styles.section}>
+      <h4>{title}</h4>
+      {children}
+    </section>
+  );
+}
+
+function InfoGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.infoGroup}>
+      <h5>{title}</h5>
+      {children}
+    </div>
+  );
+}
+
+function Checklist({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className={styles.checklistGroup}>
+      <h6>{title}</h6>
+      {items.length > 0 ? (
+        <ul className={styles.checklist}>
+          {items.map((criterion) => (
+            <li key={criterion}>{criterion}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.emptyState}>No {title} items.</p>
       )}
     </div>
   );

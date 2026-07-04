@@ -40,7 +40,11 @@ export function KanbanCard({ item, onClick }: Props) {
     >
       <div className={styles.header}>
         <span className={styles.id}>{item.id}</span>
-        <span className={styles.type} title={item.type}>
+        <span
+          className={`${styles.type} ${styles[`type-${item.type}`]}`}
+          title={item.type}
+          data-test-id={`kanban-card-type-${item.id}`}
+        >
           <Icon icon={TYPE_ICON_COMPONENTS[item.type]} label={item.type} />
           {item.type}
         </span>

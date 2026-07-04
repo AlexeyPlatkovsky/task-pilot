@@ -2,7 +2,7 @@ schema_version: 1
 id: TP-1
 title: REST API is live
 priority: high
-type: task
+type: feature
 status: done
 created_at: '2026-06-25T16:24:30Z'
 updated_at: '2026-06-29T05:52:38Z'

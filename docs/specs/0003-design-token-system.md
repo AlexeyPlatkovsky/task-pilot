@@ -33,7 +33,7 @@ tokens without changing domain behavior.
 ## Scope
 
 **In scope:**
-- `web/src/tokens.css` — 74 semantic CSS custom properties, light defaults, dark overrides, and
+- `web/src/tokens.css` — 83 semantic CSS custom properties, light defaults, dark overrides, and
   invariant desktop layout values.
 - `web/src/index.css` — import tokens; replace 4 hardcoded values.
 - All 9 `web/src/components/*.module.css` files — replace hardcoded values with token references.
@@ -52,7 +52,7 @@ tokens without changing domain behavior.
 
 ### Functional
 
-F1. `web/src/tokens.css` defines all 74 tokens in `:root` (light defaults plus invariant values)
+F1. `web/src/tokens.css` defines all 83 tokens in `:root` (light defaults plus invariant values)
 and overrides theme-sensitive tokens in `@media (prefers-color-scheme: dark) { :root { } }`.
 
 F2. Explicit `[data-theme="dark"]` on `<html>` applies dark tokens regardless of OS preference.
@@ -122,7 +122,7 @@ No new states are introduced.
 **AC-1 (token coverage):** After migration, running
 `grep -rn "#[0-9a-fA-F]\{3,6\}" web/src/components/ web/src/index.css` returns zero matches.
 
-**AC-2 (token count):** `web/src/tokens.css` defines exactly the 74 tokens listed in the approved
+**AC-2 (token count):** `web/src/tokens.css` defines exactly the 83 tokens listed in the approved
 plan, including `--brand-accent`, `--radius-pill`, active desktop layout tokens, and deprecated
 compatibility tokens. Each token appears in `:root` and, for theme-sensitive tokens, in the dark
 override block.
@@ -181,7 +181,7 @@ screenshots as new evidence.
 ## Implementation Slices
 
 Slice 1 — Token file + index.css:
-- Create `web/src/tokens.css` with all 74 tokens (light + dark + invariant layout).
+- Create `web/src/tokens.css` with all 83 tokens (light + dark + invariant layout).
 - Add `@import './tokens.css';` as first line of `web/src/index.css`.
 - Replace 4 hardcoded values in `index.css`.
 - Observable: `getComputedStyle(document.documentElement).getPropertyValue('--accent')` returns a non-empty string in jsdom tests.

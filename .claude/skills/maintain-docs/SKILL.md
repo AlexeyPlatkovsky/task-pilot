@@ -12,9 +12,14 @@ Read `.claude/conventions/reference-docs.md` and
 2. Find authoritative documentation roots through `.claude/docs/README.md`.
 3. Determine whether behavior, workflows, commands, setup, architecture, contracts, vocabulary, or
    known failure modes changed.
-4. Update only affected authoritative sections and their indexes or links.
-5. Update specification status and acceptance evidence when implementation completed.
-6. When all tasks for a feature are implemented and the feature has passed pipeline validation,
+4. Compare any proposed documentation update against accepted specs, roadmap, design docs, and
+   recorded open questions. Documentation may reflect approved behavior, or implemented behavior
+   that does not conflict with accepted scope. If the doc update would expand or narrow release
+   scope, change editable/read-only boundaries, alter persistence or API contracts, or resolve an
+   open product question, stop and report a scope-delta blocker instead of normalizing the change.
+5. Update only affected authoritative sections and their indexes or links.
+6. Update specification status and acceptance evidence when implementation completed.
+7. When all tasks for a feature are implemented and the feature has passed pipeline validation,
    archive the feature:
    a. Read `docs/features/F<NNN>_<short-name>/tasks.md` and confirm every task has a terminal
       status (implemented, completed, or equivalent). If `tasks.md` is missing or unparseable,
@@ -26,9 +31,9 @@ Read `.claude/conventions/reference-docs.md` and
    completes. It applies when the pipeline's change completes the last remaining task of a feature.
    The validation gate is already enforced by the pipeline's `validate-change` step before this
    skill runs; the tasks.md terminal-status check is the file-state gate.
-7. Create an ADR only for a durable architecture decision with meaningful alternatives and
+8. Create an ADR only for a durable architecture decision with meaningful alternatives and
    consequences.
-8. Verify commands, paths, examples, names, and links against repository facts.
+9. Verify commands, paths, examples, names, and links against repository facts.
 
 Do not modify production code or tests. Report rather than guess when documentation should change
 but the correct contract is unclear or outside scope.
@@ -36,5 +41,5 @@ If the diff, authoritative source, or implemented behavior cannot be inspected, 
 missing context as blocked.
 
 The artifact begins with `Skill: maintain-docs - output below` and reports status as documentation
-updated, checked/no update needed, or blocked, plus sources, files, conflicts, assumptions, and
-blockers.
+updated, checked/no update needed, or blocked, plus scope-delta result, sources, files, conflicts,
+assumptions, and blockers.

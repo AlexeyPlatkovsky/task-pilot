@@ -56,6 +56,16 @@
   --priority-high-bg:   light-dark(#f8d7da, #4a1a1f);
   --priority-high-fg:   light-dark(#721c24, #f28b95);
 
+  /* Item type */
+  --type-epic-bg:    light-dark(#ede9fe, #3b0764);
+  --type-epic-fg:    light-dark(#5b21b6, #ddd6fe);
+  --type-feature-bg: light-dark(#1e3a8a, #172554);
+  --type-feature-fg: light-dark(#ffffff, #bfdbfe);
+  --type-task-bg:    light-dark(#e0f2fe, #082f49);
+  --type-task-fg:    light-dark(#075985, #bae6fd);
+  --type-bug-bg:     light-dark(#f8d7da, #4a1a1f);
+  --type-bug-fg:     light-dark(#721c24, #f28b95);
+
   /* Feedback */
   --feedback-error:       light-dark(#dc3545, #f28b95);
   --feedback-error-bg:    light-dark(#f8d7da, #4a1a1f);

@@ -39,11 +39,32 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-xs);
-  background: var(--surface-column);
+  background: var(--type-task-bg);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--type-task-fg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.type-epic {
+  background: var(--type-epic-bg);
+  color: var(--type-epic-fg);
+}
+
+.type-feature {
+  background: var(--type-feature-bg);
+  color: var(--type-feature-fg);
+}
+
+.type-task {
+  background: var(--type-task-bg);
+  color: var(--type-task-fg);
+}
+
+.type-bug {
+  background: var(--type-bug-bg);
+  color: var(--type-bug-fg);
 }
 
 .title {

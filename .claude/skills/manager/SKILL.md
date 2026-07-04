@@ -21,6 +21,14 @@ Classify before edits:
 - Change type: feature, bug fix, refactor, UI, documentation, review, instruction, or brainstorm.
 - Task backing: a task is task-backed only if the user supplies a valid task ID or a canonical
   TaskPilot item exists for the work. All other tasks are untracked.
+- Product-scope scan: compare the request with accepted specs, roadmap, design docs, and recorded
+  open questions before finalising the route. If the request would expand or narrow release scope,
+  change an accepted editable/read-only field boundary, alter persistence or API contracts, turn an
+  open question into behavior, or interpret ambiguous polish language as product approval, stop and
+  return a scope-delta blocker instead of routing implementation. The blocker must state current
+  accepted behavior, requested or implied behavior, why it is a scope change, available options, and
+  any recommendation. Do not treat a new request as approval for the delta unless the user
+  explicitly acknowledges the scope change.
 - Architecture-boundary scan: before finalising the classification, read the diff to list every new
   cross-layer import the change introduces and check each against AGENTS.md Architecture Boundaries
   (lines 86-98). A "layer" here means one of the project's top-level source directories: ``core``,
@@ -163,6 +171,7 @@ Include:
   skipped, and reason;
 - task-state decision: required or skipped, target task item when known, sanctioned update path,
   verification evidence required, and reason;
+- product-scope delta: none, or list deltas and required user decisions;
 - selected pipeline or immediate capability;
 - ordered handoffs and exact expected artifact labels;
 - validation and independent-review requirements;

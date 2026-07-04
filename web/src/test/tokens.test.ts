@@ -15,7 +15,7 @@ const KANBAN_COLUMN_CSS_PATH = resolve(
   __dirname,
   "../components/KanbanColumn.module.css",
 );
-const ROOT_TOKEN_COUNT = 75;
+const ROOT_TOKEN_COUNT = 83;
 
 describe("tokens.css — token definitions (AC-2)", () => {
   let css: string;
@@ -110,6 +110,17 @@ describe("tokens.css — token definitions (AC-2)", () => {
       );
       expect(css, `missing --priority-${priority}-fg`).toContain(
         `--priority-${priority}-fg:`,
+      );
+    }
+  });
+
+  it("defines bg and fg tokens for all item types", () => {
+    for (const type of ["epic", "feature", "task", "bug"]) {
+      expect(css, `missing --type-${type}-bg`).toContain(
+        `--type-${type}-bg:`,
+      );
+      expect(css, `missing --type-${type}-fg`).toContain(
+        `--type-${type}-fg:`,
       );
     }
   });

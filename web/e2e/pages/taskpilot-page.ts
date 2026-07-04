@@ -109,8 +109,9 @@ export class TaskPilotPage {
   }) {
     const modal = this.itemModal(itemId);
     await expect(modal).toBeVisible();
-    await expect(modal).toContainText(`${itemId}: ${title}`);
-    await expect(modal).toContainText(type);
+    await expect(modal).toContainText(itemId);
+    await expect(modal).toContainText(title);
+    await expect(modal).toContainText(compactTypeLabel(type));
     await expect(modal).toContainText(status);
     await expect(modal).toContainText(priority);
     await expect(modal).toContainText(description);
@@ -204,7 +205,8 @@ export class TaskPilotPage {
   }
 
   async expectModalVisible(itemId: string, title: string) {
-    await expect(this.itemModal(itemId)).toContainText(`${itemId}: ${title}`);
+    await expect(this.itemModal(itemId)).toContainText(itemId);
+    await expect(this.itemModal(itemId)).toContainText(title);
   }
 
   async expectModalText(itemId: string, text: string) {
@@ -238,4 +240,14 @@ export class TaskPilotPage {
   private itemModal(itemId: string): Locator {
     return this.byTestId(`item-modal-${itemId}`);
   }
+}
+
+function compactTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    Epic: "EPIC",
+    Feature: "FEAT",
+    Task: "TASK",
+    Bug: "BUG",
+  };
+  return labels[type] ?? type;
 }

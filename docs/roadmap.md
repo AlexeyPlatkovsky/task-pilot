@@ -124,25 +124,36 @@ Acceptance:
 - Tests cover external update detection for at least status changes, plus stale selected-item and
   validation refresh behavior.
 
-### 5. Task Detail View Redesign Discovery Gate
+### 5. Task Detail View Redesign
 
-Keep task detail redesign as a release blocker, but do not implement it until a separate discussion
-defines the information architecture and editing scope.
+The first task detail redesign pass is implemented by
+`docs/specs/0004-beta-item-detail-redesign.md`. The release modal now has a settled information
+architecture for the current requested task review flow: header, two-column summary, Info,
+comments, and validation issues.
 
-Scope:
-- discuss the detail-view information architecture before implementation;
-- decide which fields are editable, read-only, or deferred;
-- decide how relationship context, child items, comments, DOR/DOD, tags, timestamps, ownership
-  fields, invalid items, and partial item loading should be presented;
-- map the accepted detail-view contract to component, functional E2E, and browser-contract
-  coverage before production code changes.
+Implemented scope:
+- keep Board/List context by opening a modal rather than navigating away;
+- show compact task type, item ID, title, priority, status, created/updated timestamps,
+  description, DOR/DOD, tags, attachments, external references, comments, and validation findings;
+- keep title, description, priority, and status as the only WebUI-editable fields;
+- show explicit empty states for missing description, checklist items, resources, and comments;
+- keep relationships, child items, reverse links, and author metadata out of this modal slice until
+  a future accepted contract adds them back.
 
 Acceptance:
-- The redesign does not start until the discussion or accepted specification settles the required
-  information architecture and editing scope.
-- The implementation route reports a blocker if task detail redesign is attempted without that
-  accepted contract.
-- Existing item detail behavior remains unchanged until the redesign is explicitly routed.
+- The release modal exposes the grouped task context defined in spec 0004.
+- Edit and delete behavior remains compatible with the existing Alpha field and soft-delete
+  contracts.
+- Component, functional E2E, browser-contract, build, and lint checks validate the implemented
+  modal slice.
+
+Remaining Beta gaps:
+- parent/outgoing relationship display is intentionally not part of this reworked detail layout;
+- child item visibility and reverse links are not shown in the modal because the current item
+  detail API does not expose them;
+- full item field editing for DOR, DOD, tags, attachments, external references, parent, and links
+  remains unimplemented;
+- comment add/edit/delete remains unresolved for the first Beta release scope.
 
 ### 6. Validation Success Contrast
 
@@ -206,8 +217,8 @@ Current implementation snapshot:
   management loop.
 - List filters and sorting are ahead of Board; Board still needs parity filters.
 - Tree exists but should be hidden for release because the refinement contract is unsettled.
-- Item detail already displays substantial metadata, links, comments, and validation information,
-  but needs a release-quality task-view redesign.
+- Item detail now has the first release-quality task-view redesign for fields available in the
+  current item detail response.
 - API item updates write through the same local service layer, but the WebUI does not yet guarantee
   visible refresh after external CLI/API updates without reload.
 - Release automation has requirements, tasks, and scenarios under
@@ -220,7 +231,8 @@ Release blockers:
 - Tree view hidden from the release UI.
 - Last opened project persistence with safe fallback.
 - WebUI refresh/freshness for external task updates.
-- Task detail view redesign discussion gate before implementation.
+- Remaining item detail Beta gaps: child/reverse-link visibility, full field editing, and comment
+  mutation decision.
 - `All items valid` contrast correction.
 - F009 npm release automation implementation and validation.
 - F010 release UI readiness implementation and validation.

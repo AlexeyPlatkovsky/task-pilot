@@ -62,6 +62,29 @@ describe("KanbanCard", () => {
     },
   );
 
+  it.each(["epic", "feature", "task", "bug"] as const)(
+    "applies the type color class for %s cards",
+    (type) => {
+      const { container } = render(<KanbanCard item={makeItem({ type })} />);
+      expect(container.querySelector(`.type-${type}`)).not.toBeNull();
+    },
+  );
+
+  it("uses the shared type color tokens", () => {
+    expect(cardCss).toContain(".type-epic");
+    expect(cardCss).toContain("background: var(--type-epic-bg);");
+    expect(cardCss).toContain("color: var(--type-epic-fg);");
+    expect(cardCss).toContain(".type-feature");
+    expect(cardCss).toContain("background: var(--type-feature-bg);");
+    expect(cardCss).toContain("color: var(--type-feature-fg);");
+    expect(cardCss).toContain(".type-task");
+    expect(cardCss).toContain("background: var(--type-task-bg);");
+    expect(cardCss).toContain("color: var(--type-task-fg);");
+    expect(cardCss).toContain(".type-bug");
+    expect(cardCss).toContain("background: var(--type-bug-bg);");
+    expect(cardCss).toContain("color: var(--type-bug-fg);");
+  });
+
   it("does not render Unicode glyph characters as text content for any type icon", () => {
     const unicodeGlyphs = ["⬛", "▶", "□", "⚠"];
     const types: ItemType[] = ["epic", "feature", "task", "bug"];
