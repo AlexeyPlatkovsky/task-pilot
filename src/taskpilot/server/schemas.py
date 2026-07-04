@@ -39,26 +39,24 @@ class ValidationReportOut(BaseModel):
     findings: list[ValidationFindingOut]
 
 
-class ItemSummary(BaseModel):
+class ItemCoreSummary(BaseModel):
     id: str
     title: str
     type: str
     status: str
     priority: str
+    valid: bool = True
+
+
+class ItemSummary(ItemCoreSummary):
     created_at: str | None = None
     updated_at: str | None = None
     parent_id: str | None = None
-    valid: bool = True
     findings: list[ValidationFindingOut] = []
 
 
-class ItemRelationshipSummary(BaseModel):
-    id: str
-    title: str
-    type: str
-    status: str
-    priority: str
-    valid: bool = True
+class ItemRelationshipSummary(ItemCoreSummary):
+    pass
 
 
 class ItemRelationships(BaseModel):

@@ -13,10 +13,12 @@ home directory.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import Iterator
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from typing_extensions import Annotated
@@ -41,6 +43,7 @@ __all__ = [
 SCHEMA_VERSION = 1
 #: Registry filename inside the system directory.
 REGISTRY_FILENAME = "registry.yaml"
+_LOCK_FILENAME = ".registry.lock"
 
 _NonEmptyStr = Annotated[str, StringConstraints(min_length=1)]
 
@@ -106,6 +109,30 @@ def registry_file(registry_dir: Path) -> Path:
     return registry_dir / REGISTRY_FILENAME
 
 
+@contextmanager
+def _registry_lock(registry_dir: Path) -> Iterator[None]:
+    registry_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = registry_dir / _LOCK_FILENAME
+    with lock_path.open("a+b") as lock_file:
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
 def load_registry(registry_dir: Path) -> Registry:
     """Load the registry, returning an empty one when the file is absent."""
     path = registry_file(registry_dir)
@@ -123,6 +150,11 @@ def save_registry(registry_dir: Path, registry: Registry) -> None:
     Serializes first, then publishes via ``os.replace`` so a crash mid-write
     cannot leave a truncated registry.
     """
+    with _registry_lock(registry_dir):
+        _save_registry_unlocked(registry_dir, registry)
+
+
+def _save_registry_unlocked(registry_dir: Path, registry: Registry) -> None:
     registry_dir.mkdir(parents=True, exist_ok=True)
     content = dump_yaml(registry.model_dump()).encode("utf-8")
     fd, tmp = tempfile.mkstemp(
@@ -160,28 +192,29 @@ def register_project(
     ``path`` is absolute and normalized.
     """
     normalized_path = str(Path(path).resolve())
-    registry = load_registry(registry_dir)
+    with _registry_lock(registry_dir):
+        registry = load_registry(registry_dir)
 
-    for existing in registry.projects:
-        if existing.id == id:
-            existing.key = key
-            existing.name = name
-            existing.path = normalized_path
-            existing.active = True
-            save_registry(registry_dir, registry)
-            return existing
+        for existing in registry.projects:
+            if existing.id == id:
+                existing.key = key
+                existing.name = name
+                existing.path = normalized_path
+                existing.active = True
+                _save_registry_unlocked(registry_dir, registry)
+                return existing
 
-    entry = RegistryEntry(
-        id=id,
-        key=key,
-        name=name,
-        path=normalized_path,
-        active=True,
-        registered_at=now or utc_now_iso(),
-    )
-    registry.projects.append(entry)
-    save_registry(registry_dir, registry)
-    return entry
+        entry = RegistryEntry(
+            id=id,
+            key=key,
+            name=name,
+            path=normalized_path,
+            active=True,
+            registered_at=now or utc_now_iso(),
+        )
+        registry.projects.append(entry)
+        _save_registry_unlocked(registry_dir, registry)
+        return entry
 
 
 def list_projects(registry_dir: Path) -> list[RegistryEntry]:

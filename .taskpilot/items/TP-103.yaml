@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-103
+title: Add WebUI error boundary
+priority: high
+type: task
+status: ready
+created_at: '2026-07-04T18:00:23Z'
+updated_at: '2026-07-04T18:00:23Z'
+description: 'Post-release hardening: add a root-level WebUI error boundary so render failures show a recoverable fallback instead of a blank screen.'

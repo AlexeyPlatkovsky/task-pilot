@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-102
+title: Persist theme selection
+priority: high
+type: task
+status: ready
+created_at: '2026-07-04T18:00:03Z'
+updated_at: '2026-07-04T18:00:03Z'
+description: 'Post-release UX polish: persist the selected light or dark theme to localStorage and restore it on reload.'
