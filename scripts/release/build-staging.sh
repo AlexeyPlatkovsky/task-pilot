@@ -24,10 +24,9 @@ rm -rf "$STAGING"
 mkdir -p "$STAGING/web-dist"
 
 # --- build WebUI production assets ---
-if [ ! -d "$WEB_DIST" ] || [ ! -f "$WEB_DIST/index.html" ]; then
-  echo "Building WebUI production assets..." >&2
-  (cd "$WEB_DIR" && npm run build) >&2
-fi
+echo "Building WebUI production assets..." >&2
+rm -rf "$WEB_DIST"
+(cd "$WEB_DIR" && npm run build) >&2
 
 if [ ! -d "$WEB_DIST" ] || [ ! -f "$WEB_DIST/index.html" ]; then
   echo "ERROR: WebUI build did not produce dist/index.html" >&2

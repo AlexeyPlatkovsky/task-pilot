@@ -17,6 +17,7 @@ from taskpilot.services.registry import (
 )
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.app import create_app
+from taskpilot.server.schemas import ItemRelationshipSummary, ItemSummary
 from taskpilot.services import item_service, link_service, project_service
 
 
@@ -229,6 +230,106 @@ class TestGetItem:
         assert r.status_code == 200
         assert r.json()["findings"] == []
 
+    def test_detail_marks_parseable_item_invalid_with_item_scoped_findings(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Item with broken link",
+            type="task",
+            now="2026-06-25T10:00:00Z",
+        )
+        workspace.item_file("VP-1").write_text(
+            "schema_version: 1\n"
+            "id: VP-1\n"
+            "title: Item with broken link\n"
+            "priority: normal\n"
+            "type: task\n"
+            "status: backlog\n"
+            "created_at: '2026-06-25T10:00:00Z'\n"
+            "updated_at: '2026-06-25T10:00:00Z'\n"
+            "links:\n"
+            "  blocks:\n"
+            "    - VP-404\n",
+            encoding="utf-8",
+        )
+
+        r = client.get("/api/projects/voice-pilot/items/VP-1")
+
+        assert r.status_code == 200
+        detail = r.json()
+        assert detail["id"] == "VP-1"
+        assert detail["valid"] is False
+        assert detail["findings"] == [
+            {
+                "severity": "error",
+                "code": "missing_reference",
+                "path": ".taskpilot/items/VP-1.yaml",
+                "field": "links.blocks",
+                "item_id": "VP-1",
+                "message": "links.blocks references unknown item: VP-404",
+            }
+        ]
+
+    def test_detail_returns_invalid_payload_for_item_file_with_validation_errors(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        workspace.items_dir.mkdir(parents=True, exist_ok=True)
+        workspace.item_file("VP-99").write_text(
+            "schema_version: bad\n"
+            "id: ''\n"
+            "priority: normal\n"
+            "type: task\n"
+            "status: backlog\n"
+            "created_at: '2026-06-25T10:00:00Z'\n"
+            "updated_at: '2026-06-25T10:00:00Z'\n"
+            "tags:\n"
+            "  - beta\n"
+            "description: Keep this parsed description visible.\n"
+            "attachments:\n"
+            "  - docs/example.md\n"
+            "dor:\n"
+            "  - Ready criterion\n"
+            "dod:\n"
+            "  - Done criterion\n"
+            "external_refs:\n"
+            "  - https://example.test/ref\n",
+            encoding="utf-8",
+        )
+
+        r = client.get("/api/projects/voice-pilot/items/VP-99")
+
+        assert r.status_code == 200
+        detail = r.json()
+        assert detail["schema_version"] == 1
+        assert detail["id"] == "VP-99"
+        assert detail["title"] == "[invalid: VP-99.yaml]"
+        assert detail["tags"] == ["beta"]
+        assert detail["description"] == "Keep this parsed description visible."
+        assert detail["attachments"] == ["docs/example.md"]
+        assert detail["dor"] == ["Ready criterion"]
+        assert detail["dod"] == ["Done criterion"]
+        assert detail["external_refs"] == ["https://example.test/ref"]
+        assert detail["valid"] is False
+        assert {
+            (finding["code"], finding["field"], finding["message"])
+            for finding in detail["findings"]
+        } == {
+            (
+                "invalid_field",
+                "schema_version",
+                "schema_version: Input should be a valid integer, unable to parse string as an integer",
+            ),
+            (
+                "invalid_field",
+                "id",
+                "id: String should have at least 1 character",
+            ),
+            ("missing_required_field", "title", "Missing required field: title"),
+        }
+
     def test_404_for_unknown_item(self, client, tmp_path, workspace):
         _setup_registry(workspace, tmp_path)
         r = client.get("/api/projects/voice-pilot/items/VP-999")
@@ -410,6 +511,27 @@ class TestGetItem:
                 "valid": False,
             }
         ]
+
+    def test_relationship_summary_schema_tracks_item_summary_overlap(self):
+        item_fields = ItemSummary.model_fields
+        relationship_fields = ItemRelationshipSummary.model_fields
+        relationship_field_names = set(relationship_fields)
+
+        assert relationship_field_names == {
+            "id",
+            "title",
+            "type",
+            "status",
+            "priority",
+            "valid",
+        }
+        assert relationship_field_names <= set(item_fields)
+        for field_name in relationship_field_names:
+            item_field = item_fields[field_name]
+            relationship_field = relationship_fields[field_name]
+            assert relationship_field.annotation == item_field.annotation
+            assert relationship_field.default == item_field.default
+            assert relationship_field.alias == item_field.alias
 
 
 class TestValidateProject:

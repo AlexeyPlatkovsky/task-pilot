@@ -3,7 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+import yaml
 
+from taskpilot.core.models import SCHEMA_VERSION, ItemStatus, ItemType, Priority
+from taskpilot.core.timestamps import is_canonical_iso
+from taskpilot.core.yaml_io import load_yaml
 from taskpilot.services.registry import RegistryEntry, list_projects as registry_list
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.schemas import (
@@ -25,6 +29,8 @@ from taskpilot.services import ui_state as ui_state_svc
 from taskpilot.services.errors import NotFound, ValidationFailed
 
 router = APIRouter(tags=["projects"])
+
+_FALLBACK_TIMESTAMP = "1970-01-01T00:00:00Z"
 
 
 def _registry_entry(request: Request, project_id: str) -> RegistryEntry:
@@ -130,6 +136,49 @@ def _item_relationships(item, ws: WorkspacePaths) -> dict:
     }
 
 
+def _validation_findings_for_item(ws: WorkspacePaths, item_id: str) -> list[dict]:
+    findings: list[dict] = []
+    for finding in validate_workspace(ws).findings:
+        if finding.item_id == item_id or Path(finding.path).stem == item_id:
+            findings.append(ValidationFindingOut(**finding.to_dict()).model_dump())
+    return findings
+
+
+def _valid_or_default(value: object, allowed: set[str], default: str) -> str:
+    return value if isinstance(value, str) and value in allowed else default
+
+
+def _timestamp_or_default(value: object) -> str:
+    return (
+        value
+        if isinstance(value, str) and is_canonical_iso(value)
+        else _FALLBACK_TIMESTAMP
+    )
+
+
+def _optional_str(value: object) -> str | None:
+    return value if isinstance(value, str) else None
+
+
+def _optional_str_list(value: object) -> list[str] | None:
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return value
+    return None
+
+
+def _optional_links(value: object) -> dict | None:
+    if not isinstance(value, dict):
+        return None
+    links: dict[str, list[str]] = {}
+    for link_type in ("blocks", "relates_to"):
+        link_values = value.get(link_type)
+        if isinstance(link_values, list) and all(
+            isinstance(item, str) for item in link_values
+        ):
+            links[link_type] = link_values
+    return links or None
+
+
 def _item_detail(item, ws: WorkspacePaths) -> dict:
     d = item.model_dump()
     try:
@@ -138,8 +187,65 @@ def _item_detail(item, ws: WorkspacePaths) -> dict:
     except ValidationFailed:
         d["comments"] = []
     d["relationships"] = _item_relationships(item, ws)
-    d["valid"] = True
+    findings = _validation_findings_for_item(ws, item.id)
+    d["valid"] = len(findings) == 0
+    d["findings"] = findings
     return d
+
+
+def _invalid_item_detail(item_id: str, ws: WorkspacePaths) -> dict:
+    target = ws.item_file(item_id)
+    if not target.is_file():
+        raise NotFound(f"No item found with id {item_id!r}")
+
+    data: dict = {}
+    try:
+        parsed = load_yaml(target.read_text(encoding="utf-8"))
+        if isinstance(parsed, dict):
+            data = parsed
+    except (OSError, UnicodeDecodeError, yaml.YAMLError):
+        data = {}
+
+    allowed_types = {item_type.value for item_type in ItemType}
+    allowed_statuses = {status.value for status in ItemStatus}
+    allowed_priorities = {priority.value for priority in Priority}
+
+    detail = {
+        "schema_version": data.get("schema_version")
+        if isinstance(data.get("schema_version"), int)
+        else SCHEMA_VERSION,
+        "id": data["id"] if isinstance(data.get("id"), str) and data["id"] else item_id,
+        "title": data["title"]
+        if isinstance(data.get("title"), str) and data["title"]
+        else f"[invalid: {item_id}.yaml]",
+        "priority": _valid_or_default(
+            data.get("priority"), allowed_priorities, "normal"
+        ),
+        "type": _valid_or_default(data.get("type"), allowed_types, "task"),
+        "status": _valid_or_default(data.get("status"), allowed_statuses, "backlog"),
+        "created_at": _timestamp_or_default(data.get("created_at")),
+        "updated_at": _timestamp_or_default(data.get("updated_at")),
+        "comments": [],
+        "relationships": {},
+        "valid": False,
+        "findings": _validation_findings_for_item(ws, item_id),
+    }
+
+    for field in ("parent_id", "description", "created_by", "performed_by"):
+        value = _optional_str(data.get(field))
+        if value is not None:
+            detail[field] = value
+
+    for field in ("tags", "attachments", "dor", "dod", "external_refs"):
+        value = _optional_str_list(data.get(field))
+        if value is not None:
+            detail[field] = value
+
+    links = _optional_links(data.get("links"))
+    if links is not None:
+        detail["links"] = links
+
+    return detail
 
 
 @router.get("/health")
@@ -216,7 +322,10 @@ def get_item_detail(request: Request, project_id: str, item_id: str) -> ItemDeta
     entry = _registry_entry(request, project_id)
     _require_item_in_project(entry, item_id)
     ws = _paths(entry)
-    item = item_svc.read_item(ws, item_id)
+    try:
+        item = item_svc.read_item(ws, item_id)
+    except ValidationFailed:
+        return ItemDetail(**_invalid_item_detail(item_id, ws))
     return ItemDetail(**_item_detail(item, ws))
 
 
