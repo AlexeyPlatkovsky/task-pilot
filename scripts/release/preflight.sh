@@ -23,10 +23,10 @@ HAS_ERROR=0
 PKG_NAME=$(node -e "console.log(require('./package.json').name)" 2>/dev/null || echo "")
 PKG_VERSION=$(node -e "console.log(require('./package.json').version)" 2>/dev/null || echo "")
 
-if [ "$PKG_NAME" != "taskpilot" ]; then
-  echo "ERROR: package.json name must be unscoped 'taskpilot' (got: '${PKG_NAME}')" >&2
-  echo "The first release requires the unscoped npm package 'taskpilot'. Stop and" >&2
-  echo "resolve the naming conflict before publishing." >&2
+if [ "$PKG_NAME" != "@alexey_platkovsky/taskpilot" ]; then
+  echo "ERROR: package.json name must be '@alexey_platkovsky/taskpilot' (got: '${PKG_NAME}')" >&2
+  echo "The first release requires the unscoped npm package '@alexey_platkovsky/taskpilot'." >&2
+  echo "Stop and resolve the naming conflict before publishing." >&2
   HAS_ERROR=1
 fi
 
@@ -113,4 +113,4 @@ if [ "$HAS_ERROR" -ne 0 ]; then
   exit 1
 fi
 
-echo "OK: preflight passed for taskpilot@${PKG_VERSION}"
+echo "OK: preflight passed for @alexey_platkovsky/taskpilot@${PKG_VERSION}"
