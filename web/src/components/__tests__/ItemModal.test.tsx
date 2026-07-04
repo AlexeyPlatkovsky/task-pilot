@@ -525,6 +525,7 @@ describe("ItemModal", () => {
 
     await user.click(await screen.findByRole("button", { name: "Delete" }));
 
+    expect(screen.getByTestId("item-modal-VP-1")).toBeVisible();
     expect(
       screen.getByRole("alertdialog", { name: "Delete this item?" }),
     ).toBeInTheDocument();

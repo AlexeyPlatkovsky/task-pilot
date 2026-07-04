@@ -100,7 +100,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
   return (
     <>
       <Dialog.Root
-        open={!!itemId && !isDeleting}
+        open={!!itemId}
         onOpenChange={(open) => !open && handleClose()}
       >
         <Dialog.Portal>
