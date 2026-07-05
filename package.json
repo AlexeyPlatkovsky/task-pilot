@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anomalyco/task-pilot.git"
+    "url": "git+https://github.com/AlexeyPlatkovsky/task-pilot.git"
   },
   "private": false
 }
