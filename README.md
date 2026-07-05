@@ -4,7 +4,7 @@ TaskPilot is local-first task management for software projects. It keeps project
 Git-friendly files inside your repository, so humans and coding agents can share the same durable,
 inspectable task state without accounts, hosted services, or hidden synchronization.
 
-TaskPilot is published as the `taskpilot` npm package.
+TaskPilot is published as the `@alexey_platkovsky/taskpilot` npm package.
 
 ## Why TaskPilot
 
@@ -19,7 +19,7 @@ TaskPilot is published as the `taskpilot` npm package.
 TaskPilot is distributed through npm. The stable release supports global npm installation.
 
 ```bash
-npm install -g taskpilot
+npm install -g @alexey_platkovsky/taskpilot
 ```
 
 Prerequisites:
