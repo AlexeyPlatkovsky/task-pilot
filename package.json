@@ -27,5 +27,8 @@
     "type": "git",
     "url": "git+https://github.com/AlexeyPlatkovsky/task-pilot.git"
   },
-  "private": false
+  "private": false,
+  "dependencies": {
+    "@alexey_platkovsky/taskpilot": "^1.1.0"
+  }
 }
