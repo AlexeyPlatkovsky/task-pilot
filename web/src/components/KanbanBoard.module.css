@@ -1,119 +1,16 @@
-:root {
-  --board-height: calc(100vh - 150px);
-}
-
 .board {
-  display: flex;
-  gap: var(--space-4);
-  width: 100%;
-  max-width: var(--content-max-width);
-  height: var(--board-height);
-  margin-inline: auto;
-  overflow-x: auto;
-  padding: 0 var(--space-3);
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--board-height);
-  color: var(--text-muted);
-}
-
-.error {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
+  padding: 20px;
+}
+
+.boardColumn {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
   width: 100%;
-  height: var(--board-height);
-  color: var(--feedback-error);
-}
-
-.error button {
-  padding: var(--space-2) var(--space-4);
-  background: var(--accent);
-  color: var(--accent-fg);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: var(--font-size-base);
-}
-
-.error button:hover {
-  background: var(--accent-hover);
-}
-
-.emptyPrompt {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.emptyPrompt code {
-  background: var(--surface-column);
-  padding: 0.125rem var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-}
-
-.filteredEmpty {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.mutationError {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--status-deleted-bg);
-  color: var(--text-inverse);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  position: fixed;
-  bottom: var(--space-4);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2000;
-}
-
-.columnToggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 var(--kanban-column-min);
-  min-width: var(--kanban-column-min);
-  padding: var(--space-3);
-  background: var(--surface-column);
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-lg);
-  color: var(--text-muted);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  align-self: flex-start;
-  margin-block-start: var(--space-8);
-}
-
-.columnToggle:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.columnToggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  max-width: 400px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
