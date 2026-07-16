@@ -46,7 +46,7 @@ export const CREATED_FILTER_OPTIONS: DropdownOption<TimeRange>[] = [
 export const DEFAULT_BOARD_FILTERS = {
   type: "",
   priority: "",
-  updatedRange: "all" as TimeRange,
+  updatedRange: "last_7_days" as TimeRange,
   createdRange: "all" as TimeRange,
 };
 

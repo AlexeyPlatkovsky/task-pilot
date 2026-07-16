@@ -48,6 +48,7 @@ export function KanbanBoard({ projectId, now }: Props) {
   const [activeItem, setActiveItem] = useState<ItemSummary | null>(null);
   const [droppedItemId, setDroppedItemId] = useState<string | null>(null);
   const [boardFilters, setBoardFilters] = useState<BoardFilters>(DEFAULT_BOARD_FILTERS);
+  const [hiddenStatuses, setHiddenStatuses] = useState<Set<Status>>(new Set());
 
   const queryClient = useQueryClient();
 
@@ -145,11 +146,25 @@ export function KanbanBoard({ projectId, now }: Props) {
     [items, mutate],
   );
 
+  const toggleCancelled = useCallback(() => {
+    setHiddenStatuses((prev) => {
+      const next = new Set(prev);
+      if (next.has("cancelled")) {
+        next.delete("cancelled");
+      } else {
+        next.add("cancelled");
+      }
+      return next;
+    });
+  }, []);
+
   const hasActiveBoardFilters =
     boardFilters.type !== DEFAULT_BOARD_FILTERS.type ||
     boardFilters.priority !== DEFAULT_BOARD_FILTERS.priority ||
     boardFilters.updatedRange !== DEFAULT_BOARD_FILTERS.updatedRange ||
     boardFilters.createdRange !== DEFAULT_BOARD_FILTERS.createdRange;
+
+  const hasHiddenColumns = hiddenStatuses.size > 0;
 
   const filteredItems = useMemo(
     () =>
@@ -167,8 +182,13 @@ export function KanbanBoard({ projectId, now }: Props) {
   const hasItems = (items?.length ?? 0) > 0;
   const allColumnsEmpty = Array.from(groups.values()).every((g) => g.length === 0);
   const isEmpty = !hasItems;
-  const showEmptyPrompt = isEmpty || (allColumnsEmpty && !hasActiveBoardFilters);
-  const showFilteredEmpty = hasItems && allColumnsEmpty && hasActiveBoardFilters;
+  const showEmptyPrompt = isEmpty;
+  const showFilteredEmpty = hasItems && allColumnsEmpty;
+
+  // Visible columns: exclude hidden statuses but still check them for empty prompt
+  const visibleStatuses = WORKFLOW_STATUSES.filter(
+    (status) => !hiddenStatuses.has(status),
+  );
 
   if (isLoading) {
     return (
@@ -192,8 +212,11 @@ export function KanbanBoard({ projectId, now }: Props) {
   return (
     <>
       <FilterBar
-        hasActiveFilters={hasActiveBoardFilters}
-        onClear={() => setBoardFilters(DEFAULT_BOARD_FILTERS)}
+        hasActiveFilters={hasActiveBoardFilters || hasHiddenColumns}
+        onClear={() => {
+          setBoardFilters(DEFAULT_BOARD_FILTERS);
+          setHiddenStatuses(new Set());
+        }}
         ariaLabel="Board filters"
         dataTestId="kanban-board-filters"
       >
@@ -238,7 +261,7 @@ export function KanbanBoard({ projectId, now }: Props) {
         onDragEnd={handleDragEnd}
       >
         <div className={styles.board} data-test-id="kanban-board">
-          {WORKFLOW_STATUSES.map((status) => {
+          {visibleStatuses.map((status) => {
             const columnItems = groups.get(status) ?? [];
             return (
               <KanbanColumn
@@ -252,6 +275,15 @@ export function KanbanBoard({ projectId, now }: Props) {
               />
             );
           })}
+          <button
+            className={styles.columnToggle}
+            type="button"
+            onClick={toggleCancelled}
+            data-test-id="kanban-toggle-cancelled"
+            title={hiddenStatuses.has("cancelled") ? "Show Cancelled column" : "Hide Cancelled column"}
+          >
+            {hiddenStatuses.has("cancelled") ? "+ Cancelled" : "− Cancelled"}
+          </button>
           {showEmptyPrompt && (
             <div className={styles.emptyPrompt} data-test-id="kanban-empty-prompt">
               <p>No items yet.</p>
