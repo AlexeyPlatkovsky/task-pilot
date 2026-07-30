@@ -27,9 +27,14 @@ This skill manages local TaskPilot task items only. Do not use it for:
 Writing an item title, description, or comment body — whether the text comes from a user request or
 from the agent's own analysis — requires a `Skill: ground-request - output below` artifact covering
 that content in the current context. This is a precondition on this skill, not an optional step, and
-it holds regardless of caller — being invoked inline by a pipeline is not an exemption. Content
-derived from an already-accepted specification is exempt, as is the `needs triage` marker below,
-which is grounded by construction.
+it holds regardless of caller — being invoked inline by a pipeline is not an exemption.
+
+Two exemptions, both narrow. Content derived from an **unqualified** statement in an already-accepted
+specification is exempt; a `[planned]`, `[not implemented]`, `[superseded]`, or requirement-register
+statement is not unqualified, and `.claude/conventions/documentation-quality.md` owns that test.
+Record the exemption in this skill's artifact as `exempt: <spec path and section>` so a downstream
+validator can tell an exemption from a skipped gate. The `needs triage` marker below is also exempt,
+being grounded by construction.
 
 When the artifact is absent, write nothing, emit this skill's artifact with status `blocked`, and
 return control to the manager naming `.claude/pipelines/backlog-change.md`. Do not run
@@ -40,7 +45,8 @@ reports per subject:
 
 | Reported outcome | Action here |
 | --- | --- |
-| `unverified` | Do not write the item; report it as refused. Write only after the user confirms or restates the request. When they confirm without new evidence, add a `needs triage` comment naming what could not be verified and the confirmation. |
+| `unverified` | Do not write the item; report it as refused. |
+| `unverified, user-confirmed` | Write it, and add a `needs triage` comment whose content `ground-request` specifies. |
 | `partially grounded` | Write the located state the artifact reports, not the state the request asserted, and report the correction. |
 | `grounded` | Write it and cite the reported evidence path. |
 | `new scope` | Write it. |
@@ -213,8 +219,9 @@ The artifact begins with `Skill: track-with-taskpilot - output below` and report
   `new scope` items carrying open questions), `skipped` when no write was requested or needed;
 - invoked operation(s);
 - affected item ids;
-- the grounding outcome applied per requested item, and the `ground-request` artifact it came from,
-  or `not required` for a technical-field-only update;
+- the grounding outcome applied per requested item, and the `ground-request` artifact it came from;
+  `not required` for a technical-field-only update; or `exempt: <spec path and section>` for a write
+  derived from an unqualified accepted-specification statement;
 - corrections applied to any `partially grounded` item;
 - requested items not written, and the question returned to the user;
 - any `needs triage` comment written;

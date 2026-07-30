@@ -1,7 +1,6 @@
 # TaskPilot Specifications
 
-Non-trivial behavior, public contracts, persistence, cross-layer changes, and architecture work
-must be specified here before implementation.
+This folder holds the accepted product contracts.
 
 Each specification records outcome, scope, requirements, design effects, acceptance criteria, test
 strategy, implementation slices, risks, assumptions, and open questions.
@@ -12,7 +11,9 @@ A state applies to the specification as a whole, not to every statement inside i
 statement that does not describe shipped behavior carries an inline marker — `[planned]`,
 `[not implemented]`, or `[superseded: <ref>]`. The marker vocabulary is defined under "Statement
 status markers" in [0002](0002-alpha-product-and-stack-decisions.md) and applies to every
-specification here. A marked statement is not evidence of shipped behavior.
+specification here. A marked statement is not evidence of shipped behavior, and neither is a
+requirement-register statement ("shall", "should", "could") in a specification that is `accepted` but
+not yet `implemented` — it states what was agreed, not what ships.
 
 Whether a given change requires a specification is decided by the specification-materiality scan in
 `.claude/skills/manager/SKILL.md`, which is where routing gates live. It is deliberately not restated

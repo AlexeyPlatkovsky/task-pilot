@@ -30,8 +30,10 @@ This skill reads, classifies, and reports. It writes nothing. Do not use it to:
 ## When to use
 
 Whenever a user request or the agent's own analysis would be written into a TaskPilot item title,
-description, or comment body. Exempt only when the content is derived from an already-accepted
-specification. Being invoked inline by a pipeline is not an exemption.
+description, or comment body. Exempt only when the content is derived from an **unqualified**
+statement in an already-accepted specification — a statement disqualified under the marker or register
+rules in `.claude/conventions/documentation-quality.md` is not a grounding exemption, and an accepted
+specification may contain both. Being invoked inline by a pipeline is not an exemption.
 
 Requirements, specification statements, and documentation claims are subject to the same Evidence
 Boundary standard, but no capability currently gates them through this skill; see Gaps below.
@@ -49,8 +51,8 @@ Documentation answers *what* the behavior is. Source decides *whether* it exists
 3. A statement disqualified under `documentation-quality.md` — `[planned]`, `[not implemented]`,
    `[superseded: <ref>]`, `(future)`, `⏳`, the "shall"/"should"/"could" register, or equivalent
    deferring wording — does not ground the claim. Decide the outcome from source under rule 5; a
-   disqualified statement that source turns out to confirm is outcome 3 plus a documentation defect,
-   not an absence.
+   disqualified statement that source turns out to confirm is outcome 3, and a documentation defect
+   unless `documentation-quality.md` exempts that disqualifier — not an absence.
 4. The owning document is silent → silence is evidence of nothing. Report a documentation **gap**
    naming the document that should own the answer, and continue to source.
 5. Run the source search for the asserted token regardless of what the documentation said — one
@@ -61,6 +63,11 @@ Documentation answers *what* the behavior is. Source decides *whether* it exists
    is reported. Grounding a claim on a document alone would leave every doc defect invisible.
 6. An assertion that a subject is *absent* is never confirmed by documentation. Documents omit
    routinely; only source can establish an absence.
+
+"Source" here means the implementation and its configuration: `src/`, `web/`, `tests/`, `scripts/`,
+and packaging or config files. Instruction artifacts under `.claude/` and `.manifesto/` are not
+source — a token that appears only in a skill or pipeline file, including an example inside this one,
+is not evidence that the product has it.
 
 Grounding evidence never comes from `.taskpilot/` items, other backlog items, or conversation
 history. An unverified item must not become the evidence that grounds the next one.
@@ -144,7 +151,8 @@ subjects produces one set of questions, not seven rounds.
 
 The artifact begins with `Skill: ground-request - output below` and reports:
 
-- status (`completed` or `blocked`) — `blocked` when any subject resolved to `unverified`;
+- status (`completed` or `blocked`) — `blocked` when any subject resolved to `unverified` and remains
+  unconfirmed; a subject resolved to `unverified, user-confirmed` is `completed`;
 - per asserted subject: the outcome, the searches run, and the evidence path or the search that
   failed; for a confirmed absence, both searches that established it;
 - corrections the caller must apply for any `partially grounded` subject;

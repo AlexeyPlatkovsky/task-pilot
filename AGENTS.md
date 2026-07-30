@@ -18,6 +18,10 @@ An ADR outranks `docs/taskpilot_concept.md`. The concept document is a high-leve
 decisions recorded elsewhere, so where the two disagree the concept document is the defect: report
 it rather than following it.
 
+This ranking governs which instruction to follow, not which claim is factually true. Factual evidence
+is owned by `.claude/conventions/documentation-quality.md`, where source outranks every document: a
+document contradicted by source is defective regardless of its rank here.
+
 Do not silently resolve conflicts that change product behavior, public contracts, persistence, or
 architecture. Report the conflict and obtain a decision.
 
@@ -184,7 +188,9 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 - Item titles, descriptions, and comment bodies under `.taskpilot/` are written only through
   `.claude/skills/track-with-taskpilot/SKILL.md`, so its grounding gate cannot be bypassed by editing
   a canonical item file directly. The skill's own documented CLI-fallback path counts as going
-  through it; an ad-hoc file edit does not.
+  through it; an ad-hoc file edit does not. The user may waive this only via an explicit override that
+  names the gate (e.g. "override the grounding gate"); a general "just edit the file" does not waive
+  it.
 - Preserve unrelated changes and keep diffs narrow.
 - Never commit, push, rewrite history, discard changes, or run destructive commands unless the user
   explicitly requests it.

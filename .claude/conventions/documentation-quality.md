@@ -50,15 +50,16 @@ contains, supports, or behaves in some way must be confirmed against source, tes
 an accepted specification, or authoritative project documentation before being written as settled
 state.
 
-Authoritative project documentation is the subset of `docs/` that records delivered state:
+Authoritative project documentation is the set of sources below, which record delivered state. Paths
+are full and literal; a similarly named file elsewhere is not the same source.
 
 | Source | Evidence for |
 | --- | --- |
-| `architecture.md`, `api.md` | Structure and contract surface as delivered |
-| `specs/`, `decisions/` | Accepted behavior and decisions, subject to the marker rule below |
-| `features/F<NNN>_*` | Only when that feature's `docs/INDEX.md` registry row reads `✅ implemented` |
-| `design.md` | Shipped screens, states, and interaction patterns — not its UX principles |
-| `testing.md` | The tooling and CI gates it describes — not coverage aspirations |
+| `docs/architecture.md`, `docs/api.md` | Structure and contract surface as delivered |
+| `docs/specs/`, `docs/decisions/` | Accepted behavior and decisions, subject to the marker rule below |
+| `docs/features/F<NNN>_*` and `docs/features/archive/F<NNN>_*` | Only when that feature's `docs/INDEX.md` registry row reads `✅ implemented`. Delivered features are archived, so the archive path carries almost all of them |
+| `docs/design.md` | Shipped screens, states, and interaction patterns — not its UX principles |
+| `docs/testing.md` | The tooling and CI gates it describes — not coverage aspirations |
 | `designs/design.md` | Delivered design-system tokens, icons, and component rules |
 
 `docs/roadmap.md`, `docs/idea.md`, `docs/taskpilot_concept.md`, and everything under `.claude/docs/`
@@ -73,7 +74,14 @@ Even inside the recording set, a statement is evidence only when it is unqualifi
   shipped behavior, and neither is one qualified by an equivalent in-use marker — `(future)`, `⏳`,
   `planned`, `directional`, `candidate`, or any wording that defers the behavior;
 - a statement in the requirement or aspiration register — "shall", "should", "could" — states intent
-  rather than delivery, whatever document it sits in;
+  rather than delivery, except inside a specification whose state is `implemented` or a
+  `✅ implemented` feature folder. There the register records accepted requirements that were
+  delivered, and the marker rule above is what disqualifies a statement. An `accepted` specification
+  is not `implemented`: its register statements are requirements, not delivered behavior;
+- a statement disqualified *only* because its specification is `accepted` rather than `implemented` is
+  not a documentation defect when source confirms it — the specification correctly states a
+  requirement, and the delivery record lives elsewhere. A statement disqualified by any other rule,
+  including a marker, is still a defect when source contradicts it;
 - silence in a document is not evidence that something is absent;
 - where documentation and source disagree, source is the fact and the document is defective — report
   the defect rather than propagating it.

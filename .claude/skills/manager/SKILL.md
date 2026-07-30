@@ -35,13 +35,16 @@ Classify before edits:
   contract (CLI command or flag, REST request or response shape, exit code, JSON envelope);
   persistence, canonical file format, or on-disk layout; an accepted editable/read-only field
   boundary; architecture or a cross-layer boundary; or the default behavior or default value of an
-  already-accepted feature; a refactor that exposes a new architecture decision, changes internal
-  module or package structure visible to maintainers, or has no explicit behavior-preservation
-  boundary. A specification is not required for a visual or cosmetic change that alters no behavior
-  documented anywhere in `docs/` or `designs/design.md`; an internal refactor that preserves every
-  contract and matches none of the refactor triggers above; a test-only or documentation-only change;
-  or a bug fix that restores behavior an accepted specification already defines. The required list
-  wins on any overlap.
+  already-accepted feature; a refactor that exposes a new architecture decision, changes an import
+  path, package name, or module location that code outside the refactored package depends on, or has
+  no explicit behavior-preservation boundary. A specification is not required for a visual or cosmetic
+  change that alters no value, rule, or state stated normatively in `docs/` or `designs/design.md` —
+  applying an existing documented token for the purpose that document assigns it, at its documented
+  value, is not such an alteration; an internal refactor that preserves every contract and matches none
+  of the refactor triggers above; a test-only or documentation-only change; or a bug fix that restores
+  behavior an accepted specification already defines. Substituting a different token for a purpose the
+  document assigns to another token is such an alteration and requires a specification. The required
+  list wins on any overlap.
   Changing a default is a behavior change even when the code is one line, and a visually cosmetic
   change can still alter documented behavior — decide by what the change does, not by its diff size.
   When neither list clearly applies, or both appear to, treat the change as requiring a specification.
@@ -132,10 +135,13 @@ Size definitions (choose the highest that applies):
 When a single request names both a task-tracking operation and a non-tracking work goal, treat
 the full request as non-trivial and route through the appropriate feature-change, test-change, or
 ui-change pipeline (whichever matches the non-tracking part), invoking ``track-with-taskpilot``
-inline through that pipeline's implementation skill. When such a route will write an item title,
-description, or comment body, name ``Skill: ground-request - output below`` among the expected
-handoffs so the Handoff Gate covers it; routing through another pipeline is not an exemption from
-that skill's write gate.
+inline through that pipeline's implementation skill for technical-field updates only.
+
+When the request also writes an item title, description, or comment body, split it: route that write
+through ``.claude/pipelines/backlog-change.md`` as a separate ordered handoff, before or after the
+code route, and name both that pipeline and ``Skill: ground-request - output below`` among the
+expected handoffs. Do not fold the write into the code route's implementation skill — that skill
+refuses it and returns control here, and the write would bypass the backlog-change validation gates.
 
 Framework stages under `.manifesto/`, including `02_review.md`, are invoked explicitly by
 the user. They are framework workflows, not project routing targets.

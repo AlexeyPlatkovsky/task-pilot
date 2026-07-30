@@ -11,7 +11,7 @@ planned validation route.
 1. If the request is purely a task-tracking operation with no implementation scope, do not proceed
    with this skill. Redirect a read-only query or a technical-field-only update (status, priority,
    timestamps, links) to `.claude/skills/track-with-taskpilot/SKILL.md` directly. Return item
-   creation, or a title/description change, to the manager for
+   creation, a title/description change, or a comment-body write to the manager for
    `.claude/pipelines/backlog-change.md`, which owns the grounding step that skill's write gate
    requires.
 2. If the manager's output or the user's instruction identifies a TaskPilot item ID for this work
