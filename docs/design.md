@@ -25,13 +25,18 @@
 | Project selector | Choose which registered project to work on | empty (no projects), listing, error |
 | Kanban board | Primary workspace with columns by status | empty columns, populated, drag in progress |
 | List view | Tabular filterable/sortable item list | empty, populated, filtered empty |
-| Tree view | Expandable parent/child hierarchy | empty, populated, loading branch |
+| Tree view | Expandable parent/child hierarchy — implemented but hidden from navigation in the current release | empty, populated, loading branch |
 | Item detail modal | View and edit a single item | view mode, edit mode, save error, delete confirm |
 | Validation panel | Show items/files with validation errors | empty (all valid), list of errors |
 
 ## Application Header
 
-The header appears on every screen. It displays the TaskPilot compass board logo (`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot", and the project selector dropdown. The header is styled with `--surface-base` background, a `--border-subtle` bottom border, and rounded corners.
+The header appears on every screen. From left to right it displays the TaskPilot compass board logo
+(`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot",
+the project selector dropdown, and the view tabs; the validation status sits between the left and
+right groups, and the theme switcher is right-aligned. View tabs render only once a project is
+selected. The header is styled with `--surface-base` background, a `--border-subtle` bottom border,
+and rounded corners.
 
 ## Project Selector
 
@@ -159,8 +164,8 @@ An alternative to the Kanban board with tabular layout.
 
 Columns: ID, title, type, status, priority, created_at, updated_at.
 
-Supports sorting by any column, filtering by status, type, priority, and time range (all, last 7
-days, last 14 days, last month). Uses TanStack Table.
+Supports sorting by any column, filtering by status, type, priority, and time range (Any time,
+Last 7 days, Last 14 days, Last 30 days). Uses TanStack Table.
 
 List filters use the shared dropdown selector pattern defined in `designs/design.md`. Filter labels
 and triggers sit on the same row. A trailing Clear button resets all filters to default values and

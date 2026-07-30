@@ -29,6 +29,24 @@ Classify before edits:
   accepted behavior, requested or implied behavior, why it is a scope change, available options, and
   any recommendation. Do not treat a new request as approval for the delta unless the user
   explicitly acknowledges the scope change.
+- Specification-materiality scan: decide whether the change requires a specification before
+  implementation, and record the decision plus the clause that settled it. A specification is
+  required when the change alters product behavior visible to a user or API consumer; a public
+  contract (CLI command or flag, REST request or response shape, exit code, JSON envelope);
+  persistence, canonical file format, or on-disk layout; an accepted editable/read-only field
+  boundary; architecture or a cross-layer boundary; or the default behavior or default value of an
+  already-accepted feature; a refactor that exposes a new architecture decision, changes internal
+  module or package structure visible to maintainers, or has no explicit behavior-preservation
+  boundary. A specification is not required for a visual or cosmetic change that alters no behavior
+  documented anywhere in `docs/` or `designs/design.md`; an internal refactor that preserves every
+  contract and matches none of the refactor triggers above; a test-only or documentation-only change;
+  or a bug fix that restores behavior an accepted specification already defines. The required list
+  wins on any overlap.
+  Changing a default is a behavior change even when the code is one line, and a visually cosmetic
+  change can still alter documented behavior — decide by what the change does, not by its diff size.
+  When neither list clearly applies, or both appear to, treat the change as requiring a specification.
+  This scan is the sole owner of the question; `docs/specs/README.md` points here rather than
+  restating it.
 - Architecture-boundary scan: before finalising the classification, read the diff to list every new
   cross-layer import the change introduces and check each against AGENTS.md Architecture Boundaries
   (lines 86-98). A "layer" here means one of the project's top-level source directories: ``core``,
@@ -102,16 +120,22 @@ Size definitions (choose the highest that applies):
 - Other read-only review request: `.claude/pipelines/code-review.md`.
 - Open high-impact choice with materially different outcomes: `.claude/skills/brainstorm/SKILL.md`.
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.
-- Direct task tracking (list, create, update, show TaskPilot items): `.claude/skills/track-with-taskpilot/SKILL.md`.
-  Route only when the request explicitly references the project's own TaskPilot workspace
-  (``.taskpilot/``). If the request is about a different project or task system, stop and report
-  that this skill only manages the local TaskPilot workspace.
+- Creating a TaskPilot task, feature, epic, or bug item, updating an existing item's title or
+  description, or writing a comment body: `.claude/pipelines/backlog-change.md`.
+- Read-only TaskPilot queries, and updates that touch only technical fields (status, priority,
+  timestamps, links): `.claude/skills/track-with-taskpilot/SKILL.md`.
+  Take either route only when the request explicitly references the project's own TaskPilot workspace
+  (``.taskpilot/``). If the request is about a different project or task system, stop and report that
+  these routes only manage the local TaskPilot workspace.
 - Project instruction-system creation or material change: `.claude/pipelines/instruction-change.md`.
 
 When a single request names both a task-tracking operation and a non-tracking work goal, treat
 the full request as non-trivial and route through the appropriate feature-change, test-change, or
 ui-change pipeline (whichever matches the non-tracking part), invoking ``track-with-taskpilot``
-inline through that pipeline's implementation skill.
+inline through that pipeline's implementation skill. When such a route will write an item title,
+description, or comment body, name ``Skill: ground-request - output below`` among the expected
+handoffs so the Handoff Gate covers it; routing through another pipeline is not an exemption from
+that skill's write gate.
 
 Framework stages under `.manifesto/`, including `02_review.md`, are invoked explicitly by
 the user. They are framework workflows, not project routing targets.
@@ -119,7 +143,8 @@ the user. They are framework workflows, not project routing targets.
 Use conditional rigor:
 
 - Small low-risk changes may stay on the current branch, skip task movement, skip a new
-  specification when behavior is already explicit, and validate with focused tests and checks.
+  specification when the specification-materiality scan exempts them, and validate with focused
+  tests and checks.
 - Standard or major task-backed feature work requires a fresh branch through `work-with-git` before
   implementation, unless the user explicitly overrides it or branch creation is blocked. The manager
   must state the branch source, branch name, and whether task-state hygiene is required before
@@ -181,6 +206,7 @@ Include:
 - task-state decision: required or skipped, target task item when known, sanctioned update path,
   verification evidence required, and reason;
 - product-scope delta: none, or list deltas and required user decisions;
+- specification-materiality decision: required or exempt, and the clause that settled it;
 - selected pipeline or immediate capability;
 - ordered handoffs and exact expected artifact labels;
 - validation and independent-review requirements;

@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-111
+title: Show linked item status before its title in Linked To
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-29T13:21:22Z'
+updated_at: '2026-07-29T13:21:22Z'
+description: In the 'Linked To' section, render each linked item's status ahead of its title so the reader can see state without opening the link. Use the same status indicator treatment already used elsewhere in the WebUI for consistency. Cover the case where a linked item is missing or unreadable.

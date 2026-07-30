@@ -26,7 +26,8 @@ responsive behavior, and visual-system changes.
 
 1. Run `work-with-git` when the conditional gates require it.
 2. Run `spec-driven-development` unless an accepted specification already covers the requested
-   behavior. Require `Skill: spec-driven-development - output below`.
+   behavior, or the manager's specification-materiality scan exempted the change. Require
+   `Skill: spec-driven-development - output below`.
 3. Run `design-ui`; create or update `designs/design.md`. Require
    `Skill: design-ui - output below`.
 4. When implementation is requested, run `test-change` for tests-first coverage. Require
@@ -52,7 +53,9 @@ maintenance and task-complete.
 
 Begin with `Pipeline: ui-change - output below` and report status, design-system path, completed
 handoffs, artifact labels, component coverage, functional E2E evidence, browser contract evidence,
-skipped implementation steps, review-loop attempt count and repeated artifact labels, blockers, and
+skipped implementation steps, the exempting clause from the manager's specification-materiality scan
+and the documented behavior checked against it whenever step 2 is skipped, review-loop attempt count
+and repeated artifact labels, blockers, and
 whether the change affected reusable local components, page-only composition, design tokens, local
 docs, or OD references. If OD was not used, state that the local WebUI component library was the
 implementation source of truth.

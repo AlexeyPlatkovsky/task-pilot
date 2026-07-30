@@ -1,6 +1,6 @@
 ---
 name: track-with-taskpilot
-description: Uses TaskPilot as the project task tracker — queries, creates, and updates items via CLI or direct file access to keep work visible and traceable.
+description: Uses TaskPilot as the project task tracker — queries, creates, and updates items via CLI or direct file access to keep work visible and traceable; refuses to write an item whose premise ground-request could not confirm.
 user-invocable: true
 ---
 
@@ -9,16 +9,51 @@ user-invocable: true
 ## Responsibility
 
 Manage TaskPilot task items for development work during AI-assisted sessions. This skill is a
-utility — it is called inline by other skills or on demand, not gated through the manager route.
+utility — it is called inline by other skills, routed directly by the manager, or invoked on
+demand. The grounding gate below is a hard stop regardless of caller.
 
 ## Layer boundary
 
 This skill manages local TaskPilot task items only. Do not use it for:
 
 - Routing or classifying work — use `.claude/skills/manager/SKILL.md`.
+- Checking whether a request's premise holds — use `.claude/skills/ground-request/SKILL.md`.
 - Implementing production code — use `.claude/skills/implement-change/SKILL.md`.
 - Code review or design review — use `.claude/agents/code-reviewer.md` or
   `.claude/agents/design-reviewer.md`.
+
+## Grounding gate
+
+Writing an item title, description, or comment body — whether the text comes from a user request or
+from the agent's own analysis — requires a `Skill: ground-request - output below` artifact covering
+that content in the current context. This is a precondition on this skill, not an optional step, and
+it holds regardless of caller — being invoked inline by a pipeline is not an exemption. Content
+derived from an already-accepted specification is exempt, as is the `needs triage` marker below,
+which is grounded by construction.
+
+When the artifact is absent, write nothing, emit this skill's artifact with status `blocked`, and
+return control to the manager naming `.claude/pipelines/backlog-change.md`. Do not run
+`ground-request` from here: this skill refuses and returns upward; the pipeline owns the ordering.
+
+`ground-request` owns how a premise is checked and what each outcome means. Apply the outcome it
+reports per subject:
+
+| Reported outcome | Action here |
+| --- | --- |
+| `unverified` | Do not write the item; report it as refused. Write only after the user confirms or restates the request. When they confirm without new evidence, add a `needs triage` comment naming what could not be verified and the confirmation. |
+| `partially grounded` | Write the located state the artifact reports, not the state the request asserted, and report the correction. |
+| `grounded` | Write it and cite the reported evidence path. |
+| `new scope` | Write it. |
+
+Record any open questions the artifact reports under an `Open Questions` heading in the item
+description, so the request is never lost even while its gaps are unsettled.
+
+A refused item does not stop the others: write every permitted item in the request, then report the
+refused ones together. This governs item writes only and does not override the batch rule in
+`AGENTS.md` for routed task execution.
+
+Updates that touch only technical fields — status, priority, timestamps, links — assert nothing about
+repository state and need no grounding artifact.
 
 ## Context
 
@@ -33,6 +68,12 @@ Each item is a flat YAML file with fields: `schema_version`, `id`, `title`, `pri
 `created_at`, `updated_at`, and optional `description`, `parent_id`, `tags`, `created_by`.
 
 ## Interactions
+
+Pass user-derived title and description text as single-quoted shell arguments, doubling any
+embedded `'`. In YAML use single-quoted scalars (doubling embedded `'`) or a block scalar — never
+double quotes, where a lone `\` is an invalid escape and a `"` ends the scalar. After any
+direct-file write, re-read the file and confirm it parses and that `created_at` and `updated_at`
+are canonical ISO.
 
 ### Query tasks via CLI
 
@@ -50,8 +91,8 @@ taskpilot item list --type task
 taskpilot item show TP-3
 
 # JSON output (for programmatic use)
-taskpilot item list --json
-taskpilot item show TP-3 --json
+taskpilot --json item list
+taskpilot --json item show TP-3
 ```
 
 ### Create a new task
@@ -75,6 +116,18 @@ taskpilot item update TP-3 --status in_progress --priority high
 
 Only passed fields are changed. The `updated_at` timestamp is refreshed automatically.
 
+### Comment on a task
+
+```sh
+taskpilot item comment TP-3 \
+  "needs triage: no match for --ask-for-approval in src/; user confirmed without new evidence" \
+  --author claude
+```
+
+Both `item_id` and the comment body are required; `--author` defaults to the local user. Returns
+the new comment filename. This is the sanctioned path for the `needs triage` marker the grounding
+gate requires on a confirmed-without-evidence write; `ground-request` owns what the body must name.
+
 ### Read tasks via direct file access
 
 When `taskpilot` is not on PATH, returns exit code 127/not-found, or raw YAML is needed,
@@ -89,21 +142,44 @@ When the CLI is unavailable and you need to write, create or update a YAML file 
 following the schema at `.taskpilot/items/<existing-id>.yaml`:
 
 ```sh
-# Write a new item file
+# Write a new item file. Keep the delimiter quoted so nothing in the body expands, then substitute
+# the timestamp afterwards. Writing "$(date ...)" inside the body would be stored literally and
+# fail canonical ISO validation.
 cat > .taskpilot/items/<NEW_ID>.yaml << 'EOF'
 schema_version: 1
 id: <NEW_ID>
-title: "Item title"
+title: 'Item title'
 priority: normal
 type: task
 status: backlog
-created_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-updated_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-EOF
+created_at: '__NOW__'
+updated_at: '__NOW__'
+description: |
+  Free text. Multi-line is safe here because the delimiter is quoted.
 
-# Update an existing item's status (in-place sed)
-sed -i '' 's/^status: .*/status: done/' .taskpilot/items/TP-3.yaml
+  Open Questions
+  - recorded per gap disclosure when the request leaves material gaps
+EOF
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+sed -i '' "s/__NOW__/$NOW/g" .taskpilot/items/<NEW_ID>.yaml
+
+# Update an existing item's status. The CLI refreshes updated_at automatically; this fallback
+# must rewrite it explicitly or the item is left with stale metadata.
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+sed -i '' -e 's/^status: .*/status: done/' \
+          -e "s/^updated_at: .*/updated_at: '$NOW'/" .taskpilot/items/TP-3.yaml
 ```
+
+The quoted delimiter is what makes this safe: title and description text taken from a user request
+may contain `$`, backticks, or `\` without being expanded or executed. Never unquote it to
+interpolate a value directly — use a placeholder and substitute afterwards, as with `__NOW__`
+above.
+
+Comments are one Markdown file per comment under `.taskpilot/comments/<ITEM_ID>/`, named
+`YYYY-MM-DDTHH-MM-SSZ.md` — the canonical ISO timestamp with colons replaced by hyphens, matching
+`iso_to_filename_stamp` in `src/taskpilot/core/timestamps.py`. The stem must equal
+`iso_to_filename_stamp(created_at)`, plus a `-N` suffix starting at `-2` on same-second collision.
+Frontmatter carries `schema_version`, `created_at`, and `created_by`, followed by the comment body.
 
 ## Error handling
 
@@ -124,14 +200,24 @@ sed -i '' 's/^status: .*/status: done/' .taskpilot/items/TP-3.yaml
 - **During validation**: verify task-item assertions in the `.taskpilot/` tree match expected
   behavior.
 - **When the manager routes work**: if the manager identifies a task-backed item, load this skill
-  to verify the item exists, read its current state, and create sub-items if needed.
+  to verify the item exists and read its current state. Creating a sub-item writes a title and
+  description, so the grounding gate applies to it exactly as it does to a user-requested item —
+  agent-authored content is ungrounded by construction.
 
 ## Output Contract
 
 The artifact begins with `Skill: track-with-taskpilot - output below` and reports:
 
+- status (`completed`, `skipped`, or `blocked`) — `blocked` when any requested write was refused,
+  `completed` when every requested write was made (including `partially grounded` corrections and
+  `new scope` items carrying open questions), `skipped` when no write was requested or needed;
 - invoked operation(s);
 - affected item ids;
+- the grounding outcome applied per requested item, and the `ground-request` artifact it came from,
+  or `not required` for a technical-field-only update;
+- corrections applied to any `partially grounded` item;
+- requested items not written, and the question returned to the user;
+- any `needs triage` comment written;
 - current item states before and after (if mutated);
 - raw YAML snapshot of relevant items (if queried);
 - blockers or errors.
@@ -139,7 +225,12 @@ The artifact begins with `Skill: track-with-taskpilot - output below` and report
 Emit the artifact when:
 - the caller explicitly includes a directive like "track-with-taskpilot artifact required";
 - the operation is part of a routed handoff from the manager or a pipeline;
-- the operation mutates item state (create, update).
+- the operation mutates item state (create, update);
+- any requested write resolves to a grounding outcome other than `grounded`, including refusals
+  that write nothing;
+- a write was requested and no `ground-request` artifact covers it — status `blocked`.
 
-Do not emit the artifact for trivial inline queries (e.g. a single `taskpilot item show` call)
-unless the caller explicitly requests it.
+Do not emit the artifact for unrouted query-only operations that write nothing (e.g. a single
+`taskpilot item show` call) unless the caller explicitly requests it. When the manager, a pipeline,
+or a calling skill names this skill's artifact as an expected handoff, always emit it — with status
+`skipped` when the operation requested no write.

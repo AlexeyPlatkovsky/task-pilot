@@ -296,34 +296,34 @@ Adds over Beta:
 Define workspace folder layout. Implement parser for item YAML files and comment Markdown files.
 Implement writer with deterministic formatting. Implement validation. Add basic tests.
 
-Serves: [F001: Task File Storage](features/F001_task-file-storage/)
+Serves: [F001: Task File Storage](features/archive/F001_task-file-storage/)
 
 ### ✅ Phase 2 — Domain/service layer
 
 Project operations, item operations, comment operations, link operations, validation rules.
 No UI yet.
 
-Serves: [F002: Domain Services](features/F002_domain-services/)
+Serves: [F002: Domain Services](features/archive/F002_domain-services/)
 
 ### ✅ Phase 3 — CLI
 
 `init`, project list, item list/show/create/update, comments, JSON output, validation
 command.
 
-Serves: [F003: CLI Interface](features/F003_cli-interface/)
+Serves: [F003: CLI Interface](features/archive/F003_cli-interface/)
 
 ### ✅ Phase 4 — Local WebUI
 
 Backend REST API, React app, project selector, Kanban board, item detail modal, read-only comments.
 
-Serves: [F004: WebUI Workspace](features/F004_webui-workspace/)
-Serves: [F005: REST API](features/F005_rest-api/)
+Serves: [F004: WebUI Workspace](features/archive/F004_webui-workspace/)
+Serves: [F005: REST API](features/archive/F005_rest-api/)
 
-### ⏳ Phase 5 — Better views
+### ✅ Phase 5 — Better views
 
 Tree view, filters, sorting, and relation display.
 
-Serves: [F006: Advanced Views](features/F006_advanced-views/)
+Serves: [F006: Advanced Views](features/archive/F006_advanced-views/)
 
 ### ⏳ Phase 6 — Git helpers
 

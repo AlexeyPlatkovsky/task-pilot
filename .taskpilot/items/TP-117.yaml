@@ -1,0 +1,20 @@
+schema_version: 1
+id: TP-117
+title: Create docs/api.md owning the CLI and REST contract
+priority: high
+type: task
+status: done
+created_at: '2026-07-30T05:39:25Z'
+updated_at: '2026-07-30T06:34:21Z'
+parent_id: TP-113
+description: 'Contract detail currently has no owning document: it is scattered across spec 0002, archived feature folders F003/F005/F010, and docs/reviews/. This is the single highest-value repair for making docs groundable, and it answers spec 0002 open question at line 700 about exact JSON response schemas. Create docs/api.md as an SDD extension doc, register it in docs/INDEX.md, and leave a summary plus link in architecture.md. It should own: 15 CLI commands with all 18 option names (undocumented today: --key, --name, --id, --project, --description, --tag, --created-by, --author; documented only in archived folders: --host, --workspace, --title, --parent); exit codes 0, 1 and 2 promoted out of archived F003/requirements.md:44; all 8 REST endpoints including GET /api/health which appears only in a review document, and the validate endpoint; the 9 request and response models in src/taskpilot/server/schemas.py, currently 0 of 9 documented; and all 18 validation finding codes, currently 2 of 18 documented.
+
+
+  Open Questions
+
+  - Should api.md cover both the CLI and REST contract, or split into separate cli.md and api.md?
+
+  - Should the finding-code list be generated from source rather than hand-maintained, given it drifted to 11 percent coverage?'
+links:
+  blocks:
+  - TP-121

@@ -8,6 +8,16 @@ strategy, implementation slices, risks, assumptions, and open questions.
 
 Specifications use one of these states: `draft`, `accepted`, or `implemented`.
 
+A state applies to the specification as a whole, not to every statement inside it. A behavioral
+statement that does not describe shipped behavior carries an inline marker — `[planned]`,
+`[not implemented]`, or `[superseded: <ref>]`. The marker vocabulary is defined under "Statement
+status markers" in [0002](0002-alpha-product-and-stack-decisions.md) and applies to every
+specification here. A marked statement is not evidence of shipped behavior.
+
+Whether a given change requires a specification is decided by the specification-materiality scan in
+`.claude/skills/manager/SKILL.md`, which is where routing gates live. It is deliberately not restated
+here: a normative gate sitting in `docs/` would be editable through documentation-only routing.
+
 ## Index
 
 | Spec | Status | Purpose |

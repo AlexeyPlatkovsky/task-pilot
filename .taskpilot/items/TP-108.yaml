@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-108
+title: Toggle to show/hide the Cancelled column, hidden by default
+priority: normal
+type: feature
+status: backlog
+created_at: '2026-07-29T13:21:03Z'
+updated_at: '2026-07-29T13:21:03Z'
+description: 'Add a user-facing toggle controlling visibility of the trailing ''Cancelled'' column on the board. Default state is off, so the column is hidden on first load. Toggle state should persist across sessions. Open questions to resolve during spec: where the toggle lives (board header vs. settings), whether persistence is per-user local state or a stored setting, and what happens to cancelled items when the column is hidden (still reachable via filter/search?).'

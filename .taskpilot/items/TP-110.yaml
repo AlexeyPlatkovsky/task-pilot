@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-110
+title: 'Auto Archive: archive done/cancelled/deleted items after inactivity window'
+priority: high
+type: epic
+status: backlog
+created_at: '2026-07-29T13:21:17Z'
+updated_at: '2026-07-29T13:21:17Z'
+description: 'New feature. Items in status done, cancelled, or deleted are automatically archived once their last-update time exceeds a configured age (default 14 days). Scope to break down during spec: (1) archive threshold stored as a project setting with a 14-day default, settable via a CLI command; (2) a periodic check running roughly every 3 hours where the runtime allows it, plus a manual/on-demand trigger for environments without a scheduler; (3) one-time migration of existing items already matching the criteria; (4) a third board, ''Archived'', surfacing archived items; (5) proposal to relocate archived item files into a dedicated subfolder under .taskpilot/ to reduce working-set noise. NOTE - scope deltas requiring explicit approval before implementation: canonical on-disk layout change (archive subfolder), new persisted setting, new board/API surface, and background mutation of task data without user action. Unarchive path must be defined.'

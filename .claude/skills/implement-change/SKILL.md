@@ -9,7 +9,11 @@ Prerequisites: an accepted specification or explicit behavior, known success cri
 planned validation route.
 
 1. If the request is purely a task-tracking operation with no implementation scope, do not proceed
-   with this skill — redirect to `.claude/skills/track-with-taskpilot/SKILL.md` directly.
+   with this skill. Redirect a read-only query or a technical-field-only update (status, priority,
+   timestamps, links) to `.claude/skills/track-with-taskpilot/SKILL.md` directly. Return item
+   creation, or a title/description change, to the manager for
+   `.claude/pipelines/backlog-change.md`, which owns the grounding step that skill's write gate
+   requires.
 2. If the manager's output or the user's instruction identifies a TaskPilot item ID for this work
    (task-backed), load `.claude/skills/track-with-taskpilot/SKILL.md` and read the item state to
    confirm it exists, capture current status, and prepare for status transitions
@@ -52,7 +56,10 @@ planned validation route.
 12. If the work was task-backed, load `.claude/skills/track-with-taskpilot/SKILL.md` and update the
     item status (e.g. ``in_progress`` → ``done``) when implementation is complete. If the update
     fails, report the error and do not claim completion. Do not modify
-    ``.taskpilot/items/*.yaml`` files directly — always use the track-with-taskpilot skill.
+    ``.taskpilot/items/*.yaml`` files directly — always use the track-with-taskpilot skill. A status
+    transition needs no grounding artifact. Writing or rewriting a title, description, or comment body
+    is out of scope for this skill: stop, report it, and return control to the manager for
+    `.claude/pipelines/backlog-change.md`. Do not run `ground-request` from here.
 
 Stop for an unapproved breaking contract, canonical migration, production dependency, destructive
 operation, security model, or architecture choice.

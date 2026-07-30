@@ -88,7 +88,7 @@ subfolder `docs/<domain>/` with its own mini-index, and link to that index from
 Each active feature is a folder `docs/features/F<NNN>_<short-name>/` containing exactly:
 
 When all tasks for a feature are fully implemented and validated, the feature folder is moved
-from `docs/features/` to `docs/archive/` under the same folder name. Archived features remain in
+from `docs/features/` to `docs/features/archive/` under the same folder name. Archived features remain in
 the INDEX.md feature registry with their completed status. New features are always created under
 `docs/features/`. Archived features can be moved back to `docs/features/` if new tasks are
 required; update INDEX.md status accordingly after the move.

@@ -5,6 +5,7 @@
 | `.claude/docs/project_specification.md` | User role, duties, product profile, vocabulary, assumptions, quality expectations | Starting non-trivial work or resolving project context |
 | `.claude/conventions/ui-component-library.md` | Local WebUI component-library source of truth, reuse rules, token usage, previews, and testing expectations | Designing, implementing, or reviewing WebUI pages or reusable components |
 | `designs/design.md` | Design system: tokens, principles, patterns, required states, accessibility, icons, MCP tool constraints | Designing, implementing, or reviewing TaskPilot UI |
+| `docs/INDEX.md` | Which product document owns which concern, plus the feature registry and decision log | Locating the smallest document that answers a question about the product |
 | `docs/taskpilot_concept.md` | Product goals, non-goals, architecture direction, and phased scope | Designing product behavior or a specification |
 | `docs/specs/README.md` and sibling specs | Accepted behavior, contracts, acceptance criteria, and test strategy | Implementing or reviewing a specified change |
 | `docs/decisions/README.md` and sibling ADRs | Durable architecture decisions and consequences | A change touches an established architecture choice |

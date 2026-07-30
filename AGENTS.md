@@ -10,9 +10,13 @@ Authority order:
 1. User instructions in the active conversation.
 2. This file.
 3. Accepted specifications under `docs/specs/`.
-4. `docs/taskpilot_concept.md`.
-5. Architecture decisions under `docs/decisions/`.
+4. Architecture decisions under `docs/decisions/`.
+5. `docs/taskpilot_concept.md`.
 6. Existing code, tests, and project conventions.
+
+An ADR outranks `docs/taskpilot_concept.md`. The concept document is a high-level summary of
+decisions recorded elsewhere, so where the two disagree the concept document is the defect: report
+it rather than following it.
 
 Do not silently resolve conflicts that change product behavior, public contracts, persistence, or
 architecture. Report the conflict and obtain a decision.
@@ -86,7 +90,9 @@ Use conditional rigor for non-trivial product work. The route must scale with ri
   paths, separate browser contract evidence for style/token/browser behavior when required, and
   independent design review.
 
-Small local fixes may skip a new specification only when expected behavior is already explicit.
+Small local fixes may skip a new specification only when an accepted specification already covers the
+expected behavior, or when the manager's specification-materiality scan exempts the change. That scan
+is the single owner of the materiality question; no other artifact defines its own spec-skip test.
 
 Ask before breaking APIs, changing canonical formats or source-of-truth rules, adding production
 dependencies, destructive data operations, or unapproved architecture changes.
@@ -120,6 +126,7 @@ Routing:
 
 - Manager: `.claude/skills/manager/SKILL.md`
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
+- Backlog change pipeline: `.claude/pipelines/backlog-change.md`
 - Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
 - Open Design pipeline: `.claude/pipelines/od-design.md`
@@ -135,6 +142,7 @@ Routing:
 Skills:
 
 - Brainstorming: `.claude/skills/brainstorm/SKILL.md`
+- Request grounding: `.claude/skills/ground-request/SKILL.md`
 - Task tracking: `.claude/skills/track-with-taskpilot/SKILL.md`
 - Work preparation: `.claude/skills/work-with-git/SKILL.md`
 - Specification: `.claude/skills/spec-driven-development/SKILL.md`
@@ -173,6 +181,10 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 - Do not weaken assertions, delete tests, or broadly update snapshots to force a pass.
 - Run relevant formatting, types, tests, builds, CLI/API, and browser checks available in the repo.
 - Report every skipped or blocked check and residual risk.
+- Item titles, descriptions, and comment bodies under `.taskpilot/` are written only through
+  `.claude/skills/track-with-taskpilot/SKILL.md`, so its grounding gate cannot be bypassed by editing
+  a canonical item file directly. The skill's own documented CLI-fallback path counts as going
+  through it; an ad-hoc file edit does not.
 - Preserve unrelated changes and keep diffs narrow.
 - Never commit, push, rewrite history, discard changes, or run destructive commands unless the user
   explicitly requests it.

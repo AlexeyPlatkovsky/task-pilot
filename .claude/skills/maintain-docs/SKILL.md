@@ -8,7 +8,9 @@ description: Synchronizes TaskPilot specifications, decisions, guides, commands,
 Read `.claude/conventions/reference-docs.md` and
 `.claude/conventions/documentation-quality.md`.
 
-1. Inspect the actual diff and completed behavior.
+1. Inspect the actual diff and completed behavior. When invoked with no diff to repair a
+   documentation gap or defect reported by another capability, that report plus its cited source
+   evidence is the input instead of a diff, and the source evidence is the fact to document.
 2. Find authoritative documentation roots through `.claude/docs/README.md`.
 3. Determine whether behavior, workflows, commands, setup, architecture, contracts, vocabulary, or
    known failure modes changed.
@@ -38,7 +40,8 @@ Read `.claude/conventions/reference-docs.md` and
 Do not modify production code or tests. Report rather than guess when documentation should change
 but the correct contract is unclear or outside scope.
 If the diff, authoritative source, or implemented behavior cannot be inspected, stop and report the
-missing context as blocked.
+missing context as blocked. A run invoked without a diff under step 1's reported-gap input mode is
+not missing context; it is blocked only when that report cites no source evidence.
 
 The artifact begins with `Skill: maintain-docs - output below` and reports status as documentation
 updated, checked/no update needed, or blocked, plus scope-delta result, sources, files, conflicts,

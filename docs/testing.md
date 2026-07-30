@@ -79,7 +79,10 @@ dedicated coverage above 80% before Beta.
 
 - **Local**: primary test environment. All tests must pass on a developer's machine without
   network access.
-- **CI**: future. Runs the same suite on push. Not required for Alpha.
+- **CI**: `.github/workflows/ci.yml`, triggered on pull requests. Installs dependencies with `uv`,
+  runs `pytest`, runs `ruff` lint and format checks, then installs the WebUI dependencies and the
+  Chromium Playwright browser and runs `npm run test:e2e:functional`. Component and browser-contract
+  suites are run locally and are not part of the CI job.
 
 ## Quality Gates
 

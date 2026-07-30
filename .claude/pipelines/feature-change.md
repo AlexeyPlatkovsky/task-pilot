@@ -38,7 +38,8 @@ Use for a feature or non-trivial bug fix that changes TaskPilot production behav
 
 1. Run `work-with-git` when the conditional gates require it.
 2. Run `spec-driven-development` unless an accepted specification already covers the requested
-   behavior. Require `Skill: spec-driven-development - output below`.
+   behavior, or the manager's specification-materiality scan exempted the change. Require
+   `Skill: spec-driven-development - output below`.
 3. Run `test-change` for tests-first coverage. Require `Skill: test-change - output below`.
 4. Run `code-reviewer` on the test scope when the conditional gates require it. Require
    `Agent: code-reviewer - output below`.
@@ -55,5 +56,7 @@ maintenance and task-complete after this pipeline.
 ## Output Contract
 
 Begin with `Pipeline: feature-change - output below` and report status, completed handoffs,
-artifact labels, skipped steps with reasons, review-loop attempt count and repeated artifact
+artifact labels, skipped steps with reasons — naming, when step 2 is skipped, the exempting clause
+from the manager's specification-materiality scan and the documented behavior checked against it —
+review-loop attempt count and repeated artifact
 labels, deviations, and blockers.

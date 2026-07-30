@@ -1,0 +1,18 @@
+schema_version: 1
+id: TP-115
+title: Mark statement-level status in spec 0002 and remove phantom behaviors
+priority: high
+type: task
+status: done
+created_at: '2026-07-30T05:39:06Z'
+updated_at: '2026-07-30T06:18:52Z'
+parent_id: TP-113
+description: 'docs/specs/0002-alpha-product-and-stack-decisions.md carries status accepted and mixes shipped behavior with unshipped intent in identical prose, with no marker distinguishing them. A grounding agent reading it returns confident false positives with line citations. Verified phantoms: line 475 and 534 document taskpilot item delete <item-id> which has no CLI surface (service method exists, command does not); line 652 documents serve --open which is absent, serve.py exposes only --host, --port, --workspace; line 523 lists a Valid marker default column while item.py renders ID, TYPE, STATUS, PRIORITY, TITLE; line 526 claims item list supports a --priority filter while the real flags are --status, --type, --project, --include-deleted; line 426 claims item list includes invalid item files with a marker, but the CLI calls list_items which silently skips unparseable files and only the REST route surfaces invalid stubs; line 430 claims item show works for invalid items while item_show raises ValidationFailed and only the REST route has the fallback; line 653 claims serve fails at startup when WebUI assets are missing, but server/app.py serves a 503 packaging-error page and keeps the API running since F009; line 498 states Alpha does not include doctor while taskpilot doctor --rebuild-runtime exists in bin/taskpilot. Annotate every behavioral statement as implemented, planned, or superseded.
+
+
+  Open Questions
+
+  - What marker convention should be used per statement, and should it be mechanically checkable?'
+links:
+  blocks:
+  - TP-119

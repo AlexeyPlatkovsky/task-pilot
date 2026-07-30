@@ -8,6 +8,19 @@ This specification is production-ready as the accepted Alpha product and stack c
 requirements, ADRs, and implementation work must align with it unless a newer accepted
 specification explicitly revises a decision.
 
+### Statement status markers
+
+`accepted` applies to this contract as a whole, not to every statement inside it. A behavioral
+statement that does not describe shipped behavior carries an inline marker:
+
+- `[planned]` — accepted and still intended, not yet implemented;
+- `[not implemented]` — accepted at the time, since dropped, no longer intended;
+- `[superseded: <ref>]` — replaced by a later accepted decision or delivered feature.
+
+An unmarked behavioral statement asserts behavior that exists today. These markers are what make
+this document safe to rely on: adding an unmarked statement without verifying it against the
+implementation reintroduces the defect they exist to prevent.
+
 ## Outcome
 
 This specification captures the current working decisions for TaskPilot Alpha and the planned
@@ -423,12 +436,18 @@ Invalid item handling:
 - invalid item cards are not draggable;
 - clicking an invalid item card opens read-only validation details in Alpha.
 
-`taskpilot item list` includes invalid item files with an invalid marker where possible. Deleted
-items, including invalid items with recoverable `status: deleted`, are excluded by default unless
-`--include-deleted` is used.
+Invalid-file surfacing differs by adapter, and the difference is deliberate rather than a defect:
 
-`taskpilot item show <item-id>` works for invalid items when the item ID is recoverable and shows
-read-only validation details.
+- the REST API and WebUI surface invalid items with findings, via `list_invalid_item_stubs`;
+- `taskpilot item list` silently skips files it cannot parse and does not show an invalid marker
+  `[not implemented]`;
+- `taskpilot item show <item-id>` fails with a validation error on an invalid file rather than
+  showing read-only validation details `[not implemented]`.
+
+Use `taskpilot validate` for invalid-file diagnosis on the CLI.
+
+Deleted items, including invalid items with recoverable `status: deleted`, are excluded from
+`item list` by default unless `--include-deleted` is used.
 
 `taskpilot item update <item-id>` can update invalid item files only when YAML parses as a mapping
 and `id` is recoverable. Completely unparseable YAML cannot be updated by Alpha item commands.
@@ -472,7 +491,7 @@ taskpilot item show <item-id>
 taskpilot item create
 taskpilot item update <item-id>
 taskpilot item comment <item-id>
-taskpilot item delete <item-id>
+taskpilot item delete <item-id>            # [not implemented]
 
 taskpilot item parent <item-id> <parent-id>
 taskpilot item unparent <item-id>
@@ -491,11 +510,13 @@ Beta adds:
 
 ```bash
 taskpilot project enable <project-id>
-taskpilot project disable <project-id>
-taskpilot repair
+taskpilot project disable <project-id>     # [not implemented]
+taskpilot repair                           # [not implemented]
 ```
 
-Alpha does not include `doctor`; `validate` is the single diagnosis/validation command.
+`validate` is the canonical diagnosis/validation command. The npm wrapper also provides
+`taskpilot doctor --rebuild-runtime` for repairing the managed Python runtime; it diagnoses the
+installation rather than the workspace `[superseded: F009 release automation]`.
 
 Read/list commands support `--json`:
 
@@ -520,10 +541,11 @@ Default human output:
 - Status;
 - Priority;
 - Title;
-- Valid marker.
+- Valid marker `[not implemented]`.
 
 `taskpilot item list` sorts by numeric item ID in Alpha and excludes deleted items by default.
-It supports basic filters: `--status`, `--type`, and `--priority`.
+It supports basic filters: `--status`, `--type`, and `--project`, plus `--include-deleted`. A
+`--priority` filter is `[not implemented]`.
 
 `taskpilot item list --json` returns item summaries only, including invalid summaries with
 findings. It does not include comments.
@@ -531,8 +553,9 @@ findings. It does not include comments.
 `taskpilot item show <item-id>` and `taskpilot item show <item-id> --json` include comments by
 default.
 
-`taskpilot item delete <item-id>` is immediate, uses the same core update path as setting
-`status: deleted`, and does not prompt. Deleted items can be shown or updated by direct ID.
+`taskpilot item delete <item-id>` is `[not implemented]`. The soft-delete path exists in the domain
+service and is reachable by setting `status: deleted` through `item update` or the REST API;
+no `delete` command is exposed on the CLI. Deleted items can be shown or updated by direct ID.
 
 `taskpilot project list` shows all registry entries, including disabled entries if they exist, and
 sorts by project name. It does not check filesystem health in Alpha.
@@ -601,45 +624,16 @@ Recommended frontend libraries:
 
 ## Technology Stack
 
-TaskPilot uses Python for the core, CLI, and API server.
+TaskPilot uses Python for the core, CLI, and API server, and TypeScript for the WebUI. See ADR-002
+for the decision and its alternatives.
 
-Python stack:
+This specification accepts that split as a contract but does not enumerate it: the current stack and
+the repository structure are owned by [architecture.md](../architecture.md) Tech Stack. Duplicating
+the list here caused it to drift out of step once already.
 
-- Python project managed with `uv`;
-- Pydantic for models and validation;
-- PyYAML for YAML read/write;
-- Typer for CLI;
-- FastAPI for REST API;
-- pytest for tests.
-
-WebUI stack:
-
-- React;
-- Vite;
-- TypeScript;
-- npm;
-- CSS Modules.
-
-The intended repository structure is:
-
-```text
-task-pilot/
-  pyproject.toml
-  uv.lock
-  src/taskpilot/
-    core/
-    cli/
-    server/
-  tests/
-  web/
-    package.json
-    package-lock.json
-    vite.config.ts
-    src/
-```
-
-Business rules live in the Python core. The CLI calls the core directly. FastAPI calls the core
-directly. The WebUI calls FastAPI and must not reimplement canonical validation or write rules.
+The accepted boundary is that business rules live in the Python core, both adapters call it
+directly, and the WebUI must not reimplement canonical validation or write rules. The layering
+itself is described in [architecture.md](../architecture.md) Components.
 
 ## Server and API
 
@@ -649,8 +643,11 @@ directly. The WebUI calls FastAPI and must not reimplement canonical validation 
 - uses port `7152` by default;
 - supports `--port` override;
 - does not open a browser by default;
-- supports `--open` to open the browser;
-- requires built WebUI assets and fails at startup if they are missing;
+- `--open` to open the browser is `[not implemented]`; the flags are `--host`, `--port`, and
+  `--workspace`;
+- serves a clear packaging-error page with HTTP 503 when built WebUI assets are missing, and keeps
+  the REST API available rather than failing at startup
+  `[superseded: F009 release automation]`;
 - checks WebUI assets only at startup;
 - serves FastAPI docs at `/docs`;
 - serves all active registered projects, loaded lazily.

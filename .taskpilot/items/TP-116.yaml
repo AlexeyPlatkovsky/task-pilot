@@ -1,0 +1,13 @@
+schema_version: 1
+id: TP-116
+title: 'Update architecture.md: dnd-kit, archived link, undocumented domain guards'
+priority: high
+type: task
+status: done
+created_at: '2026-07-30T05:39:19Z'
+updated_at: '2026-07-30T06:20:18Z'
+parent_id: TP-113
+description: 'docs/architecture.md data model matches src/taskpilot/core/models.py field-for-field, but three defects and a coverage hole remain. Defects: line 118 marks dnd-kit as future although it shipped (web/src/components/KanbanBoard.tsx, SortableKanbanCard.tsx); the repository-structure and stack blocks at lines 623-642 are duplicated verbatim from spec 0002 and should become links; the link to features/F005_rest-api/ is broken since the folder moved to features/archive/. Coverage hole: 14 implemented domain guards are documented nowhere. Add to the data model and cross-cutting sections: NonEmptyStr enforcement on id and title (core/models.py:56,88,89), unknown-field preservation via extra=allow (models.py:82-84), self-parent rejection (services/hierarchy.py:50-51), ancestor-cycle detection on reparent (hierarchy.py:67-81), retype guard validate_can_parent_children (hierarchy.py:84-107), self-link and dangling-link rejection on write (services/item_service.py:192-208), idempotent soft-delete preserving updated_at (item_service.py:211-221), no-op update short-circuit (item_service.py:137-140), ID allocation never reusing gaps (item_service.py:46-58), list_invalid_item_stubs (item_service.py:163-189), registry file locking via .registry.lock (services/registry.py:46), the TASKPILOT_HOME env seam, WebUI static mount and 503 packaging-error page (server/app.py:44-152), and the item-scoped-to-project 404 guard (server/routes/projects.py:48-58).'
+links:
+  blocks:
+  - TP-119

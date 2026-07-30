@@ -1,0 +1,15 @@
+schema_version: 1
+id: TP-121
+title: Add doc/source drift test for enumerable contract facts
+priority: high
+type: task
+status: done
+created_at: '2026-07-30T06:31:08Z'
+updated_at: '2026-07-30T06:56:21Z'
+parent_id: TP-113
+description: 'Add a pytest that fails when documented enumerable facts diverge from source, so contract docs cannot rot silently. Assert that the validation finding codes listed in docs/api.md match the codes defined in src/taskpilot/core/validation.py plus the adapter-only parse_error emitted at src/taskpilot/server/routes/projects.py:295; that the CLI commands and option names listed match the Typer registrations under src/taskpilot/cli/; and that the REST endpoints listed match the route decorators under src/taskpilot/server/routes/. Docs stay hand-written and readable; the test only compares sets and reports what is missing or extra. Rationale: hand maintenance drifted finding-code coverage to 2 of 18 and left ten phantom behaviors in an accepted spec undetected. This is test-only, no production behavior change, so no specification is required. Depends on TP-117 since the doc must exist to assert against.
+
+
+  Open Questions
+
+  - Should the test also assert that no docs/specs statement lacks a status marker, or is that too brittle for prose?'

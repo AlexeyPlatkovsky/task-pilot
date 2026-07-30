@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-118
+title: Fix stale claims in design.md, roadmap.md and testing.md
+priority: normal
+type: task
+status: done
+created_at: '2026-07-30T05:39:34Z'
+updated_at: '2026-07-30T06:38:15Z'
+parent_id: TP-113
+description: 'design.md: the Screen Inventory at line 28 still lists Tree view as user-reachable, but web/src/components/ProjectWorkspace.tsx:33 renders only board and list tabs and roadmap.md section 2 says Tree is hidden; the Application Header section documents 3 of 6 header elements, omitting ViewTabs, ValidationStatus and ThemeSwitcher (web/src/App.tsx:96-119); the list filter label reads last month while the implemented label is Last 30 days (web/src/components/filters.ts:36). roadmap.md: Phase 5 is marked pending while INDEX marks F006 implemented; six links to features/F00N_* are broken since those folders moved to features/archive/; the file also holds runtime contracts it does not own (5 second polling cadence, GET and PATCH /api/ui-state) which belong in architecture.md or api.md. testing.md: line 82 states CI is future and not required for Alpha, but .github/workflows/ci.yml runs pytest on every PR.'

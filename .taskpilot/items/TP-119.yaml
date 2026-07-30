@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-119
+title: De-duplicate spec 0002 against architecture.md, roadmap.md and design.md
+priority: normal
+type: task
+status: done
+created_at: '2026-07-30T05:39:36Z'
+updated_at: '2026-07-30T06:40:16Z'
+parent_id: TP-113
+description: docs/specs/0002 structurally duplicates three owning documents, violating the do-not-duplicate-a-concern rule in the sdd-doc-set convention. The tech stack and repository structure at specs/0002:602-642 are verbatim identical to architecture.md:98-142; the Alpha/Beta/Release scope duplicates roadmap.md; the WebUI modal behavior duplicates design.md. Replace the duplicated blocks with links, and record in docs/INDEX.md that specs/ owns accepted product contracts while the main docs own current structure. Depends on TP-115 and TP-116 so the surviving text is correct before duplication is collapsed.
