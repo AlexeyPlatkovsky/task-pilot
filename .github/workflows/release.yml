@@ -264,3 +264,17 @@ jobs:
           NPM_DIST_TAG: latest
         run: npm publish --access public --tag "$NPM_DIST_TAG" --provenance
         working-directory: staging
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_VERSION: ${{ inputs.version }}
+        run: |
+          NOTES=$(awk -v ver="$TARGET_VERSION" '
+            /^## \[/ { if (found) exit; if ($0 ~ "\\[" ver "\\]") { found=1; next } }
+            found { print }
+          ' CHANGELOG.md)
+
+          gh release create "$TARGET_VERSION" \
+            --title "$TARGET_VERSION" \
+            --notes "$NOTES"
