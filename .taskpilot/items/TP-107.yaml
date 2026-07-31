@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-107
+title: Add outer padding to the board including its header
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-29T13:21:01Z'
+updated_at: '2026-07-29T13:21:01Z'
+description: The board area and its header currently sit flush against the viewport/container edges. Add consistent outer padding of roughly 8-12px around the board region, and apply it to the board header as well so header and columns share the same left/right alignment. Use the existing spacing tokens from the WebUI component library rather than hardcoded pixel values where a matching token exists.

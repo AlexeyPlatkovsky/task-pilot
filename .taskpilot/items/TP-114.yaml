@@ -1,0 +1,17 @@
+schema_version: 1
+id: TP-114
+title: Correct taskpilot_concept.md to the current implementation state
+priority: high
+type: task
+status: done
+created_at: '2026-07-30T05:39:00Z'
+updated_at: '2026-07-30T05:44:19Z'
+parent_id: TP-113
+description: 'docs/taskpilot_concept.md is ranked authority 4 in AGENTS.md, above docs/decisions/ at 5, but contradicts three accepted ADRs on core facts. Verified contradictions: sections 14 and 22 specify TypeScript/Node/Fastify/zod/Vitest while the project is Python (pyproject.toml, pydantic, typer, pytest) per ADR-002; section 6.3 specifies Markdown with YAML frontmatter and items/TP-1.md while the format is pure YAML items/TP-1.yaml per ADR-003; section 24.8 states the first useful view is list and item detail, not Kanban, while ADR-005 makes Kanban the primary workspace page. Also stale: section 3.5 and 11.4 list a next status that does not exist and omit deleted; section 6.1 specifies .taskpilot/config.yaml plus projects/<name>/items/ while reality is .taskpilot/project.yaml plus a flat items/; section 12 specifies item link and item unlink while the real verbs are parent, unparent, blocks, unblocks, relates, unrelates; sections 6.5 and 10 list tests/tested-by and duplicates link types that do not exist, only parent/child, blocks and relates_to do. Because the doc outranks the ADRs that superseded it, an agent following the authority order literally would build the wrong stack. Keep the document high level per its role; state current reality rather than history.
+
+
+  Open Questions
+
+  - Should superseded intent be deleted outright or retained in a clearly marked historical section?
+
+  - Does the authority ranking at AGENTS.md stay at 4 once the doc is corrected, or should decisions/ outrank it?'

@@ -10,9 +10,17 @@ Authority order:
 1. User instructions in the active conversation.
 2. This file.
 3. Accepted specifications under `docs/specs/`.
-4. `docs/taskpilot_concept.md`.
-5. Architecture decisions under `docs/decisions/`.
+4. Architecture decisions under `docs/decisions/`.
+5. `docs/taskpilot_concept.md`.
 6. Existing code, tests, and project conventions.
+
+An ADR outranks `docs/taskpilot_concept.md`. The concept document is a high-level summary of
+decisions recorded elsewhere, so where the two disagree the concept document is the defect: report
+it rather than following it.
+
+This ranking governs which instruction to follow, not which claim is factually true. Factual evidence
+is owned by `.claude/conventions/documentation-quality.md`, where source outranks every document: a
+document contradicted by source is defective regardless of its rank here.
 
 Do not silently resolve conflicts that change product behavior, public contracts, persistence, or
 architecture. Report the conflict and obtain a decision.
@@ -86,7 +94,9 @@ Use conditional rigor for non-trivial product work. The route must scale with ri
   paths, separate browser contract evidence for style/token/browser behavior when required, and
   independent design review.
 
-Small local fixes may skip a new specification only when expected behavior is already explicit.
+Small local fixes may skip a new specification only when an accepted specification already covers the
+expected behavior, or when the manager's specification-materiality scan exempts the change. That scan
+is the single owner of the materiality question; no other artifact defines its own spec-skip test.
 
 Ask before breaking APIs, changing canonical formats or source-of-truth rules, adding production
 dependencies, destructive data operations, or unapproved architecture changes.
@@ -108,8 +118,7 @@ canonical task files
 ## Local WebUI Component Library
 
 The canonical TaskPilot component library for production UI lives in the local WebUI
-implementation. OD artifacts are not production implementation source of truth unless the manager
-routes an explicit OD request.
+implementation.
 
 Detailed local component-library standards are in `.claude/conventions/ui-component-library.md`;
 route selection remains owned by `.claude/skills/manager/SKILL.md`.
@@ -120,10 +129,9 @@ Routing:
 
 - Manager: `.claude/skills/manager/SKILL.md`
 - Feature/change pipeline: `.claude/pipelines/feature-change.md`
+- Backlog change pipeline: `.claude/pipelines/backlog-change.md`
 - Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
-- Open Design pipeline: `.claude/pipelines/od-design.md`
-- Open Design-to-code pipeline: `.claude/pipelines/od-to-code.md`
 - Pencil design pipeline: `.claude/pipelines/pen-design.md`
 - Pencil-to-code pipeline: `.claude/pipelines/pen-to-code.md`
 - Browser verify pipeline: `.claude/pipelines/browser-verify.md`
@@ -135,14 +143,13 @@ Routing:
 Skills:
 
 - Brainstorming: `.claude/skills/brainstorm/SKILL.md`
+- Request grounding: `.claude/skills/ground-request/SKILL.md`
 - Task tracking: `.claude/skills/track-with-taskpilot/SKILL.md`
 - Work preparation: `.claude/skills/work-with-git/SKILL.md`
 - Specification: `.claude/skills/spec-driven-development/SKILL.md`
 - Implementation: `.claude/skills/implement-change/SKILL.md`
 - Testing: `.claude/skills/test-change/SKILL.md`
 - UI design: `.claude/skills/design-ui/SKILL.md`
-- Open Design execution: `.claude/skills/open-design/SKILL.md`
-- Open Design-to-code translation: `.claude/skills/od-to-code/SKILL.md`
 - Pencil design execution: `.claude/skills/pencil-design/SKILL.md`
 - Browser UI investigation: `.claude/skills/playwright-cli/SKILL.md`
 - E2E test writing: `.claude/skills/write-e2e-tests/SKILL.md`
@@ -173,6 +180,12 @@ reusable project facts are indexed by `.claude/docs/README.md`.
 - Do not weaken assertions, delete tests, or broadly update snapshots to force a pass.
 - Run relevant formatting, types, tests, builds, CLI/API, and browser checks available in the repo.
 - Report every skipped or blocked check and residual risk.
+- Item titles, descriptions, and comment bodies under `.taskpilot/` are written only through
+  `.claude/skills/track-with-taskpilot/SKILL.md`, so its grounding gate cannot be bypassed by editing
+  a canonical item file directly. The skill's own documented CLI-fallback path counts as going
+  through it; an ad-hoc file edit does not. The user may waive this only via an explicit override that
+  names the gate (e.g. "override the grounding gate"); a general "just edit the file" does not waive
+  it.
 - Preserve unrelated changes and keep diffs narrow.
 - Never commit, push, rewrite history, discard changes, or run destructive commands unless the user
   explicitly requests it.

@@ -7,38 +7,51 @@
 
 | Document | Owns | Read when |
 | --- | --- | --- |
+| `taskpilot_concept.md` | High-level product intent, principles, and non-goals, kept in sync with the implemented product | You need product intent rather than contract detail |
 | `idea.md` | Problem, users, scope, principles | You need project intent or scope boundaries |
 | `architecture.md` | Technical structure, components, data model, tech stack, constraints | You need system design or stack details |
+| `api.md` | CLI commands and options, exit codes, REST endpoints, request/response models, validation finding codes | You need the exact contract surface |
 | `design.md` | Product/UX design: user flows, screens, states, UX principles, accessibility | You need UI design or interaction patterns |
 | `testing.md` | Test strategy, levels, tooling, environments, quality gates | You need how quality is verified |
 | `roadmap.md` | Phases, milestones, release levels, sequencing, implementation phases | You need release plan or priorities |
 | `specs/` | Accepted product contracts, behavior, public interfaces, persistence decisions | You need governing product requirements |
 | `decisions/` | Architectural decision records | You need the rationale behind a choice |
-| `reviews/` | Implementation review & test reports | You need a point-in-time assessment of what was verified |
+| `features/` | Per-feature requirements, task breakdown, and verification scenarios (`archive/` holds delivered features) | You need the requirement, task, or scenario detail behind a delivered or planned feature |
 
-### Legacy Documents
+Where a document and an accepted specification under `docs/specs/` conflict, the specification
+governs. Where a document and an ADR under `docs/decisions/` conflict, that is a defect in the
+document — report it rather than following it.
 
-These documents predate the SDD structure and are retained for reference. Accepted specifications
-under `docs/specs/` supersede them where they conflict.
+### Out-of-root Sources
 
-| Document | Owns | Read when |
+| Source | Owns | Read when |
 | --- | --- | --- |
-| `taskpilot_concept.md` | Original product concept (superseded by accepted specs where they differ) | Historical reference only |
+| `designs/design.md` | Design-system detail delegated by `design.md`: tokens, icon library, accessibility rules, MCP constraints | You need token or component-level design rules |
 
 ## Feature Registry
 
 | ID | Feature | Status | Requirements | Tasks | Scenarios | Serves |
 | --- | --- | --- | --- | --- | --- | --- |
-| F001 | task-file-storage | ✅ implemented | 7 | 8 | 7 | Phase 1 — File model and parser |
+| F001 | task-file-storage | ✅ implemented | 7 | 9 | 7 | Phase 1 — File model and parser |
 | F002 | domain-services | ✅ implemented | 8 | 8 | 8 | Phase 2 — Domain/service layer |
 | F003 | cli-interface | ✅ implemented | 8 | 8 | 9 | Phase 3 — CLI |
 | F004 | webui-workspace | ✅ implemented | 9 | 9 | 9 | Phase 4 — Local WebUI |
 | F005 | rest-api | ✅ implemented | 9 | 8 | 10 | Phase 4 — Local WebUI (Backend REST API) |
-| F006 | advanced-views | ✅ implemented | 5 | 6 | 6 | Phase 5 — Better views |
+| F006 | advanced-views | ✅ implemented | 5 | 6 | 5 | Phase 5 — Better views |
 | F007 | git-helpers | ⏳ planned | 5 | 5 | 5 | Phase 6 — Git helpers |
 | F008 | mcp-adapter | ⏳ planned | 6 | 7 | 5 | Phase 7 — MCP adapter |
-| F009 | release-automation | ⏳ planned | 12 | 13 | 12 | Next Release Roadmap — Release Automation |
-| F010 | release-ui-readiness | ⏳ planned | 12 | 13 | 14 | Next Release Roadmap — Release UI Readiness |
+| F009 | release-automation | ✅ implemented | 12 | 13 | 12 | Next Release Roadmap — Release Automation |
+| F010 | release-ui-readiness | ✅ implemented | 12 | 13 | 14 | Next Release Roadmap — Release UI Readiness |
+
+Features F001–F006, F009, and F010 are archived under `docs/features/archive/`; F007 and F008
+remain active under `docs/features/`.
+
+Two implemented features have no feature folder and therefore no requirements/tasks/scenarios
+spine: the design-token system (recorded by `specs/0003-design-token-system.md`, shipped as
+`web/src/tokens.css`, `ThemeSwitcher.tsx`, `ui/Icon.tsx`, `test/tokens.test.ts`) and the item detail
+redesign (recorded by `specs/0004-beta-item-detail-redesign.md`, shipped as
+`web/src/components/ItemModal.tsx`). Their accepted specifications are the record; the spine was
+deliberately not backfilled. Treat the specs as authoritative for those two areas.
 
 ## Decision Log
 

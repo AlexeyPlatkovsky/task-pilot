@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-113
+title: 'Documentation repair: align docs with shipped behavior'
+priority: high
+type: epic
+status: done
+created_at: '2026-07-30T05:38:42Z'
+updated_at: '2026-07-30T06:56:21Z'
+description: 'Umbrella for correcting documentation that contradicts the implemented product. Established by an sdd-gap-analyzer pass on 2026-07-29: docs are not currently trustworthy as a grounding source for task intake. Quantified coverage holes: validation finding codes 2 of 18 documented, REST endpoints 4 of 8 in the accepted API spec, CLI option names 10 of 18, API JSON schemas 0 of 9. Three implemented features (F006, F009, F010) have no accepted spec at all, leaving archived feature folders as the only durable record. Goal: make docs safe to ground task intake on, so the planned backlog-change pipeline can rely on them. Restructuring the doc set is explicitly out of scope until this repair is complete.'

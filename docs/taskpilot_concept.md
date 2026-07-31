@@ -1,5 +1,11 @@
 # TaskPilot — Local-First Task Graph for AI Agents
 
+This document records product intent and principles at a high level, kept in sync with the
+implemented product. It does not own contract detail: `docs/architecture.md` owns current
+structure, `docs/decisions/` owns the rationale for each choice, and `docs/specs/` owns accepted
+product behavior. Where this document and an ADR appear to disagree, that is a defect in this
+document — report it rather than following it.
+
 ## 1. Product Idea
 
  A local-first task graph for AI coding agents, with a human-friendly UI and transparent file-based storage.
@@ -69,7 +75,8 @@ GitHub should be usable as a simple synchronization layer:
 
 A developer should be able to open the task files directly and understand them without TaskPilot running.
 
-The preferred storage format is Markdown with YAML frontmatter, or YAML files with Markdown bodies.
+Items are stored as pure YAML files. Comments are Markdown files with YAML frontmatter. See
+ADR-003 for why item files carry no Markdown body.
 
 ### 3.4 AI-readable
 
@@ -83,16 +90,19 @@ MCP can be added later, but it should be an adapter, not the core.
 
 TaskPilot should not start as a full enterprise issue tracker.
 
-The default workflow should be intentionally small:
+The default workflow is intentionally small:
 
 - backlog;
-- next;
 - ready;
 - in progress;
 - done;
 - cancelled.
 
-The system should support custom statuses later, but fixed statuses are enough for v0.1.
+`deleted` exists as a reserved system status for soft deletion and is not part of the user-facing
+workflow.
+
+The system may support custom statuses later, but this fixed set is enough for the current
+releases.
 
 ### 3.6 Transparent implementation
 
@@ -159,28 +169,29 @@ The main idea:
 
 The source of truth should be text files inside the repository or inside a selected workspace directory.
 
-Example structure:
+Structure:
 
 ```text
 .taskpilot/
-  config.yaml
-  projects/
-    voicepilot/
-      items/
-        TP-1.md
-        TP-2.md
-        TP-3.md
-      comments/
-        TP-1/
-          2026-06-19T18-20-00Z.md
-      attachments/
+  project.yaml
+  items/
+    TP-1.yaml
+    TP-2.yaml
+    TP-3.yaml
+  comments/
+    TP-1/
+      2026-06-19T18-20-00Z.md
 ```
+
+One workspace holds one project. Multiple projects are supported by registering several workspaces
+in a per-machine registry outside the repository, not by nesting projects inside `.taskpilot/`.
 
 Committed to Git:
 
 ```text
-.taskpilot/config.yaml
-.taskpilot/projects/**/*
+.taskpilot/project.yaml
+.taskpilot/items/**/*
+.taskpilot/comments/**/*
 ```
 
 ### 6.2 Item files
@@ -198,40 +209,37 @@ items.json
 Better approach:
 
 ```text
-items/TP-1.md
-items/TP-2.md
-items/TP-3.md
+items/TP-1.yaml
+items/TP-2.yaml
+items/TP-3.yaml
 ```
 
 One-file-per-item gives cleaner diffs and reduces merge conflicts when different agents or users work on different items.
 
-### 6.3 Preferred file format
+### 6.3 Item file format
 
-Preferred item format:
+Items are pure YAML, with the description as an ordinary field rather than a Markdown body:
 
-```markdown
----
+```yaml
+schema_version: 1
 id: TP-42
 type: feature
 title: Add OpenAI transcription benchmark
 status: in_progress
 priority: high
-created_at: 2026-06-19T18:00:00Z
-updated_at: 2026-06-19T18:30:00Z
-links:
-  parent:
-    - TP-10
-  blocks:
-    - TP-51
----
-
-# Add OpenAI transcription benchmark
-
-Description goes here.
+created_at: '2026-06-19T18:00:00Z'
+updated_at: '2026-06-19T18:30:00Z'
+parent_id: TP-10
+blocks:
+  - TP-51
+description: |
+  Description goes here.
 ```
 
-The frontmatter contains structured fields.
-The Markdown body contains longer human-readable description.
+A single format for the whole file keeps parsing and deterministic serialization simple, and avoids
+the ambiguity of a body that is sometimes structured and sometimes prose. Unknown fields are
+preserved rather than dropped, so a human or agent can add data the current schema does not know
+about. See ADR-003.
 
 ### 6.4 Comments
 
@@ -270,15 +278,15 @@ Do not manually store both directions in source files unless there is a very str
 
 This prevents duplicated data and inconsistent state.
 
-Recommended initial link types:
+Implemented link types:
 
 - parent / child;
 - blocks / blocked by;
-- tests / tested by;
-- relates to;
-- duplicates / duplicated by.
+- relates to.
 
-Internally, the system can define canonical link types and derived reverse names.
+`tests / tested by` and `duplicates / duplicated by` were considered and are not implemented.
+
+Internally, the system defines canonical link types and derived reverse names.
 
 ## 7. Direct File Reading Strategy
 
@@ -327,29 +335,22 @@ The user should never be forced into hidden sync logic.
 
 ## 9. Project Model
 
-TaskPilot should support multiple projects.
+TaskPilot supports multiple projects.
 
-One TaskPilot workspace can contain several projects.
+One TaskPilot workspace holds exactly one project, and each project lives in its own repository
+next to the code it describes. Several workspaces are registered in a per-machine registry stored
+outside any repository, so the WebUI can switch between projects without any project owning
+another.
 
-Each project has its own items, comments, and attachments.
+A project has:
 
-Example:
-
-```text
-.taskpilot/projects/
-  voicepilot/
-  playforge/
-  sidepilot/
-```
-
-A project should have:
-
+- id;
 - name;
-- key/prefix, for example `VP`, `PF`, `SP`;
-- optional description;
-- optional default statuses;
-- optional default priorities;
-- optional UI preferences.
+- key/prefix, for example `VP`, `PF`, `SP`.
+
+Per-project default statuses, default priorities, and UI preferences were considered and are not
+implemented. Per-machine WebUI state, such as the last opened project, is stored in the registry
+directory rather than in the project.
 
 Item IDs can use project prefixes:
 
@@ -368,10 +369,9 @@ The first version should support a small set of item types:
 - epic;
 - feature;
 - task;
-- bug;
-- test/check, optional later.
+- bug.
 
-Items should support graph-like links, not only strict hierarchy.
+Items support graph-like links, not only strict hierarchy.
 
 An item can have:
 
@@ -379,9 +379,7 @@ An item can have:
 - child items;
 - blockers;
 - blocked items;
-- related items;
-- tests/checks;
-- duplicated/duplicate relationship.
+- related items.
 
 A task can be a parent for another task.
 
@@ -483,24 +481,22 @@ It should allow:
 
 ### 11.4 Kanban view
 
-Kanban can be added after list/detail flow works.
+The Kanban board is the primary workspace page. See ADR-005.
 
-Columns:
+Columns match the user-facing workflow statuses:
 
 - backlog;
-- next;
 - ready;
 - in progress;
 - done;
 - cancelled.
 
-The first version can support simple drag/drop status updates.
-
-Advanced swimlanes and custom workflows should be delayed.
+Drag and drop updates item status. Advanced swimlanes and custom workflows remain out of scope.
 
 ### 11.5 Tree view
 
-Tree view should show expandable hierarchy.
+Tree view shows expandable hierarchy. It is implemented but hidden from navigation in the current
+release.
 
 Example:
 
@@ -530,16 +526,19 @@ All read commands should support JSON output.
 Example commands:
 
 ```bash
-taskpilot project list --json
-taskpilot project create "VoicePilot" --key VP
+taskpilot --json project list
 
-taskpilot item list --project VP --status ready --json
-taskpilot item show VP-42 --json
-taskpilot item create --project VP --type feature --title "OpenAI transcription benchmark"
+taskpilot --json item list --status ready
+taskpilot --json item show VP-42
+taskpilot item create --type feature --title "OpenAI transcription benchmark"
 taskpilot item update VP-42 --status in_progress
-taskpilot item link VP-42 blocks VP-51
+taskpilot item blocks VP-42 VP-51
 taskpilot item comment VP-42 "Investigated current implementation"
 ```
+
+`--json` is a global option and must precede the subcommand. Link operations use explicit verb
+pairs — `parent`/`unparent`, `blocks`/`unblocks`, `relates`/`unrelates` — rather than a generic
+`link`/`unlink`.
 
 Recommended CLI principles:
 
@@ -552,22 +551,10 @@ Recommended CLI principles:
 - validation before writes;
 - safe errors with actionable messages.
 
-Possible early commands:
-
-```bash
-taskpilot init
-taskpilot serve
-taskpilot project list
-taskpilot project create
-taskpilot item list
-taskpilot item show
-taskpilot item create
-taskpilot item update
-taskpilot item link
-taskpilot item unlink
-taskpilot item comment
-taskpilot validate
-```
+At a high level the command surface covers workspace setup (`init`), the local server (`serve`),
+project inspection, item read and write, hierarchy and link verbs, comments, and `validate`. The
+authoritative command list is `taskpilot --help`; no document currently owns the full contract
+(tracked as TP-117).
 
 ## 13. MCP Position
 
@@ -603,17 +590,14 @@ MCP should call the same core operations as CLI and WebUI.
 
 ## 14. Backend / API Layer
 
-The backend should be lightweight.
+The backend is lightweight:
 
-Recommended stack for fast MVP:
-
-- Node.js;
-- Fastify or Hono;
-- TypeScript;
+- Python;
+- FastAPI;
 - local filesystem access;
-- REST API for WebUI.
+- REST API for the WebUI.
 
-The backend should not own business rules alone.
+The backend does not own business rules alone.
 
 Business rules should live in a domain/service layer used by:
 
@@ -634,31 +618,27 @@ No API contract needs to be finalized now, but the boundaries should remain clea
 
 ## 15. Frontend / WebUI Layer
 
-Recommended frontend stack:
+Frontend stack:
 
 - React;
 - Vite;
 - TypeScript;
-- TanStack Table for list view;
-- dnd-kit for Kanban later;
-- shadcn/ui or another lightweight component system.
+- CSS Modules with a semantic design-token layer;
+- Radix UI primitives and lucide-react icons;
+- TanStack Query for data fetching, TanStack Table for the list view;
+- dnd-kit for Kanban drag and drop.
 
-The UI should focus on usability, not enterprise complexity.
+The UI focuses on usability, not enterprise complexity.
 
-Initial screens:
+Implemented screens:
 
 - project selector;
+- Kanban board (primary);
 - list view;
-- item detail drawer/page;
-- comments;
-- basic create/edit forms.
+- item detail modal with comments;
+- validation status.
 
-Later screens:
-
-- Kanban board;
-- tree view;
-- validation/errors view;
-- sync status view.
+Tree view is implemented but hidden from navigation. A sync status view remains out of scope.
 
 ## 16. Validation Rules
 
@@ -746,16 +726,11 @@ But the first version only needs validation.
 
 ## 19. Packaging and Running
 
-MVP can run as a normal Node.js app.
+TaskPilot is distributed as an npm package whose wrapper provisions and caches a managed Python
+runtime on first run, so users install it with a single familiar command without needing a Python
+toolchain of their own.
 
-Development commands:
-
-```bash
-npm install
-npm run dev
-```
-
-User-facing commands later:
+User-facing commands:
 
 ```bash
 taskpilot init
@@ -763,15 +738,8 @@ taskpilot serve
 taskpilot validate
 ```
 
-Possible packaging options later:
-
-- npm package with CLI;
-- standalone binaries via pkg/nexe/bun compile, if suitable;
-- Tauri desktop app later, if local desktop UX becomes important.
-
-Do not start with desktop packaging.
-
-A local WebUI is enough for MVP.
+A desktop packaging path (standalone binaries, Tauri) remains out of scope. A local WebUI is
+enough.
 
 ## 20. MVP Scope
 
@@ -868,24 +836,27 @@ Kanban + tree view + Git sync helpers
 
 ## 22. Recommended Tech Stack
 
-Fast MVP stack:
+Current stack:
 
 ```text
-Language: TypeScript
-Runtime: Node.js
-Backend: Fastify or Hono
-Frontend: React + Vite
-UI: shadcn/ui or simple custom components
+Core language: Python, managed with uv
+Models and validation: Pydantic
+YAML read/write: PyYAML
+CLI: Typer
+Backend: FastAPI, served by uvicorn
+Core tests: pytest
+Frontend: React + Vite + TypeScript, npm
+UI: CSS Modules + design tokens, Radix UI primitives, lucide-react icons
 Tables: TanStack Table
-Kanban later: dnd-kit
-Storage source of truth: Markdown + YAML frontmatter
-CLI: commander, yargs, or cac
-Validation: zod
-Markdown/frontmatter: gray-matter or equivalent
-Testing: Vitest
+Data fetching: TanStack Query
+Kanban: dnd-kit
+Frontend tests: Vitest + Testing Library, Playwright for E2E and browser contract
+Storage source of truth: YAML item files, Markdown comment files
+Distribution: npm wrapper around a managed Python runtime
 ```
 
-The exact choices can change, but TypeScript across CLI, backend, and frontend keeps the implementation simple.
+Python owns the core, CLI, and API so business rules live in one place; the WebUI is TypeScript and
+calls the REST API without reimplementing canonical validation or write rules. See ADR-002.
 
 ## 23. Naming and Positioning
 
@@ -910,15 +881,16 @@ Longer positioning:
 
 ## 24. Key Architectural Decisions
 
-1. Markdown/YAML files are the canonical source of truth.
+1. YAML item files are the canonical source of truth (ADR-001).
 2. One file per item to reduce Git merge conflicts.
-3. Comments are separate append-style Markdown files.
+3. Comments are separate append-style Markdown files (ADR-004).
 4. Reverse links are derived, not stored manually.
 5. CLI is the primary AI-facing interface.
 6. MCP is optional and should be added later as an adapter.
-7. WebUI is local-first and should start simple.
-8. The first useful view is list + item detail, not Kanban.
-9. GitHub synchronization should happen through normal Git over text files, not binary task data.
+7. WebUI is local-first and starts simple.
+8. The Kanban board is the primary workspace page (ADR-005).
+9. GitHub synchronization happens through normal Git over text files, not binary task data.
+10. Python owns the core, CLI, and API; the WebUI is TypeScript over the REST API (ADR-002).
 
 ## 25. Final Summary
 

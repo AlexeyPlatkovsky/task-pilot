@@ -11,9 +11,9 @@ or persistence semantics.
 - Run `work-with-git` when the manager classifies the work as standard or major task-backed
   refactor work and states that fresh branch creation or task-state hygiene is required. Require
   `Skill: work-with-git - output below`.
-- Skip `spec-driven-development` unless the refactor exposes a new architecture decision, changes
-  internal module/package structure visible to maintainers, or lacks an explicit
-  behavior-preservation boundary. A public behavior or contract change leaves this route.
+- Run `spec-driven-development` unless an accepted specification already covers the behavior, or the
+  manager's specification-materiality scan exempted the change. A public behavior or contract change
+  leaves this route.
 - Run `test-change` before implementation when existing coverage does not characterize the behavior
   being preserved, or to produce a coverage-review artifact explaining why no new characterization
   tests are needed.

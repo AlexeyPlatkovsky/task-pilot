@@ -21,24 +21,11 @@ Classify before edits:
 - Change type: feature, bug fix, refactor, UI, documentation, review, instruction, or brainstorm.
 - Task backing: a task is task-backed only if the user supplies a valid task ID or a canonical
   TaskPilot item exists for the work. All other tasks are untracked.
-- Product-scope scan: compare the request with accepted specs, roadmap, design docs, and recorded
-  open questions before finalising the route. If the request would expand or narrow release scope,
-  change an accepted editable/read-only field boundary, alter persistence or API contracts, turn an
-  open question into behavior, or interpret ambiguous polish language as product approval, stop and
-  return a scope-delta blocker instead of routing implementation. The blocker must state current
-  accepted behavior, requested or implied behavior, why it is a scope change, available options, and
-  any recommendation. Do not treat a new request as approval for the delta unless the user
-  explicitly acknowledges the scope change.
-- Architecture-boundary scan: before finalising the classification, read the diff to list every new
-  cross-layer import the change introduces and check each against AGENTS.md Architecture Boundaries
-  (lines 86-98). A "layer" here means one of the project's top-level source directories: ``core``,
-  ``services``, ``cli``, ``server``, ``web`` (the TypeScript frontend). In the AGENTS.md diagram,
-  ``core`` + ``services`` together form "parser/validator → domain model and services". The adapters
-  are ``cli``, ``server``, and future ``mcp`` — all fed by the same domain/service layer.
-  Adapter→adapter imports (``server``→``cli``, ``web``→``cli``, ``cli``→``server``, etc.) are
-  mandatory violations. Third-party library imports (fastapi, typer, etc.) are not in scope for this
-  scan. If the scan finds a violation and its severity is unclear, treat it as a blocker and return
-  it to the user for a routing decision rather than silently proceeding.
+- Run the three scans defined in `.claude/conventions/classification-scans.md` — product-scope,
+  specification-materiality, and architecture-boundary — before finalising the route. That file
+  owns each scan's procedure and is the sole owner of the specification-materiality question;
+  `docs/specs/README.md` points there rather than restating it. Record each scan's outcome (and,
+  for the specification-materiality scan, the settling clause) in this skill's output artifact.
 
 Treat the task as non-trivial when it changes behavior, contracts, persistence, architecture,
 production dependencies, or requires more than one coordinated capability.
@@ -71,16 +58,6 @@ Size definitions (choose the highest that applies):
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
 - Product UI implementation, existing-page UI changes, or local WebUI component-library work not
   explicitly handled by an MCP design route: `.claude/pipelines/ui-change.md`.
-- Design-only work in Open Design (OD) through Open Design MCP without production code change:
-  `.claude/pipelines/od-design.md`. Use this route only when the user explicitly asks for OD
-  prototype exploration, OD visual alternatives, or OD design-system synchronization. OD design work
-  is always non-trivial (UI contracts, generated artifact review required). The pipeline owns the
-  OD availability gate (including daemon startup fallback); route here without a pre-routing MCP
-  check.
-- Converting an accepted OD artifact to tested React code: `.claude/pipelines/od-to-code.md`.
-  Use this route only when the user explicitly asks to translate an OD prototype into production
-  code. Before routing here, confirm an OD project/artifact is available and an accepted spec or
-  explicit acceptance criteria is present.
 - Design-only work in Pencil (`.pen` files in `designs/`) without production code change:
   `.claude/pipelines/pen-design.md`. `.pen` file work is always non-trivial (UI contracts, design
   review required). Before routing here, confirm the Pencil MCP is available.
@@ -102,16 +79,25 @@ Size definitions (choose the highest that applies):
 - Other read-only review request: `.claude/pipelines/code-review.md`.
 - Open high-impact choice with materially different outcomes: `.claude/skills/brainstorm/SKILL.md`.
 - Documentation-only work: `.claude/skills/maintain-docs/SKILL.md`, then validation and completion.
-- Direct task tracking (list, create, update, show TaskPilot items): `.claude/skills/track-with-taskpilot/SKILL.md`.
-  Route only when the request explicitly references the project's own TaskPilot workspace
-  (``.taskpilot/``). If the request is about a different project or task system, stop and report
-  that this skill only manages the local TaskPilot workspace.
+- Creating a TaskPilot task, feature, epic, or bug item, updating an existing item's title or
+  description, or writing a comment body: `.claude/pipelines/backlog-change.md`.
+- Read-only TaskPilot queries, and updates that touch only technical fields (status, priority,
+  timestamps, links): `.claude/skills/track-with-taskpilot/SKILL.md`.
+  Take either route only when the request explicitly references the project's own TaskPilot workspace
+  (``.taskpilot/``). If the request is about a different project or task system, stop and report that
+  these routes only manage the local TaskPilot workspace.
 - Project instruction-system creation or material change: `.claude/pipelines/instruction-change.md`.
 
 When a single request names both a task-tracking operation and a non-tracking work goal, treat
 the full request as non-trivial and route through the appropriate feature-change, test-change, or
 ui-change pipeline (whichever matches the non-tracking part), invoking ``track-with-taskpilot``
-inline through that pipeline's implementation skill.
+inline through that pipeline's implementation skill for technical-field updates only.
+
+When the request also writes an item title, description, or comment body, split it: route that write
+through ``.claude/pipelines/backlog-change.md`` as a separate ordered handoff, before or after the
+code route, and name both that pipeline and ``Skill: ground-request - output below`` among the
+expected handoffs. Do not fold the write into the code route's implementation skill — that skill
+refuses it and returns control here, and the write would bypass the backlog-change validation gates.
 
 Framework stages under `.manifesto/`, including `02_review.md`, are invoked explicitly by
 the user. They are framework workflows, not project routing targets.
@@ -119,7 +105,8 @@ the user. They are framework workflows, not project routing targets.
 Use conditional rigor:
 
 - Small low-risk changes may stay on the current branch, skip task movement, skip a new
-  specification when behavior is already explicit, and validate with focused tests and checks.
+  specification when the specification-materiality scan exempts them, and validate with focused
+  tests and checks.
 - Standard or major task-backed feature work requires a fresh branch through `work-with-git` before
   implementation, unless the user explicitly overrides it or branch creation is blocked. The manager
   must state the branch source, branch name, and whether task-state hygiene is required before
@@ -136,9 +123,8 @@ Use conditional rigor:
   pattern is at least medium risk unless it is documentation-only. Do not classify those changes as
   low risk merely because the code is localized.
 - The local WebUI component library is the default implementation source for TaskPilot UI changes.
-  Open Design may be used as reference only; use it for exploration only when the user explicitly
-  asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,
-  `.pen` files, or an existing `.pen` design.
+  Pencil remains the selected MCP route when the user explicitly asks for Pencil, `.pen` files, or
+  an existing `.pen` design.
 
 For high-risk or system-level work, require independent review after validation. For medium-risk
 production work, require independent review unless the change is documentation-only. For
@@ -181,6 +167,9 @@ Include:
 - task-state decision: required or skipped, target task item when known, sanctioned update path,
   verification evidence required, and reason;
 - product-scope delta: none, or list deltas and required user decisions;
+- specification-materiality decision: required or exempt, and the clause that settled it;
+- architecture-boundary scan outcome: no violation, or each violating cross-layer import and its
+  blocker/non-blocker disposition;
 - selected pipeline or immediate capability;
 - ordered handoffs and exact expected artifact labels;
 - validation and independent-review requirements;

@@ -1,0 +1,60 @@
+name: OpenCode Review
+
+# Public repo: this workflow is restricted to the repository owner only.
+# - On PR open: runs once (no re-run on pushes/synchronize).
+# - On a PR comment containing /oc or /opencode: runs on demand.
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+# Least privilege needed to read the code and post review comments.
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    # Gate every entry point to the owner. On a public repo this stops anyone
+    # else from triggering OpenCode (and burning the API key) via a comment.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.user.login == 'AlexeyPlatkovsky'
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        github.event.comment.user.login == 'AlexeyPlatkovsky' &&
+        (contains(github.event.comment.body, '/oc') || contains(github.event.comment.body, '/opencode'))
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: OpenCode review
+        uses: sst/opencode/github@latest
+        with:
+          model: opencode-go/deepseek-v4-pro
+          # Use the built-in GITHUB_TOKEN so the OpenCode GitHub App is not required.
+          use_github_token: true
+          # Do not publish a shareable session link for this public repo.
+          share: false
+          prompt: |
+            Review only code changes under src/, web/src/, tests/.
+            Skip .claude/, .taskpilot/, .manifesto/, .github/, designs/ and root-level config files
+            (pyproject.toml, Makefile, package.json, etc.).
+            Report findings only — if no issues, a short "LGTM" is sufficient.
+          # On a pull_request event with no prompt, OpenCode defaults to reviewing the PR.
+          # On an issue_comment, the comment body after the mention is the prompt.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}

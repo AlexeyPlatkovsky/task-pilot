@@ -1,7 +1,7 @@
 """Deterministic CLI exit codes (feature F003).
 
-The CLI contract (``docs/features/F003_cli-interface/requirements.md``) fixes
-three exit codes so scripts and AI agents can branch on them reliably:
+The CLI contract (``docs/api.md``) fixes three exit codes so scripts and AI
+agents can branch on them reliably:
 
 - ``0`` success;
 - ``1`` user error (bad input, not found, conflict — the caller can fix it);

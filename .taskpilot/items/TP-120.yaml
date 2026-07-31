@@ -1,0 +1,15 @@
+schema_version: 1
+id: TP-120
+title: 'Close traceability gaps: F011/F012 retro folders, INDEX registration, stale source paths'
+priority: normal
+type: task
+status: done
+created_at: '2026-07-30T05:39:48Z'
+updated_at: '2026-07-30T06:50:37Z'
+parent_id: TP-113
+description: 'Residual traceability and consistency gaps from the sdd-gap-analyzer pass. Create retro feature folders F011 design-token-system (spec 0003, shipped as web/src/tokens.css, ThemeSwitcher.tsx, ui/Icon.tsx, test/tokens.test.ts) and F012 item-detail-redesign (spec 0004, shipped as web/src/components/ItemModal.tsx); both specs are accepted and implemented but have no feature folder, breaking the requirements-tasks-scenarios spine. Register designs/design.md in docs/INDEX.md as an out-of-root design-system source or migrate it under docs/, since docs/design.md:3 delegates tokens, icons and accessibility rules to it. Update stale doc paths in source docstrings (src/taskpilot/cli/exit_codes.py:3 and several service modules) that still point at features/F00N_* rather than features/archive/. Note the sdd-doc-set convention is internally inconsistent: line 26 shows features/archive/ which is what the repo does, while line 91 prose says docs/archive/. Finally, run sdd-index-sync once the other repairs land.
+
+
+  Open Questions
+
+  - Should reviews/ be explicitly marked as excluded from grounding lookups? A naive lookup can surface a review defect without its later resolution.'

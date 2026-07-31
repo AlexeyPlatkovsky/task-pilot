@@ -162,20 +162,17 @@ startup import. It remains a manager-equivalent routing artifact, not an executi
 
 ## Authoritative Local Sources
 
-Authority follows this order:
+| Source | Holds |
+| --- | --- |
+| `docs/specs/` | Accepted behavior, contracts, acceptance criteria |
+| `docs/decisions/` | Durable architecture decisions and their consequences |
+| `docs/taskpilot_concept.md` | Product concept, goals, boundaries, provisional direction |
+| `docs/INDEX.md` | Which document owns which concern |
 
-1. User instructions in the active conversation.
-2. `AGENTS.md` for repository-wide agent behavior and quality gates.
-3. Accepted specifications under `docs/specs/`.
-4. `docs/taskpilot_concept.md` for the product concept, goals, boundaries, and provisional direction.
-5. Architecture decisions under `docs/decisions/`.
-6. Existing code, tests, and established project conventions.
+Authority order between these sources is owned by `AGENTS.md` and is not restated here.
 
 Additional framework sources under `.manifesto/` govern construction of the AI instruction
 system, not TaskPilot product behavior.
-
-Conflicts that affect product behavior, public contracts, persistence, or architecture must be
-reported rather than silently resolved.
 
 ## Quality Expectations
 

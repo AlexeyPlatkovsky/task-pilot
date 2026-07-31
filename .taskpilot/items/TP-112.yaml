@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-112
+title: 'Tags: add API write path and WebUI editing'
+priority: normal
+type: feature
+status: backlog
+created_at: '2026-07-29T13:36:11Z'
+updated_at: '2026-07-29T13:36:11Z'
+description: 'Tags are implemented for the CLI and the read/display path but cannot be edited outside the CLI. Present: core model field (core/models.py tags), CLI ''item create --tag'' and ''item update --tag'' (item.py:125,159), API read via ItemDetail inheriting Item, and WebUI rendering in ItemModal. Missing: (1) ItemUpdateInput (server/schemas.py:89-93) has no tags field, so the PATCH endpoint cannot set or clear tags; (2) there is no WebUI affordance to add, edit, or remove tags - they are read-only in the item modal. Scope: extend the API update contract and add tag editing to the item modal. Note the API contract change requires approval before implementation.'
