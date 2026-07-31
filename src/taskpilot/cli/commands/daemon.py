@@ -15,6 +15,7 @@ from pathlib import Path
 
 import typer
 
+from taskpilot.cli import output
 from taskpilot.cli.context import get_state
 from taskpilot.cli.exit_codes import EXIT_USER_ERROR
 from taskpilot.services import daemon
@@ -83,9 +84,14 @@ def restart_command(
     command = [*_SERVER_COMMAND, "serve", "--host", host, "--port", str(port)]
     if workspace is not None:
         command.extend(["--workspace", workspace])
-    state = daemon.start_daemon(
-        registry_dir, host=host, port=port, workspace=workspace, command=command
-    )
+    try:
+        state = daemon.start_daemon(
+            registry_dir, host=host, port=port, workspace=workspace, command=command
+        )
+    except ConflictError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(EXIT_USER_ERROR)
+
     typer.echo(f"TaskPilot daemon restarted (pid {state.pid}) on http://{host}:{port}")
 
 
@@ -97,15 +103,20 @@ def status_command(ctx: typer.Context) -> None:
 
     if state is None:
         if state_obj.json:
-            typer.echo('{"running": false}')
+            output.print_json({"running": False})
         else:
             typer.echo("TaskPilot daemon is not running")
         return
 
     if state_obj.json:
-        typer.echo(
-            '{"running": true, "pid": %d, "host": "%s", "port": %d, "started_at": "%s"}'
-            % (state.pid, state.host, state.port, state.started_at)
+        output.print_json(
+            {
+                "running": True,
+                "pid": state.pid,
+                "host": state.host,
+                "port": state.port,
+                "started_at": state.started_at,
+            }
         )
     else:
         typer.echo(
