@@ -80,7 +80,6 @@ embedded `'`. In YAML use single-quoted scalars (doubling embedded `'`) or a blo
 double quotes, where a lone `\` is an invalid escape and a `"` ends the scalar. After any
 direct-file write, re-read the file and confirm it parses and that `created_at` and `updated_at`
 are canonical ISO.
-
 Command syntax, direct-file-access fallback, and comment-file naming rules are in
 [reference-cli.md](reference-cli.md): CLI query/create/update/comment commands, reading
 `.taskpilot/items/` directly, and the quoted-heredoc write procedure for when the CLI is
