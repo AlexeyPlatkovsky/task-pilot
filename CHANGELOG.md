@@ -2,6 +2,11 @@
 
 All notable changes to TaskPilot are documented in this file.
 
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- Add daemon lifecycle commands (start/stop/restart/status/logs) to run the server in the background
 
 ## [1.1.0] - 2026-07-05
 
