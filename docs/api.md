@@ -36,6 +36,11 @@ Exit codes are fixed so scripts and AI agents can branch on them reliably.
 | `taskpilot init` | — | `--id`, `--key`, `--name` |
 | `taskpilot validate` | — | — |
 | `taskpilot serve` | — | `--host`, `--port`, `--workspace` |
+| `taskpilot start` | — | `--host`, `--port`, `--workspace` |
+| `taskpilot stop` | — | — |
+| `taskpilot restart` | — | `--host`, `--port`, `--workspace` |
+| `taskpilot status` | — | — |
+| `taskpilot logs` | — | `--lines`, `--follow` |
 | `taskpilot project list` | — | — |
 | `taskpilot item list` | — | `--status`, `--type`, `--project`, `--include-deleted` |
 | `taskpilot item show` | `<item-id>` | — |
@@ -61,6 +66,14 @@ Notes:
 - There is no `item delete` command. Soft deletion is reachable by setting `--status deleted`.
 - `taskpilot doctor --rebuild-runtime` is provided by the npm wrapper, not the Python CLI; it
   repairs the managed runtime rather than the workspace.
+- `start`/`stop`/`restart`/`status`/`logs` manage the server as a background daemon (one per
+  machine), as opposed to `serve`, which runs it in the foreground. `start` re-invokes `serve` as a
+  detached child process rather than duplicating its bootstrap. The daemon's PID file
+  (`daemon.pid`) and log file (`daemon.log`) live in the same per-OS registry directory as the
+  project registry — disposable runtime state, not canonical project data (`docs/specs/0005`).
+  `start` errors (exit `1`) if a daemon is already running; `stop` errors (exit `1`) if none is
+  running; `status` always exits `0` and supports `--json`; `logs` errors (exit `1`) if the daemon
+  has never been started (no log file yet).
 
 ### Invalid-file handling differs by adapter
 
