@@ -21,45 +21,11 @@ Classify before edits:
 - Change type: feature, bug fix, refactor, UI, documentation, review, instruction, or brainstorm.
 - Task backing: a task is task-backed only if the user supplies a valid task ID or a canonical
   TaskPilot item exists for the work. All other tasks are untracked.
-- Product-scope scan: compare the request with accepted specs, roadmap, design docs, and recorded
-  open questions before finalising the route. If the request would expand or narrow release scope,
-  change an accepted editable/read-only field boundary, alter persistence or API contracts, turn an
-  open question into behavior, or interpret ambiguous polish language as product approval, stop and
-  return a scope-delta blocker instead of routing implementation. The blocker must state current
-  accepted behavior, requested or implied behavior, why it is a scope change, available options, and
-  any recommendation. Do not treat a new request as approval for the delta unless the user
-  explicitly acknowledges the scope change.
-- Specification-materiality scan: decide whether the change requires a specification before
-  implementation, and record the decision plus the clause that settled it. A specification is
-  required when the change alters product behavior visible to a user or API consumer; a public
-  contract (CLI command or flag, REST request or response shape, exit code, JSON envelope);
-  persistence, canonical file format, or on-disk layout; an accepted editable/read-only field
-  boundary; architecture or a cross-layer boundary; or the default behavior or default value of an
-  already-accepted feature; a refactor that exposes a new architecture decision, changes an import
-  path, package name, or module location that code outside the refactored package depends on, or has
-  no explicit behavior-preservation boundary. A specification is not required for a visual or cosmetic
-  change that alters no value, rule, or state stated normatively in `docs/` or `designs/design.md` —
-  applying an existing documented token for the purpose that document assigns it, at its documented
-  value, is not such an alteration; an internal refactor that preserves every contract and matches none
-  of the refactor triggers above; a test-only or documentation-only change; or a bug fix that restores
-  behavior an accepted specification already defines. Substituting a different token for a purpose the
-  document assigns to another token is such an alteration and requires a specification. The required
-  list wins on any overlap.
-  Changing a default is a behavior change even when the code is one line, and a visually cosmetic
-  change can still alter documented behavior — decide by what the change does, not by its diff size.
-  When neither list clearly applies, or both appear to, treat the change as requiring a specification.
-  This scan is the sole owner of the question; `docs/specs/README.md` points here rather than
-  restating it.
-- Architecture-boundary scan: before finalising the classification, read the diff to list every new
-  cross-layer import the change introduces and check each against AGENTS.md Architecture Boundaries
-  (lines 86-98). A "layer" here means one of the project's top-level source directories: ``core``,
-  ``services``, ``cli``, ``server``, ``web`` (the TypeScript frontend). In the AGENTS.md diagram,
-  ``core`` + ``services`` together form "parser/validator → domain model and services". The adapters
-  are ``cli``, ``server``, and future ``mcp`` — all fed by the same domain/service layer.
-  Adapter→adapter imports (``server``→``cli``, ``web``→``cli``, ``cli``→``server``, etc.) are
-  mandatory violations. Third-party library imports (fastapi, typer, etc.) are not in scope for this
-  scan. If the scan finds a violation and its severity is unclear, treat it as a blocker and return
-  it to the user for a routing decision rather than silently proceeding.
+- Run the three scans defined in `.claude/conventions/classification-scans.md` — product-scope,
+  specification-materiality, and architecture-boundary — before finalising the route. That file
+  owns each scan's procedure and is the sole owner of the specification-materiality question;
+  `docs/specs/README.md` points there rather than restating it. Record each scan's outcome (and,
+  for the specification-materiality scan, the settling clause) in this skill's output artifact.
 
 Treat the task as non-trivial when it changes behavior, contracts, persistence, architecture,
 production dependencies, or requires more than one coordinated capability.
@@ -92,16 +58,6 @@ Size definitions (choose the highest that applies):
 - Behavior-preserving refactor: `.claude/pipelines/refactor-change.md`.
 - Product UI implementation, existing-page UI changes, or local WebUI component-library work not
   explicitly handled by an MCP design route: `.claude/pipelines/ui-change.md`.
-- Design-only work in Open Design (OD) through Open Design MCP without production code change:
-  `.claude/pipelines/od-design.md`. Use this route only when the user explicitly asks for OD
-  prototype exploration, OD visual alternatives, or OD design-system synchronization. OD design work
-  is always non-trivial (UI contracts, generated artifact review required). The pipeline owns the
-  OD availability gate (including daemon startup fallback); route here without a pre-routing MCP
-  check.
-- Converting an accepted OD artifact to tested React code: `.claude/pipelines/od-to-code.md`.
-  Use this route only when the user explicitly asks to translate an OD prototype into production
-  code. Before routing here, confirm an OD project/artifact is available and an accepted spec or
-  explicit acceptance criteria is present.
 - Design-only work in Pencil (`.pen` files in `designs/`) without production code change:
   `.claude/pipelines/pen-design.md`. `.pen` file work is always non-trivial (UI contracts, design
   review required). Before routing here, confirm the Pencil MCP is available.
@@ -167,9 +123,8 @@ Use conditional rigor:
   pattern is at least medium risk unless it is documentation-only. Do not classify those changes as
   low risk merely because the code is localized.
 - The local WebUI component library is the default implementation source for TaskPilot UI changes.
-  Open Design may be used as reference only; use it for exploration only when the user explicitly
-  asks for OD work. Pencil remains the selected MCP route when the user explicitly asks for Pencil,
-  `.pen` files, or an existing `.pen` design.
+  Pencil remains the selected MCP route when the user explicitly asks for Pencil, `.pen` files, or
+  an existing `.pen` design.
 
 For high-risk or system-level work, require independent review after validation. For medium-risk
 production work, require independent review unless the change is documentation-only. For
@@ -213,6 +168,8 @@ Include:
   verification evidence required, and reason;
 - product-scope delta: none, or list deltas and required user decisions;
 - specification-materiality decision: required or exempt, and the clause that settled it;
+- architecture-boundary scan outcome: no violation, or each violating cross-layer import and its
+  blocker/non-blocker disposition;
 - selected pipeline or immediate capability;
 - ordered handoffs and exact expected artifact labels;
 - validation and independent-review requirements;

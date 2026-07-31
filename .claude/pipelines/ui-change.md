@@ -55,7 +55,5 @@ Begin with `Pipeline: ui-change - output below` and report status, design-system
 handoffs, artifact labels, component coverage, functional E2E evidence, browser contract evidence,
 skipped implementation steps, the exempting clause from the manager's specification-materiality scan
 and the documented behavior checked against it whenever step 2 is skipped, review-loop attempt count
-and repeated artifact labels, blockers, and
-whether the change affected reusable local components, page-only composition, design tokens, local
-docs, or OD references. If OD was not used, state that the local WebUI component library was the
-implementation source of truth.
+and repeated artifact labels, blockers, and whether the change affected reusable local components,
+page-only composition, design tokens, or local docs.

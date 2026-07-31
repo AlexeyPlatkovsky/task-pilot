@@ -441,23 +441,6 @@ with `Read` or `Grep` directly.
    all AI models. Rely on `snapshot_layout` and `batch_get` structural inspection for verification
    when screenshots are unavailable.
 
-### Open Design MCP Constraints
-
-1. **Project context.** OD tools can default to an active project, and that active context expires.
-
-2. **Generation runs.** OD generation and refinement run asynchronously and can take several
-   minutes.
-
-3. **Artifact bundles.** OD artifacts are multi-file bundles; an entry artifact can reference
-   sibling source files and assets.
-
-4. **Design-system resources.** OD design systems are MCP resources such as
-   `od://design-systems/<id>/DESIGN.md`.
-
-5. **Production boundary.** OD HTML, JSX, CSS, and assets are design evidence, not production code
-   to copy wholesale. Implementation must still use TaskPilot components, tokens, accessibility
-   rules, REST boundaries, and tests.
-
 ---
 
 ## Merge Log
