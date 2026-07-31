@@ -1,0 +1,39 @@
+schema_version: 1
+id: TP-122
+title: Add daemon lifecycle commands (start/stop/restart/status/logs)
+priority: normal
+type: task
+status: backlog
+created_at: '2026-07-31T09:07:00Z'
+updated_at: '2026-07-31T09:07:00Z'
+description: 'Add CLI subcommands for managing the TaskPilot server as a background daemon, as requested by the user.
+
+
+  Required behavior:
+
+  - `taskpilot start` - starts the server daemon in the background (detached process) and returns control to the shell.
+
+  - `taskpilot stop` - stops the running daemon.
+
+  - `taskpilot restart` - stops then starts the daemon.
+
+  - `taskpilot status` - reports whether the daemon is currently running (and likely PID/port).
+
+  - `taskpilot logs` - tails the daemon log output.
+
+
+  Grounding evidence: a repo-wide search (src/taskpilot/, docs/, .taskpilot/items/) found no existing daemon start/stop/restart/status/logs commands or backlog items. Only a foreground `taskpilot serve` command exists today (src/taskpilot/cli/commands/serve.py), which runs `uvicorn.run(...)` blocking in the foreground with no daemonization, PID file, or log file support. This is new scope, not a duplicate.
+
+
+  Implementation will need to address:
+
+  - PID file location and format.
+
+  - Log file location and rotation/tailing approach.
+
+  - Cross-platform process management (detached/background process creation, signal handling for stop) - verify Windows support requirements before design.
+
+  - Relationship to the existing foreground `taskpilot serve` command (whether `start` wraps `serve` in a detached child process, or is a separate code path).
+
+
+  This item is task creation only; no code has been implemented.'
