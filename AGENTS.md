@@ -118,8 +118,7 @@ canonical task files
 ## Local WebUI Component Library
 
 The canonical TaskPilot component library for production UI lives in the local WebUI
-implementation. OD artifacts are not production implementation source of truth unless the manager
-routes an explicit OD request.
+implementation.
 
 Detailed local component-library standards are in `.claude/conventions/ui-component-library.md`;
 route selection remains owned by `.claude/skills/manager/SKILL.md`.
@@ -133,8 +132,6 @@ Routing:
 - Backlog change pipeline: `.claude/pipelines/backlog-change.md`
 - Refactor/change pipeline: `.claude/pipelines/refactor-change.md`
 - UI change pipeline: `.claude/pipelines/ui-change.md`
-- Open Design pipeline: `.claude/pipelines/od-design.md`
-- Open Design-to-code pipeline: `.claude/pipelines/od-to-code.md`
 - Pencil design pipeline: `.claude/pipelines/pen-design.md`
 - Pencil-to-code pipeline: `.claude/pipelines/pen-to-code.md`
 - Browser verify pipeline: `.claude/pipelines/browser-verify.md`
@@ -153,8 +150,6 @@ Skills:
 - Implementation: `.claude/skills/implement-change/SKILL.md`
 - Testing: `.claude/skills/test-change/SKILL.md`
 - UI design: `.claude/skills/design-ui/SKILL.md`
-- Open Design execution: `.claude/skills/open-design/SKILL.md`
-- Open Design-to-code translation: `.claude/skills/od-to-code/SKILL.md`
 - Pencil design execution: `.claude/skills/pencil-design/SKILL.md`
 - Browser UI investigation: `.claude/skills/playwright-cli/SKILL.md`
 - E2E test writing: `.claude/skills/write-e2e-tests/SKILL.md`

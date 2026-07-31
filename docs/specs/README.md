@@ -16,8 +16,9 @@ requirement-register statement ("shall", "should", "could") in a specification t
 not yet `implemented` — it states what was agreed, not what ships.
 
 Whether a given change requires a specification is decided by the specification-materiality scan in
-`.claude/skills/manager/SKILL.md`, which is where routing gates live. It is deliberately not restated
-here: a normative gate sitting in `docs/` would be editable through documentation-only routing.
+`.claude/conventions/classification-scans.md`, invoked during classification by
+`.claude/skills/manager/SKILL.md`, where routing gates live. It is deliberately not restated here: a
+normative gate sitting in `docs/` would be editable through documentation-only routing.
 
 ## Index
 

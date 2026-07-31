@@ -5,9 +5,7 @@
 This convention defines how TaskPilot agents implement, maintain, update, and reuse the local WebUI
 component library.
 
-The local WebUI implementation is the canonical component library. Open Design prototypes and OD
-component libraries are optional reference material unless the active route is an Open Design
-route.
+The local WebUI implementation is the canonical component library.
 
 ## Source of Truth
 
@@ -18,11 +16,6 @@ Use this order for production UI implementation decisions:
 3. component CSS modules colocated with those components
 4. local component examples, previews, and tests
 5. `designs/design.md` and `docs/design.md`
-6. OD prototypes and OD component libraries, only when the user explicitly requests OD
-   exploration, visual alternatives, OD design-system synchronization, or OD-to-code translation
-
-Do not translate OD HTML/CSS into production code as a mechanical source of truth. Treat OD output
-as visual reference unless the active route is `.claude/pipelines/od-to-code.md`.
 
 ## Component Reuse
 
