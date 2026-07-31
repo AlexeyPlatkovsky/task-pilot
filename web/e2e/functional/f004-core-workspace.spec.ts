@@ -63,10 +63,12 @@ test.describe("F004 core workspace flows", () => {
       description: "Parent item for the functional e2e hierarchy.",
       linkedTo: [
         "Linked to",
-        "Child: TP-2 Build list filtering",
-        "Blocks: TP-3 Fix tree regression",
-        "Blocked by: TP-5 Test feature label color",
-        "Related to: TP-4 Test epic label color",
+        // Each row's status badge (TP-111, spec 0007) renders ahead of the
+        // ID/title link with no separating space, e.g. "In ProgressTP-2 ...".
+        "Child: In ProgressTP-2 Build list filtering",
+        "Blocks: BacklogTP-3 Fix tree regression",
+        "Blocked by: BacklogTP-5 Test feature label color",
+        "Related to: BacklogTP-4 Test epic label color",
       ],
     });
   });

@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { fetchItem } from "../api";
-import type { ItemDetail, ItemRelationshipSummary } from "../types";
+import type { ItemDetail, ItemRelationshipSummary, Status } from "../types";
 import { STATUS_LABELS, PRIORITY_LABELS, TYPE_LABELS } from "../types/labels";
 import { Icon } from "./ui/Icon";
 import { CommentThread } from "./CommentThread";
@@ -255,11 +255,7 @@ function ItemDetailView({
             </span>
           </SummaryField>
           <SummaryField label="Status">
-            <span
-              className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${item.status}`]}`}
-            >
-              {STATUS_LABELS[item.status]}
-            </span>
+            <StatusBadge status={item.status} />
           </SummaryField>
         </dl>
         <dl className={styles.summaryColumn}>
@@ -394,6 +390,16 @@ function TypeLabel({ type }: { type: ItemDetail["type"] }) {
   );
 }
 
+function StatusBadge({ status }: { status: Status }) {
+  return (
+    <span
+      className={`${styles.badge} ${styles.statusBadge} ${styles[`status-${status}`]}`}
+    >
+      {STATUS_LABELS[status]}
+    </span>
+  );
+}
+
 function SummaryField({
   label,
   children,
@@ -502,6 +508,16 @@ function RelationshipItem({
       }`}
     >
       <span className={styles.relationshipLabel}>{label}: </span>
+      {/* Always rendered (even empty) so this row's grid column stays
+          aligned with the link column regardless of validity. Placeholder
+          "unknown" status on an invalid/missing target is not a real
+          workflow state, so no badge renders for it (spec 0007) — "missing
+          or invalid" below is that row's sole state signal. */}
+      <span>
+        {item.valid && item.status !== "unknown" && (
+          <StatusBadge status={item.status} />
+        )}
+      </span>
       <a
         className={styles.relationshipLink}
         href={`#item-${encodeURIComponent(item.id)}`}

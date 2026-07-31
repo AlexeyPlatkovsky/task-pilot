@@ -1,10 +1,12 @@
 """Unit tests for the CLI scaffold (task F003-T1, requirement F003-R8).
 
 Covers the foundation every command builds on: deterministic JSON output, the
-human renderers, the global ``--json`` flag carried through Typer's context, and
-the service-error -> exit-code translation.
+human renderers, the global ``--json`` flag carried through Typer's context, the
+``--version``/``-v`` eager option (TP-123, spec 0006), and the service-error ->
+exit-code translation.
 """
 
+import importlib.metadata
 import re
 
 import typer
@@ -133,3 +135,52 @@ def test_root_help_lists_json_flag():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "--json" in ANSI_ESCAPE_RE.sub("", result.output)
+
+
+# --- --version / -v eager option (TP-123, spec 0006) --------------------------
+
+
+def test_version_flag_prints_installed_version_and_exits_ok():
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert result.output == f"{importlib.metadata.version('taskpilot')}\n"
+
+
+def test_short_version_flag_behaves_like_long_flag():
+    result = runner.invoke(app, ["-v"])
+    assert result.exit_code == 0
+    assert result.output == f"{importlib.metadata.version('taskpilot')}\n"
+
+
+def test_version_flag_short_circuits_before_subcommand_dispatch():
+    # A trailing subcommand must never run once --version has fired.
+    result = runner.invoke(app, ["--version", "item", "list"])
+    assert result.exit_code == 0
+    assert result.output == f"{importlib.metadata.version('taskpilot')}\n"
+
+
+def test_root_help_lists_version_flag():
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    plain = ANSI_ESCAPE_RE.sub("", result.output)
+    assert "--version" in plain
+    assert "-v" in plain
+
+
+def test_version_flag_reports_clear_error_when_package_metadata_missing(monkeypatch):
+    def _raise_not_found(name):
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", _raise_not_found)
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 1
+    assert "package metadata not found" in result.output
+
+
+def test_no_args_still_shows_help_unaffected_by_version_option():
+    result = runner.invoke(app, [])
+    # Pre-existing baseline (no_args_is_help=True): help is printed with exit
+    # code 2 (Click/Typer treats a missing required command as a usage error).
+    # This test is a regression check that --version does not change it.
+    assert result.exit_code == 2
+    assert "Usage:" in ANSI_ESCAPE_RE.sub("", result.output)

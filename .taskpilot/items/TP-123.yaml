@@ -1,0 +1,18 @@
+schema_version: 1
+id: TP-123
+title: Add --version/-v flag to the Python Typer CLI app
+priority: normal
+type: task
+status: done
+created_at: '2026-07-31T15:12:48Z'
+updated_at: '2026-07-31T18:02:46Z'
+description: 'The Typer app itself (src/taskpilot/cli/app.py) has no --version or -v option, so it errors with "No such option" whether invoked directly (`.venv/bin/taskpilot --version`) or via `python -m taskpilot.cli.app --version` — confirmed by direct testing, exit code 2 both times.
+
+
+  --version currently only works when invoked through the npm wrapper (bin/taskpilot), which special-cases it before delegating to Python (see TP-80, done). That wrapper-level handling is fine for npm-installed end users, but leaves the raw Python CLI (dev mode, direct venv install, or any future non-npm packaging) without a working --version, and -v is not implemented anywhere at all.
+
+
+  Add a --version/-v option directly to the root Typer callback in src/taskpilot/cli/app.py so it works consistently regardless of entry point, printing the same version string the npm wrapper already reports (source of truth: pyproject.toml/package.json version field, currently 1.2.0). Should short-circuit before any subcommand dispatch, similar to Typer''s eager-option pattern.
+
+
+  Grounding evidence: TP-80 (.taskpilot/items/TP-80.yaml, done) — wrapper-only --version handling in bin/taskpilot. src/taskpilot/cli/app.py — root Typer callback currently only defines --json, no version option.'

@@ -70,7 +70,10 @@ F6. The modal shall show a Linked to section between Info and Comments. It shall
 parent, direct children, stored forward links, and derived reverse links when present. Each linked
 item shall render as one row in a one-column list with the relationship label followed by a link
 containing item ID and title, for example `Parent: TP-5 Base Epic for test`. The item ID and title
-shall use one font and size, with the ID bold. Relationship links shall open the target item in the
+shall use one font and size, with the ID bold. `[superseded: 0007]` — for a valid relationship
+target, the row also includes a status indicator ahead of the ID/title link; see
+`docs/specs/0007-linked-to-status-indicator.md` for the current row content, badge treatment, and
+the missing/invalid-target exception. Relationship links shall open the target item in the
 same modal. Long titles shall be trimmed for stable layout. Rows shall preserve deterministic order:
 Parent, Children, Blocks, Blocked by, and Related to. Stored `relates_to` and derived `related_to`
 rows shall both appear under Related to. The section shall use an empty state when the item has no

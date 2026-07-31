@@ -9,6 +9,9 @@ const project = {
 
 const longItemId = "TP-12345678901234567890";
 
+const longRelationshipTitle =
+  "This linked item title is intentionally long enough to test relationship row layout with a status badge at the minimum supported desktop width";
+
 const itemSummary = {
   id: longItemId,
   title: "Long identity layout check",
@@ -26,6 +29,23 @@ const itemDetail = {
   updated_at: "2026-06-28T10:10:00Z",
   description: "Browser layout contract fixture.",
   comments: [],
+  relationships: {
+    parent: null,
+    children: [],
+    blocks: [],
+    blocked_by: [],
+    relates_to: [
+      {
+        id: "TP-9999999",
+        title: longRelationshipTitle,
+        type: "task",
+        status: "in_progress",
+        priority: "normal",
+        valid: true,
+      },
+    ],
+    related_to: [],
+  },
 };
 
 test("item modal header and summary do not overlap at desktop minimum width", async ({
@@ -58,6 +78,15 @@ test("item modal header and summary do not overlap at desktop minimum width", as
   const summaryBox = await requiredBox(modal.getByLabel("Item summary"));
   const infoBox = await requiredBox(modal.getByRole("heading", { name: "Info" }));
   expect(summaryBox.y + summaryBox.height).toBeLessThanOrEqual(infoBox.y);
+
+  // TP-111 / spec 0007: a relationship row's status badge sits ahead of a
+  // long title without pushing the row past the modal's right edge.
+  const linkedTo = modal.locator('[data-test-id="item-modal-linked-to"]');
+  await expect(linkedTo).toBeVisible();
+  const relationshipRow = linkedTo.getByRole("listitem").first();
+  const modalBox = await requiredBox(modal);
+  const rowBox = await requiredBox(relationshipRow);
+  expect(rowBox.x + rowBox.width).toBeLessThanOrEqual(modalBox.x + modalBox.width);
 });
 
 async function mockProjectApi(page: Page) {

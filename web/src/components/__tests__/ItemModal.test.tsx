@@ -156,6 +156,12 @@ describe("ItemModal", () => {
     expect(modalCss).toContain("font-weight: var(--font-weight-semibold);");
   });
 
+  it("gives the relationship row's status badge its own grid column, outside the truncating link (TP-111, spec 0007)", () => {
+    expect(modalCss).toContain(
+      "grid-template-columns: max-content max-content minmax(0, 1fr) max-content;",
+    );
+  });
+
   it("renders item summary metadata in two labelled columns", async () => {
     mockFetchItem.mockResolvedValueOnce(makeItem());
     render(
@@ -275,7 +281,10 @@ describe("ItemModal", () => {
     });
     expect(screen.getByText("VP-1")).toBeInTheDocument();
     expect(screen.getByText("FEAT")).toBeInTheDocument();
-    expect(screen.getByText("In Progress")).toBeInTheDocument();
+    // Scoped to the summary: "In Progress" also appears on a Linked to row's
+    // status badge (VP-9 Legacy modal, also in_progress) once that renders.
+    const itemSummary = screen.getByLabelText("Item summary");
+    expect(within(itemSummary).getByText("In Progress")).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
 
     expect(screen.getByRole("heading", { name: "Info" })).toBeInTheDocument();
@@ -291,13 +300,15 @@ describe("ItemModal", () => {
     expect(screen.getByRole("heading", { name: "Linked to" })).toBeInTheDocument();
     const linkedTo = screen.getByTestId("item-modal-linked-to");
     const rows = within(linkedTo).getAllByRole("listitem");
+    // Each row's status badge (TP-111, spec 0007) renders ahead of the ID/title
+    // link but outside it, so the link's own accessible name is unaffected.
     expect(rows.map((row) => row.textContent)).toEqual([
-      "Parent: VP-0 Beta release",
-      "Child: VP-4 Modal QA task",
-      "Blocks: VP-9 Legacy modal",
-      "Blocked by: VP-6 API contract",
-      "Related to: VP-7 Workspace layout",
-      "Related to: VP-8 Review notes",
+      "Parent: ReadyVP-0 Beta release",
+      "Child: BacklogVP-4 Modal QA task",
+      "Blocks: In ProgressVP-9 Legacy modal",
+      "Blocked by: ReadyVP-6 API contract",
+      "Related to: DoneVP-7 Workspace layout",
+      "Related to: BacklogVP-8 Review notes",
     ]);
     expect(within(linkedTo).getByRole("link", { name: "VP-0 Beta release" })).toBeInTheDocument();
     expect(within(linkedTo).getByRole("link", { name: "VP-4 Modal QA task" })).toBeInTheDocument();
@@ -305,6 +316,10 @@ describe("ItemModal", () => {
     expect(within(linkedTo).getByRole("link", { name: "VP-6 API contract" })).toBeInTheDocument();
     expect(within(linkedTo).getByRole("link", { name: "VP-7 Workspace layout" })).toBeInTheDocument();
     expect(within(linkedTo).getByRole("link", { name: "VP-8 Review notes" })).toBeInTheDocument();
+    expect(within(linkedTo).getAllByText("Ready")).toHaveLength(2);
+    expect(within(linkedTo).getAllByText("Backlog")).toHaveLength(2);
+    expect(within(linkedTo).getByText("In Progress")).toBeInTheDocument();
+    expect(within(linkedTo).getByText("Done")).toBeInTheDocument();
     expect(screen.queryByText("Relates to")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Audit" })).not.toBeInTheDocument();
     expect(screen.getByText("Looks good.")).toBeInTheDocument();
@@ -403,6 +418,13 @@ describe("ItemModal", () => {
     });
     expect(link).toHaveAttribute("title", `VP-80 ${longTitle}`);
     expect(screen.queryByText(longTitle)).not.toBeInTheDocument();
+    // The status badge sits outside the truncating link, so a long title
+    // still trims correctly with the badge present (spec 0007 AC3). Scoped
+    // to the Linked to section: the item's own summary status is also
+    // "backlog" by default, so an unscoped query would be ambiguous once
+    // the relationship-row badge renders too.
+    const linkedTo = screen.getByTestId("item-modal-linked-to");
+    expect(within(linkedTo).getByText("Backlog")).toBeInTheDocument();
   });
 
   it("shows explicit empty states for absent optional groups", async () => {
@@ -462,6 +484,11 @@ describe("ItemModal", () => {
     expect(screen.getByRole("link", { name: "VP-404 [missing item]" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "VP-405 [missing item]" })).toBeInTheDocument();
     expect(screen.getAllByText("missing or invalid")).toHaveLength(2);
+    // TP-111/spec 0007: an invalid/missing target's placeholder "unknown"
+    // status is not a real workflow state, so no status badge renders for it
+    // — "missing or invalid" above remains the sole state signal for the row.
+    const linkedTo = screen.getByTestId("item-modal-linked-to");
+    expect(linkedTo.querySelectorAll(".statusBadge")).toHaveLength(0);
   });
 
   it("renders description as Markdown HTML", async () => {

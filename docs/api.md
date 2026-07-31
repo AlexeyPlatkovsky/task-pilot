@@ -19,6 +19,15 @@ taskpilot --json item list      # correct
 taskpilot item list --json      # error: No such option: --json
 ```
 
+`--version`/`-v` is a global, eager option: it prints the installed TaskPilot version and exits
+immediately, before any subcommand runs, regardless of position:
+
+```bash
+taskpilot --version             # prints the installed version, exits 0
+taskpilot -v                    # same
+taskpilot --version item list   # still just prints the version; item list never runs
+```
+
 ### Exit codes
 
 | Code | Meaning |
