@@ -28,3 +28,4 @@ normative gate sitting in `docs/` would be editable through documentation-only r
 | [0002: Alpha Product and Stack Decisions](0002-alpha-product-and-stack-decisions.md) | ✅ accepted | Captures current Alpha/Beta/Release decisions for storage, registry, item model, comments, WebUI, and tech stack. |
 | [0003: CSS Design Token System and Icon Library](0003-design-token-system.md) | ✅ accepted | Introduces 55 semantic CSS custom properties, light/dark themes, and lucide-react icon library. |
 | [0004: Beta Item Detail Redesign](0004-beta-item-detail-redesign.md) | ✅ implemented | Settles and implements the Beta item modal information architecture without changing canonical files or API contracts. |
+| [0005: Daemon Lifecycle Commands](0005-daemon-lifecycle-commands.md) | ✅ accepted | Adds `start`/`stop`/`restart`/`status`/`logs` CLI commands to run and manage the server as a background daemon. |

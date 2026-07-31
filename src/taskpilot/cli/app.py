@@ -41,6 +41,7 @@ def _register_commands() -> None:
     Imported here (not at module top) so command modules can import from this
     module without a circular import.
     """
+    from taskpilot.cli.commands import daemon as daemon_cmd
     from taskpilot.cli.commands import init as init_cmd
     from taskpilot.cli.commands import item as item_cmd
     from taskpilot.cli.commands import project as project_cmd
@@ -52,6 +53,7 @@ def _register_commands() -> None:
     item_cmd.register(app)
     validate_cmd.register(app)
     serve_cmd.register(app)
+    daemon_cmd.register(app)
 
 
 _register_commands()
