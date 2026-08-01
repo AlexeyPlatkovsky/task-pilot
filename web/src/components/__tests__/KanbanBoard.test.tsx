@@ -15,6 +15,7 @@ vi.mock("../../api", () => ({
 }));
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
+  const now = new Date().toISOString();
   return {
     id: "VP-1",
     title: "Test Item",
@@ -22,6 +23,8 @@ function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
     status: "backlog",
     priority: "normal",
     valid: true,
+    created_at: now,
+    updated_at: now,
     ...overrides,
   };
 }
@@ -169,8 +172,8 @@ describe("KanbanBoard", () => {
     it("filters cards by type", async () => {
       const user = userEvent.setup();
       mockFetchItems.mockResolvedValueOnce([
-        makeItem({ id: "VP-1", title: "Bug item", type: "bug", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
-        makeItem({ id: "VP-2", title: "Task item", type: "task", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-1", title: "Bug item", type: "bug" }),
+        makeItem({ id: "VP-2", title: "Task item", type: "task" }),
       ]);
       render(<KanbanBoard projectId="VP" />, { wrapper });
       await waitFor(() => {
@@ -186,8 +189,8 @@ describe("KanbanBoard", () => {
     it("filters cards by priority", async () => {
       const user = userEvent.setup();
       mockFetchItems.mockResolvedValueOnce([
-        makeItem({ id: "VP-1", title: "High item", priority: "high", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
-        makeItem({ id: "VP-2", title: "Low item", priority: "low", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-1", title: "High item", priority: "high" }),
+        makeItem({ id: "VP-2", title: "Low item", priority: "low" }),
       ]);
       render(<KanbanBoard projectId="VP" />, { wrapper });
       await waitFor(() => {
@@ -295,17 +298,80 @@ describe("KanbanBoard", () => {
         screen.getByRole("button", { name: "Priority: All priorities" }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Updated: Any time" }),
+        screen.getByRole("button", { name: "Updated: Last 7 days" }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Created: Any time" }),
       ).toBeInTheDocument();
     });
 
+    it("defaults the updated filter to Last 7 days on load and hides older cards", async () => {
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Recent", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-2", title: "Stale", updated_at: "2026-05-20T10:00:00Z", created_at: "2026-05-20T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Recent")).toBeInTheDocument();
+      });
+      expect(screen.queryByText("Stale")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Updated: Last 7 days" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows the filtered-empty state, with the default still visible, when every card is stale", async () => {
+      mockFetchItems.mockResolvedValueOnce([
+        makeItem({ id: "VP-1", title: "Stale", updated_at: "2026-05-20T10:00:00Z", created_at: "2026-05-20T10:00:00Z" }),
+      ]);
+      render(
+        <KanbanBoard projectId="VP" now={new Date("2026-06-28T00:00:00Z")} />,
+        { wrapper },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId("kanban-filtered-empty")).toBeInTheDocument();
+      });
+      expect(screen.getByText("No items match the selected filters.")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Updated: Last 7 days" }),
+      ).toBeInTheDocument();
+    });
+
+    it("re-applies the Last 7 days default on remount instead of remembering a prior selection", async () => {
+      const user = userEvent.setup();
+      mockFetchItems.mockResolvedValue([
+        makeItem({ id: "VP-1", title: "Recent", updated_at: "2026-06-25T10:00:00Z", created_at: "2026-06-25T10:00:00Z" }),
+      ]);
+      const now = new Date("2026-06-28T00:00:00Z");
+
+      const first = render(<KanbanBoard projectId="VP" now={now} />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("Recent")).toBeInTheDocument();
+      });
+      await selectBoardFilterOption(user, "Updated", "Any time");
+      expect(
+        screen.getByRole("button", { name: "Updated: Any time" }),
+      ).toBeInTheDocument();
+      first.unmount();
+
+      render(<KanbanBoard projectId="VP" now={now} />, { wrapper });
+      await waitFor(() => {
+        expect(screen.getByText("Recent")).toBeInTheDocument();
+      });
+      expect(
+        screen.getByRole("button", { name: "Updated: Last 7 days" }),
+      ).toBeInTheDocument();
+    });
+
     it("shows all five columns even when no cards match filters", async () => {
       const user = userEvent.setup();
       mockFetchItems.mockResolvedValueOnce([
-        makeItem({ id: "VP-1", title: "Bug", type: "bug", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-1", title: "Bug", type: "bug" }),
       ]);
       render(<KanbanBoard projectId="VP" />, { wrapper });
       await waitFor(() => {
@@ -326,8 +392,8 @@ describe("KanbanBoard", () => {
     it("does not change item status or column when filtering", async () => {
       const user = userEvent.setup();
       mockFetchItems.mockResolvedValueOnce([
-        makeItem({ id: "VP-1", title: "Done bug", type: "bug", status: "done", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
-        makeItem({ id: "VP-2", title: "Backlog task", type: "task", status: "backlog", created_at: "2026-06-25T10:00:00Z", updated_at: "2026-06-25T10:00:00Z" }),
+        makeItem({ id: "VP-1", title: "Done bug", type: "bug", status: "done" }),
+        makeItem({ id: "VP-2", title: "Backlog task", type: "task", status: "backlog" }),
       ]);
       render(<KanbanBoard projectId="VP" />, { wrapper });
       await waitFor(() => {

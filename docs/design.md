@@ -31,8 +31,8 @@
 
 ## Application Header
 
-The header appears on every screen. From left to right it displays the TaskPilot compass board logo
-(`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot",
+The header appears on every screen. From left to right it displays the TaskPilot logo
+(`designs/taskpilot.svg`, also used as the favicon), the product name "TaskPilot",
 the project selector dropdown, and the view tabs; the validation status sits between the left and
 right groups, and the theme switcher is right-aligned. View tabs render only once a project is
 selected. The header is styled with `--surface-base` background, a `--border-subtle` bottom border,
@@ -120,10 +120,13 @@ The Linked to section appears after Info and before Comments. It shows a one-col
 list ordered as Parent, Children, Blocks, Blocked by, and Related to. Each row is one line in the
 form `Parent: TP-5 Base Epic for test`: the relationship label is plain text, and the item ID plus
 title is a link that opens the target item in the same modal. The ID and title share one font and
-size; only the ID is bold. Long titles are trimmed in the row. Children and reverse-link rows are
-derived through the API; they are not stored as duplicate canonical data. Stored `relates_to` and
-derived `related_to` rows both appear as Related to. Broken relationship targets remain visible by
-item ID with a missing or invalid state.
+size; only the ID is bold. For a valid target, a status badge (same treatment as the item summary's
+Status field) renders between the label and the ID/title link, so status is visible ahead of the
+title without opening it; a relationship pointing at a missing or invalid target shows no status
+badge, since its placeholder status is not a real workflow state. Long titles are trimmed in the
+row. Children and reverse-link rows are derived through the API; they are not stored as duplicate
+canonical data. Stored `relates_to` and derived `related_to` rows both appear as Related to. Broken
+relationship targets remain visible by item ID with a missing or invalid state.
 
 ### Edit mode
 

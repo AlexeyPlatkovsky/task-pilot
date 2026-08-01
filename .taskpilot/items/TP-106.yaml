@@ -3,7 +3,7 @@ id: TP-106
 title: Board card title shows ellipsis on first line despite wrapping to two rows
 priority: normal
 type: bug
-status: backlog
+status: done
 created_at: '2026-07-29T13:20:55Z'
-updated_at: '2026-07-29T13:20:55Z'
+updated_at: '2026-07-31T19:48:57Z'
 description: At some viewport widths a card title renders a truncating ellipsis at the end of the first line even though the title continues on a second line, e.g. 'Some test task title... that part on the second row'. Likely a conflict between line-clamp/text-overflow and the multi-line wrap rules. Reproduce at the affected resolutions, identify the offending CSS, fix so the title either wraps cleanly or clamps with a single trailing ellipsis at the real cut point. Include the reproducing widths in the fix notes.

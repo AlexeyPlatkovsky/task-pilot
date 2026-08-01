@@ -3,7 +3,7 @@ id: TP-109
 title: Default filter Updated = Last 7 days on all boards
 priority: normal
 type: feature
-status: backlog
+status: done
 created_at: '2026-07-29T13:21:12Z'
-updated_at: '2026-07-29T13:21:12Z'
+updated_at: '2026-07-31T20:14:24Z'
 description: 'Apply a default filter of Updated = ''Last 7 days'' to every board on load. Requires the Updated filter to exist as a first-class, user-clearable filter so the default is visible and overridable, not hidden behavior. Open questions for spec: whether the user''s last-used filter overrides the default on return visits, and how the default interacts with items that have never been updated since creation.'

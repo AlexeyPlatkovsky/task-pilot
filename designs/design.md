@@ -106,11 +106,18 @@ The Linked to section sits after Info and before Comments. It renders a one-colu
 relationship rows in this order: Parent, Children, Blocks, Blocked by, Related to. Each row uses
 the form `Parent: TP-5 Base Epic for test`: the relationship label is text, and the item ID plus
 title is a link that opens the target item in the same modal. The linked ID and title share one
-font family and size; the ID is bold. Long titles are trimmed visually, with the full title kept as
-hover text. Parent and forward-link rows come from stored item fields; children and reverse-link
-rows are derived by services and are never persisted separately. Stored `relates_to` and derived
-`related_to` rows both appear as Related to rows. Broken relationship targets remain visible as
-item IDs with a missing or invalid state instead of disappearing.
+font family and size; the ID is bold. For a valid target, a status badge (the same `StatusBadge`
+treatment used in the item summary's Status field) renders between the relationship label and the
+ID/title link — its own element, not embedded inside the link's text — so status is visible ahead
+of the title without opening the link, and the link's single-line truncation for long titles is
+never shared with the badge. A relationship pointing at a missing or invalid target shows no status
+badge — its placeholder status is not a real workflow state, and the existing missing/invalid
+indicator text already communicates that row's state. Long titles are
+trimmed visually, with the full title kept as hover text. Parent and forward-link rows come from
+stored item fields; children and reverse-link rows are derived by services and are never persisted
+separately. Stored `relates_to` and derived `related_to` rows both appear as Related to rows. Broken
+relationship targets remain visible as item IDs with a missing or invalid state instead of
+disappearing.
 
 The modal does not display editable relationship controls until a future API/domain contract
 defines relationship editing. Edit mode keeps the existing Alpha editable field set: title,

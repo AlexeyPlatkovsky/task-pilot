@@ -1,16 +1,20 @@
 """TaskPilot CLI entry point and root Typer app (task F003-T1, requirement F003-R8).
 
-Defines the root ``taskpilot`` command group and its global ``--json`` option.
-Subcommands (``init``, ``project``, ``item``, ``validate``, ``serve``) are
-registered onto :data:`app` by their own modules in later F003 tasks. The
-console-script entry point in ``pyproject.toml`` points at :data:`app`.
+Defines the root ``taskpilot`` command group and its global ``--json`` and
+``--version``/``-v`` (TP-123, spec 0006) options. Subcommands (``init``,
+``project``, ``item``, ``validate``, ``serve``) are registered onto :data:`app`
+by their own modules in later F003 tasks. The console-script entry point in
+``pyproject.toml`` points at :data:`app`.
 """
 
 from __future__ import annotations
 
+import importlib.metadata
+
 import typer
 
 from taskpilot.cli.context import CLIState
+from taskpilot.cli.exit_codes import EXIT_OK, EXIT_USER_ERROR
 
 __all__ = ["app"]
 
@@ -22,9 +26,39 @@ app = typer.Typer(
 )
 
 
+def _print_version(value: bool) -> None:
+    """Eager ``--version``/``-v`` callback: print and exit before dispatch.
+
+    Runs before ``--json``/``CLIState`` are resolved, so output is always
+    plain text regardless of ``--json`` — matching the npm wrapper's
+    ``--version`` handling in ``bin/taskpilot``.
+    """
+    if not value:
+        return
+    try:
+        version = importlib.metadata.version("taskpilot")
+    except importlib.metadata.PackageNotFoundError:
+        typer.echo(
+            "taskpilot: package metadata not found — is taskpilot installed? "
+            "(try `pip install -e .`)",
+            err=True,
+        )
+        raise typer.Exit(code=EXIT_USER_ERROR) from None
+    typer.echo(version)
+    raise typer.Exit(code=EXIT_OK)
+
+
 @app.callback()
 def main(
     ctx: typer.Context,
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-v",
+        help="Print the installed TaskPilot version and exit.",
+        is_eager=True,
+        callback=_print_version,
+    ),
     json: bool = typer.Option(
         False,
         "--json",

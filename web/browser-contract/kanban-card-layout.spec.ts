@@ -7,6 +7,8 @@ const project = {
   active: true,
 };
 
+const now = new Date().toISOString();
+
 const items = [
   {
     id: "TL-1",
@@ -16,6 +18,8 @@ const items = [
     priority: "normal",
     valid: true,
     findings: [],
+    created_at: now,
+    updated_at: now,
   },
   {
     id: "TL-2",
@@ -25,6 +29,8 @@ const items = [
     priority: "normal",
     valid: true,
     findings: [],
+    created_at: now,
+    updated_at: now,
   },
   {
     id: "TL-3",
@@ -35,6 +41,8 @@ const items = [
     priority: "normal",
     valid: true,
     findings: [],
+    created_at: now,
+    updated_at: now,
   },
 ] as const;
 
