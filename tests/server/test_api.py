@@ -879,11 +879,11 @@ class TestWebUIServing:
         assets.mkdir()
         (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
         (dist / "favicon.svg").write_text(
-            '<svg xmlns="http://www.w3.org/2000/svg"><title>Favicon</title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="icon"/></svg>',
             encoding="utf-8",
         )
         (dist / "task-pilot-compass-board.svg").write_text(
-            '<svg xmlns="http://www.w3.org/2000/svg"><title>Logo</title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="icon"/></svg>',
             encoding="utf-8",
         )
         return dist
@@ -909,11 +909,11 @@ class TestWebUIServing:
         assets.mkdir()
         (assets / "main.js").write_text("console.log('test');", encoding="utf-8")
         (dist / "favicon.svg").write_text(
-            '<svg xmlns="http://www.w3.org/2000/svg"><title>Favicon</title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="icon"/></svg>',
             encoding="utf-8",
         )
         (dist / "task-pilot-compass-board.svg").write_text(
-            '<svg xmlns="http://www.w3.org/2000/svg"><title>Logo</title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><clipPath id="icon"/></svg>',
             encoding="utf-8",
         )
 
@@ -939,11 +939,11 @@ class TestWebUIServing:
         r = c.get("/favicon.svg")
         assert r.status_code == 200
         assert "image/svg+xml" in r.headers["content-type"]
-        assert "<title>Favicon</title>" in r.text
+        assert "<clipPath" in r.text
         r = c.get("/task-pilot-compass-board.svg")
         assert r.status_code == 200
         assert "image/svg+xml" in r.headers["content-type"]
-        assert "<title>Logo</title>" in r.text
+        assert "<clipPath" in r.text
 
     def test_valid_web_dist_does_not_spa_fallback_unknown_api(
         self, tmp_path, monkeypatch: pytest.MonkeyPatch

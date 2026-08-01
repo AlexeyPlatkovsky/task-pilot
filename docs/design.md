@@ -31,8 +31,8 @@
 
 ## Application Header
 
-The header appears on every screen. From left to right it displays the TaskPilot compass board logo
-(`designs/task-pilot-compass-board.svg`, also used as the favicon), the product name "TaskPilot",
+The header appears on every screen. From left to right it displays the TaskPilot logo
+(`designs/taskpilot.svg`, also used as the favicon), the product name "TaskPilot",
 the project selector dropdown, and the view tabs; the validation status sits between the left and
 right groups, and the theme switcher is right-aligned. View tabs render only once a project is
 selected. The header is styled with `--surface-base` background, a `--border-subtle` bottom border,
