@@ -13,7 +13,9 @@ the first release repeatable through an npm-distributed CLI package.
 
 Implemented release-readiness scope:
 - Board and List date filters include both `updated_at` and `created_at` ranges using `Any time`,
-  `Last 7 days`, `Last 14 days`, and `Last 30 days`.
+  `Last 7 days`, `Last 14 days`, and `Last 30 days`. The Updated range defaults to `Last 7 days` on
+  every load of Board and List (docs/specs/0008-default-updated-filter.md); Created defaults to
+  `Any time`.
 - The Tree implementation remains in code, but the release WebUI navigation exposes only Board and
   List.
 - The WebUI stores the last opened project in local UI state and restores it when the project is

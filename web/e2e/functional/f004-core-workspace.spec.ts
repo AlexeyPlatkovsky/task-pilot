@@ -16,6 +16,8 @@ const mockItemSummary = {
   priority: "normal",
   valid: true,
   findings: [],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 const mockItemDetail = {

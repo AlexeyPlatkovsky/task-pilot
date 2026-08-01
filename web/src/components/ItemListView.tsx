@@ -45,7 +45,7 @@ const DEFAULT_FILTERS: Filters = {
   status: "",
   type: "",
   priority: "",
-  timeRange: "all",
+  timeRange: "last_7_days",
   createdRange: "all",
 };
 

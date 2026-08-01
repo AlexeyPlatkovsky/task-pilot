@@ -167,8 +167,17 @@ export function KanbanBoard({ projectId, now }: Props) {
   const hasItems = (items?.length ?? 0) > 0;
   const allColumnsEmpty = Array.from(groups.values()).every((g) => g.length === 0);
   const isEmpty = !hasItems;
-  const showEmptyPrompt = isEmpty || (allColumnsEmpty && !hasActiveBoardFilters);
-  const showFilteredEmpty = hasItems && allColumnsEmpty && hasActiveBoardFilters;
+  // Distinguish "nothing to show because filtering (default or user-chosen) excluded every
+  // item" from "nothing to show regardless of filters" (e.g. every item is deleted) by
+  // comparing against grouping with no board filters applied at all, not against
+  // DEFAULT_BOARD_FILTERS -- the default itself now narrows by updatedRange, so it no longer
+  // means "unfiltered".
+  const unfilteredGroups = groupByStatus(items ?? []);
+  const hasEligibleItemsWithoutFiltering = Array.from(unfilteredGroups.values()).some(
+    (g) => g.length > 0,
+  );
+  const showEmptyPrompt = isEmpty || (allColumnsEmpty && !hasEligibleItemsWithoutFiltering);
+  const showFilteredEmpty = allColumnsEmpty && hasEligibleItemsWithoutFiltering;
 
   if (isLoading) {
     return (

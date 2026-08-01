@@ -21,6 +21,7 @@ vi.mock("../KanbanBoard", () => ({
 }));
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
+  const now = new Date().toISOString();
   return {
     id: "VP-1",
     title: "Test Item",
@@ -29,6 +30,8 @@ function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
     priority: "normal",
     valid: true,
     findings: [],
+    created_at: now,
+    updated_at: now,
     ...overrides,
   };
 }

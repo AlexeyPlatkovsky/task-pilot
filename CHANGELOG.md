@@ -3,6 +3,12 @@
 All notable changes to TaskPilot are documented in this file.
 
 
+## [1.3.1] - 2026-07-31
+
+### Changed
+
+- Default the Updated filter to Last 7 days on Board and List, always reapplied on load with no persisted override (TP-109)
+
 ## [1.3.0] - 2026-07-31
 
 ### Added

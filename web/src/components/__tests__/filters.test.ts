@@ -142,10 +142,10 @@ describe("filterReferenceTimeForItems", () => {
 });
 
 describe("DEFAULT_BOARD_FILTERS", () => {
-  it("has all defaults as empty string or 'all'", () => {
+  it("defaults type/priority/created to unfiltered and updated to Last 7 days", () => {
     expect(DEFAULT_BOARD_FILTERS.type).toBe("");
     expect(DEFAULT_BOARD_FILTERS.priority).toBe("");
-    expect(DEFAULT_BOARD_FILTERS.updatedRange).toBe("all");
+    expect(DEFAULT_BOARD_FILTERS.updatedRange).toBe("last_7_days");
     expect(DEFAULT_BOARD_FILTERS.createdRange).toBe("all");
   });
 });

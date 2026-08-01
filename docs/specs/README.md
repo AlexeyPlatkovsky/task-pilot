@@ -31,3 +31,4 @@ normative gate sitting in `docs/` would be editable through documentation-only r
 | [0005: Daemon Lifecycle Commands](0005-daemon-lifecycle-commands.md) | ✅ accepted | Adds `start`/`stop`/`restart`/`status`/`logs` CLI commands to run and manage the server as a background daemon. |
 | [0006: CLI Version Flag](0006-cli-version-flag.md) | ✅ implemented | Adds a `--version`/`-v` eager option to the root Typer callback so the raw Python CLI reports its version like the npm wrapper already does. |
 | [0007: Linked To Status Indicator](0007-linked-to-status-indicator.md) | ✅ implemented | Amends 0004 F6: adds a status badge ahead of the ID/title link in each valid Linked to row; missing/invalid targets keep their existing state text instead. |
+| [0008: Default Updated Filter](0008-default-updated-filter.md) | ✅ implemented | Changes the Board and List Updated filter's default from `Any time` to `Last 7 days`, always reapplied on load with no persistence. |

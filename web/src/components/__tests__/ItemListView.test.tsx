@@ -15,14 +15,15 @@ import {
 import { ItemListView } from "../ItemListView";
 
 function makeItem(overrides: Partial<ItemSummary> = {}): ItemSummary {
+  const now = new Date().toISOString();
   return {
     id: "VP-1",
     title: "Test Item",
     type: "task",
     status: "backlog",
     priority: "normal",
-    created_at: "2026-06-25T10:00:00Z",
-    updated_at: "2026-06-25T11:00:00Z",
+    created_at: now,
+    updated_at: now,
     valid: true,
     findings: [],
     ...overrides,
@@ -326,6 +327,65 @@ describe("ItemListView", () => {
     expect(visibleRowIds()).toEqual(["VP-1", "VP-2", "VP-3", "VP-4"]);
   });
 
+  it("defaults the updated filter to Last 7 days on load and hides older rows", () => {
+    render(
+      <ItemListView
+        items={[
+          makeItem({ id: "VP-1", title: "Recent", updated_at: "2026-06-25T10:00:00Z" }),
+          makeItem({ id: "VP-2", title: "Stale", updated_at: "2026-05-20T10:00:00Z" }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    expect(visibleRowIds()).toEqual(["VP-1"]);
+    expect(
+      screen.getByRole("button", { name: "Updated: Last 7 days" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the filtered-empty state, with the default still visible, when every row is stale", () => {
+    render(
+      <ItemListView
+        items={[
+          makeItem({ id: "VP-1", title: "Stale", updated_at: "2026-05-20T10:00:00Z" }),
+        ]}
+        now={new Date("2026-06-28T00:00:00Z")}
+        onItemClick={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("item-list-filtered-empty")).toBeInTheDocument();
+    expect(screen.getByText("No items match the selected filters.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Updated: Last 7 days" }),
+    ).toBeInTheDocument();
+  });
+
+  it("re-applies the Last 7 days default on remount instead of remembering a prior selection", async () => {
+    const user = userEvent.setup();
+    const items = [
+      makeItem({ id: "VP-1", title: "Recent", updated_at: "2026-06-25T10:00:00Z" }),
+    ];
+    const now = new Date("2026-06-28T00:00:00Z");
+
+    const first = render(
+      <ItemListView items={items} now={now} onItemClick={vi.fn()} />,
+    );
+    await selectFilterOption(user, "Updated", "Any time");
+    expect(
+      screen.getByRole("button", { name: "Updated: Any time" }),
+    ).toBeInTheDocument();
+    first.unmount();
+
+    render(<ItemListView items={items} now={now} onItemClick={vi.fn()} />);
+    expect(
+      screen.getByRole("button", { name: "Updated: Last 7 days" }),
+    ).toBeInTheDocument();
+    expect(visibleRowIds()).toEqual(["VP-1"]);
+  });
+
   it("filters rows by created time range", async () => {
     const user = userEvent.setup();
     render(
@@ -480,6 +540,7 @@ describe("ItemListView", () => {
             type: "bug",
             status: "done",
             priority: "high",
+            created_at: "2026-06-24T10:00:00Z",
             updated_at: "2026-06-24T10:00:00Z",
           }),
           makeItem({
@@ -488,7 +549,8 @@ describe("ItemListView", () => {
             type: "task",
             status: "backlog",
             priority: "normal",
-            updated_at: "2026-05-20T10:00:00Z",
+            created_at: "2026-06-22T10:00:00Z",
+            updated_at: "2026-06-22T10:00:00Z",
           }),
         ]}
         now={new Date("2026-06-28T00:00:00Z")}
@@ -516,14 +578,14 @@ describe("ItemListView", () => {
       screen.getByRole("button", { name: "Priority: All priorities" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Updated: Any time" }),
+      screen.getByRole("button", { name: "Updated: Last 7 days" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Created: Any time" }),
     ).toBeInTheDocument();
   });
 
-  it("keeps the implicit current time stable while date filters remain active", async () => {
+  it("keeps the implicit current time stable while the default date filter remains active", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-29T00:00:00Z"));
 
@@ -541,10 +603,9 @@ describe("ItemListView", () => {
         />,
       );
 
-      fireEvent.click(
-        screen.getByRole("button", { name: "Updated: Any time" }),
-      );
-      fireEvent.click(screen.getByRole("option", { name: "Last 7 days" }));
+      expect(
+        screen.getByRole("button", { name: "Updated: Last 7 days" }),
+      ).toBeInTheDocument();
       expect(visibleRowIds()).toEqual(["VP-1"]);
 
       vi.setSystemTime(new Date("2026-07-02T00:00:00Z"));
