@@ -1,6 +1,8 @@
 name: Release
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
@@ -12,6 +14,36 @@ permissions:
   contents: read
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Check whether the current version is a new release
+  # ---------------------------------------------------------------------------
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.detect.outputs.version }}
+      should-publish: ${{ steps.detect.outputs.should-publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Detect version
+        id: detect
+        run: |
+          local_version=$(node -e "console.log(require('./package.json').version)")
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "should-publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$local_version" >> "$GITHUB_OUTPUT"
+            published_version=$(npm view @alexey_platkovsky/taskpilot version 2>/dev/null || echo "0.0.0")
+            echo "Local: $local_version, Published: $published_version"
+            node -e "
+              const [a1,a2,a3] = '$local_version'.split('.').map(Number);
+              const [b1,b2,b3] = '$published_version'.split('.').map(Number);
+              process.exit(a1>b1||(a1===b1&&a2>b2)||(a1===b1&&a2===b2&&a3>b3) ? 0 : 1);
+            " && echo "should-publish=true" >> "$GITHUB_OUTPUT" || echo "should-publish=false" >> "$GITHUB_OUTPUT"
+          fi
   # ---------------------------------------------------------------------------
   # macOS: full release quality suite
   # ---------------------------------------------------------------------------
@@ -194,9 +226,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
+      - check-release
       - macos-full
       - ubuntu-smoke
       - windows-smoke
+    if: needs.check-release.outputs.should-publish == 'true'
     environment: npm-release
     permissions:
       contents: write
@@ -230,7 +264,7 @@ jobs:
 
       - name: Verify release version
         env:
-          TARGET_VERSION: ${{ inputs.version }}
+          TARGET_VERSION: ${{ needs.check-release.outputs.version }}
         run: |
           package_version=$(node -e "console.log(require('./package.json').version)")
           python_version=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
@@ -268,7 +302,7 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          TARGET_VERSION: ${{ inputs.version }}
+          TARGET_VERSION: ${{ needs.check-release.outputs.version }}
         run: |
           NOTES=$(awk -v ver="$TARGET_VERSION" '
             /^## \[/ { if (found) exit; if ($0 ~ "\\[" ver "\\]") { found=1; next } }
