@@ -38,7 +38,9 @@ def derive_reverse_links(paths: WorkspacePaths) -> dict[str, dict[str, list[str]
     reverse: dict[str, dict[str, list[str]]] = defaultdict(
         lambda: {"blocked_by": [], "related_to": []}
     )
-    for item in item_service.list_items(paths, include_deleted=True):
+    for item in item_service.list_items(
+        paths, include_deleted=True, include_archived=True
+    ):
         if item.links is None:
             continue
         for forward, reverse_name in _REVERSE_OF.items():

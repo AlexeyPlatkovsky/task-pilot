@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-134
+title: 'Archive storage: shard files and metadata by archive month'
+priority: high
+type: task
+status: done
+created_at: '2026-08-06T09:26:29Z'
+updated_at: '2026-08-06T12:13:01Z'
+parent_id: TP-110
+description: Change archived canonical storage to .taskpilot/archived/YYYY-MM/, selected from archived_at. Each month owns item YAML files and metadata.json. Preserve deterministic listing and unarchive behavior, discover legacy root-level archives, and provide an idempotent migration that moves existing root-level archived data without changing item content or timestamps. Update the accepted specification, API/CLI contracts as needed, and add migration, service, concurrency, and cross-platform path tests.

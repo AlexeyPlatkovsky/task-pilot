@@ -62,6 +62,11 @@ Exit codes are fixed so scripts and AI agents can branch on them reliably.
 | `taskpilot item relates` | `<source-id> <target-id>` | — |
 | `taskpilot item unrelates` | `<source-id> <target-id>` | — |
 | `taskpilot item comment` | `<item-id> <text>` | `--author` |
+| `taskpilot archive run` | — | — |
+| `taskpilot archive migrate` | — | — |
+| `taskpilot archive migrate-storage` | — | — |
+| `taskpilot archive unarchive` | `<item-id>` | — |
+| `taskpilot project archive-threshold` | — | `--threshold` |
 
 \* required.
 
@@ -109,11 +114,27 @@ All routes are mounted under the `/api` prefix.
 | `GET` | `/api/projects/{project_id}/validate` | `ValidationReportOut` |
 | `GET` | `/api/ui-state` | `UIStateOut` |
 | `PATCH` | `/api/ui-state` | `UIStateOut` |
+| `GET` | `/api/projects/{project_id}/settings` | `ArchiveSettingsOut` |
+| `PATCH` | `/api/projects/{project_id}/settings` | `ArchiveSettingsOut` |
+| `POST` | `/api/projects/{project_id}/archive/run` | `ArchiveRunOut` |
+| `POST` | `/api/projects/{project_id}/archive/migrate` | `ArchiveMigrateOut` |
+| `POST` | `/api/projects/{project_id}/archive/migrate-storage` | `ArchiveStorageMigrateOut` |
+| `POST` | `/api/projects/{project_id}/items/{item_id}/unarchive` | `ItemDetail` |
+| `GET` | `/api/projects/{project_id}/archived` | `list[ItemSummary]` |
 
 Behavior notes:
 
 - Item routes verify the item belongs to the requested project and return `404` otherwise, so an ID
   valid in one project cannot be read through another.
+- The item-detail `GET` route resolves both active and archived items in the requested project.
+  Its `archived` boolean identifies storage state for the WebUI; archive detail is read-only while
+  item mutation routes continue to operate on active canonical items only.
+- Relationship validation and item-detail Parent, Children, Blocks, Blocked by, Related to, and
+  Related from summaries resolve active and archived canonical items as one project-local graph.
+  A malformed metadata-backed archived item remains visible as an invalid list/detail response.
+- The archived-items route is project-key scoped, matching the active-items route.
+- Unarchiving an item whose active `items/<item-id>.yaml` destination already exists returns `409`;
+  it preserves the active item, archived item, and archive metadata unchanged.
 - FastAPI docs are served at `/docs`.
 - When built WebUI assets are missing, the server serves a packaging-error page with `503` and keeps
   the API available rather than failing at startup.
@@ -133,10 +154,14 @@ Behavior notes:
 | `ItemSummary` | `ItemCoreSummary` + `created_at`, `updated_at`, `parent_id`, `findings` |
 | `ItemRelationshipSummary` | `ItemCoreSummary` with no additional fields |
 | `ItemRelationships` | `parent`, `children`, `blocks`, `blocked_by`, `relates_to`, `related_to` |
-| `ItemDetail` | the domain `Item` + `comments`, `relationships`, `valid`, `findings` |
+| `ItemDetail` | the domain `Item` + `comments`, `relationships`, `archived`, `valid`, `findings` |
 | `ItemUpdateInput` | `title`, `description`, `priority`, `status` — all optional |
 | `UIStateOut` | `last_opened_project_id` |
 | `UIStatePatch` | `last_opened_project_id` |
+| `ArchiveSettingsOut` | `archive_threshold_days` |
+| `ArchiveRunOut` | `archived` — list of archived item ids |
+| `ArchiveMigrateOut` | `archived_count`, `archived_ids` |
+| `ArchiveStorageMigrateOut` | `migrated_count`, `migrated_ids` |
 
 `ItemUpdateInput` is the full PATCH surface: `tags`, `parent_id`, and `type` are **not** writable
 over REST, though the CLI can change all three.

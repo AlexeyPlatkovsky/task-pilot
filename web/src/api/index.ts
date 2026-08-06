@@ -6,4 +6,6 @@ export {
   updateItem,
   fetchUIState,
   patchUIState,
+  fetchArchivedItems,
+  unarchiveItem,
 } from "./client";

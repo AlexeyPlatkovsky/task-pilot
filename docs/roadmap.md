@@ -339,6 +339,13 @@ Expose core operations as MCP tools. No separate logic. Only after CLI/API stabi
 
 Serves: [F008: MCP Adapter](features/F008_mcp-adapter/)
 
+### ⏳ Phase 8 — Auto Archive
+
+Archive done/cancelled/deleted items after configurable inactivity window (default 14 days).
+CLI commands, API endpoints, Archived board tab, periodic scheduler.
+
+Serves: [F009: Auto Archive](specs/0009-auto-archive.md)
+
 ## Recommended First Usable Slice
 
 ```text

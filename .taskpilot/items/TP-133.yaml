@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-133
+title: 'Archive UI: enforce POST unarchive and end-to-end restoration'
+priority: high
+type: task
+status: in_progress
+created_at: '2026-08-06T07:44:56Z'
+updated_at: '2026-08-06T10:04:28Z'
+parent_id: TP-110
+description: 'Add contract coverage that the WebUI unarchive client uses POST, then add a deterministic functional E2E flow: create eligible item, archive it, reveal Archived, confirm unarchive, and verify it returns to the active board. Correct browser-contract selectors so status assertions exercise rendered columns.'

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import ValidationError
 import yaml
 
 from taskpilot.core.models import SCHEMA_VERSION, ItemStatus, ItemType, Priority
@@ -11,6 +12,11 @@ from taskpilot.core.yaml_io import load_yaml
 from taskpilot.services.registry import RegistryEntry, list_projects as registry_list
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.schemas import (
+    ArchiveMigrateOut,
+    ArchiveStorageMigrateOut,
+    ArchiveRunOut,
+    ArchiveSettingsOut,
+    ArchiveSettingsPatch,
     ItemDetail,
     ItemRelationshipSummary,
     ItemSummary,
@@ -22,11 +28,12 @@ from taskpilot.server.schemas import (
     ValidationReportOut,
 )
 from taskpilot.core.validation import validate_workspace
+from taskpilot.services import archive_service
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
 from taskpilot.services import reverse_links as reverse_link_svc
 from taskpilot.services import ui_state as ui_state_svc
-from taskpilot.services.errors import NotFound, ValidationFailed
+from taskpilot.services.errors import ConflictError, NotFound, ValidationFailed
 
 router = APIRouter(tags=["projects"])
 
@@ -93,7 +100,7 @@ def _broken_relationship_summary(item_id: str, title: str) -> dict:
 
 def _relationship_summary_for_id(ws: WorkspacePaths, item_id: str) -> dict:
     try:
-        return _relationship_summary(item_svc.read_item(ws, item_id))
+        return _relationship_summary(item_svc.read_item_anywhere(ws, item_id))
     except NotFound:
         return _broken_relationship_summary(item_id, "[missing item]")
     except ValidationFailed:
@@ -117,7 +124,9 @@ def _item_relationships(item, ws: WorkspacePaths) -> dict:
     )
     children = [
         _relationship_summary(child)
-        for child in item_svc.list_items(ws, include_deleted=True)
+        for child in item_svc.list_items(
+            ws, include_deleted=True, include_archived=True
+        )
         if child.parent_id == item.id
     ]
     links = item.links.model_dump() if item.links is not None else {}
@@ -181,6 +190,7 @@ def _optional_links(value: object) -> dict | None:
 
 def _item_detail(item, ws: WorkspacePaths) -> dict:
     d = item.model_dump()
+    d["archived"] = archive_service.is_archived(ws, item.id)
     try:
         comments = comment_svc.list_comments(ws, item.id)
         d["comments"] = [c.model_dump() for c in comments]
@@ -196,7 +206,7 @@ def _item_detail(item, ws: WorkspacePaths) -> dict:
 def _invalid_item_detail(item_id: str, ws: WorkspacePaths) -> dict:
     target = ws.item_file(item_id)
     if not target.is_file():
-        raise NotFound(f"No item found with id {item_id!r}")
+        target = archive_service.archived_item_file(ws, item_id)
 
     data: dict = {}
     try:
@@ -227,6 +237,7 @@ def _invalid_item_detail(item_id: str, ws: WorkspacePaths) -> dict:
         "updated_at": _timestamp_or_default(data.get("updated_at")),
         "comments": [],
         "relationships": {},
+        "archived": archive_service.is_archived(ws, item_id),
         "valid": False,
         "findings": _validation_findings_for_item(ws, item_id),
     }
@@ -323,7 +334,7 @@ def get_item_detail(request: Request, project_id: str, item_id: str) -> ItemDeta
     _require_item_in_project(entry, item_id)
     ws = _paths(entry)
     try:
-        item = item_svc.read_item(ws, item_id)
+        item = item_svc.read_item_anywhere(ws, item_id)
     except ValidationFailed:
         return ItemDetail(**_invalid_item_detail(item_id, ws))
     return ItemDetail(**_item_detail(item, ws))
@@ -376,3 +387,110 @@ def patch_ui_state(request: Request, body: UIStatePatch) -> UIStateOut:
         current.last_opened_project_id = last_opened_project_id
         ui_state_svc.save_ui_state(current)
     return UIStateOut(last_opened_project_id=current.last_opened_project_id)
+
+
+@router.get("/projects/{project_id}/settings", response_model=ArchiveSettingsOut)
+def get_project_settings(request: Request, project_id: str) -> dict:
+    """Get project settings including archive_threshold_days."""
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    threshold = archive_service.get_archive_threshold(ws)
+    return {"archive_threshold_days": threshold}
+
+
+@router.patch("/projects/{project_id}/settings", response_model=ArchiveSettingsOut)
+def patch_project_settings(request: Request, project_id: str, body: dict) -> dict:
+    """Update project settings (e.g., archive_threshold_days)."""
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    try:
+        payload = ArchiveSettingsPatch.model_validate(body)
+        threshold = archive_service.set_archive_threshold(
+            ws, payload.archive_threshold_days
+        )
+    except (ValidationError, ValidationFailed) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"archive_threshold_days": threshold}
+
+
+@router.post("/projects/{project_id}/archive/run", response_model=ArchiveRunOut)
+def archive_run(request: Request, project_id: str) -> dict:
+    """Trigger archive check on eligible items."""
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    eligible = archive_service.scan_eligible_items(ws)
+    item_ids = [item.id for item in eligible]
+    archived_ids = archive_service.archive_items(ws, item_ids)
+    return {"archived": archived_ids}
+
+
+@router.post("/projects/{project_id}/archive/migrate", response_model=ArchiveMigrateOut)
+def archive_migrate(request: Request, project_id: str) -> dict:
+    """One-time migration of all eligible items."""
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    archived_ids = archive_service.migrate_all_eligible(ws)
+    return {"archived_count": len(archived_ids), "archived_ids": archived_ids}
+
+
+@router.post(
+    "/projects/{project_id}/archive/migrate-storage",
+    response_model=ArchiveStorageMigrateOut,
+)
+def archive_migrate_storage(request: Request, project_id: str) -> dict:
+    """Migrate compatible root-level archive data into archive-month storage."""
+    entry = _registry_entry(request, project_id)
+    migrated_ids = archive_service.migrate_legacy_archives(_paths(entry))
+    return {"migrated_count": len(migrated_ids), "migrated_ids": migrated_ids}
+
+
+@router.post(
+    "/projects/{project_id}/items/{item_id}/unarchive", response_model=ItemDetail
+)
+def unarchive_item(request: Request, project_id: str, item_id: str) -> ItemDetail:
+    """Unarchive an item."""
+    entry = _registry_entry(request, project_id)
+    _require_item_in_project(entry, item_id)
+    ws = _paths(entry)
+    try:
+        item = archive_service.unarchive_item(ws, item_id)
+    except NotFound:
+        raise HTTPException(status_code=404, detail=f"Item {item_id!r} is not archived")
+    except ConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    return ItemDetail(**_item_detail(item, ws))
+
+
+@router.get("/projects/{project_id}/archived", response_model=list[ItemSummary])
+def list_archived_items(request: Request, project_id: str) -> list[dict]:
+    """List archived items for a project."""
+    entry = _registry_entry(request, project_id)
+    ws = _paths(entry)
+    items = [
+        item
+        for item in archive_service.list_archived_items(ws)
+        if item.id.startswith(f"{entry.key}-")
+    ]
+    valid_summaries = [_item_summary(item) for item in items]
+    invalid_summaries = [
+        ItemSummary(
+            id=item_id,
+            title=f"[unparseable: {item_id}.yaml]",
+            type="unknown",
+            status="unknown",
+            priority="unknown",
+            valid=False,
+            findings=[
+                ValidationFindingOut(
+                    severity="error",
+                    code="parse_error",
+                    path=rel_path,
+                    message=error_msg,
+                )
+            ],
+        ).model_dump()
+        for item_id, rel_path, error_msg in archive_service.list_invalid_archived_item_stubs(
+            ws, project=entry.key
+        )
+    ]
+    return valid_summaries + invalid_summaries

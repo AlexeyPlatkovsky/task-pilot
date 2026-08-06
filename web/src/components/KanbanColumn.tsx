@@ -14,6 +14,7 @@ interface Props {
   onItemClick?: (itemId: string) => void;
   droppedItemId?: string | null;
   activeDraggedItemId?: string | null;
+  onUnarchive?: (itemId: string) => void;
 }
 
 export function KanbanColumn({
@@ -23,6 +24,7 @@ export function KanbanColumn({
   onItemClick,
   droppedItemId,
   activeDraggedItemId,
+  onUnarchive,
 }: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -53,6 +55,7 @@ export function KanbanColumn({
                 onClick={onItemClick}
                 droppedItemId={droppedItemId}
                 activeDraggedItemId={activeDraggedItemId}
+                onUnarchive={onUnarchive}
               />
             ))
           )}

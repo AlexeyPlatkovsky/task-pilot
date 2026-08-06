@@ -81,6 +81,30 @@ Every applicable product flow accounts for:
 - completed success state;
 - constrained desktop window layout.
 
+## Archived List
+
+The Archived workspace view is always available beside Board and List. It is a compact scanning
+surface, not a Kanban board: archived rows appear in one plain list with no status columns and no
+show/hide control. The default order is epic, feature, task, bug, then numeric item ID within each
+type. Every row carries text or an existing status indicator for type, priority, and status; color
+only reinforces those labels.
+
+Rows are buttons with the accessible name `Open <item ID>`. Selecting a row opens the existing item
+detail modal in read-only mode. The modal keeps its normal Close behavior and relationship browsing,
+but omits Edit and Delete actions because an archived item must be unarchived before it can change.
+The row's explicit Unarchive action remains separate, uses the existing confirmation dialog, and
+retains its disabled/pending/error behavior.
+
+The list has loading, empty, and recoverable-error states. Its rows use the existing tokenized
+surfaces, dividers, focus treatment, and desktop overflow rules; no new design tokens or reusable
+control are required.
+
+Archive placement never breaks a relationship row. Item detail resolves Parent, Children, Blocks,
+Blocked by, and Related to across active and archived storage, while retaining the target's normal
+workflow status. The active Board and List remain filtered to active items and the Archived List to
+archived items; only relationship and Tree graph views cross that storage boundary. No separate
+"archived" relationship status or duplicated link field is introduced.
+
 ---
 
 ## Item Detail Modal Pattern

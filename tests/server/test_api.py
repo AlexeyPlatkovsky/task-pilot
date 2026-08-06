@@ -18,7 +18,12 @@ from taskpilot.services.registry import (
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.server.app import create_app
 from taskpilot.server.schemas import ItemRelationshipSummary, ItemSummary
-from taskpilot.services import item_service, link_service, project_service
+from taskpilot.services import (
+    archive_service,
+    item_service,
+    link_service,
+    project_service,
+)
 
 
 @pytest.fixture
@@ -444,6 +449,7 @@ class TestGetItem:
         r = client.get("/api/projects/voice-pilot/items/VP-2")
 
         assert r.status_code == 200
+        assert r.json()["archived"] is False
         relationships = r.json()["relationships"]
         assert relationships["parent"] == {
             "id": "VP-1",
@@ -467,6 +473,57 @@ class TestGetItem:
         assert relationships["relates_to"][0]["id"] == "VP-5"
         assert relationships["blocked_by"][0]["id"] == "VP-6"
         assert relationships["related_to"][0]["id"] == "VP-7"
+
+    def test_detail_resolves_relationships_across_active_and_archived_storage(
+        self, client, tmp_path, workspace
+    ):
+        _setup_registry(workspace, tmp_path)
+        item_service.create_item(
+            workspace,
+            title="Archived feature",
+            type="feature",
+            now="2026-06-01T10:00:00Z",
+        )
+        item_service.create_item(
+            workspace,
+            title="Active child task",
+            type="task",
+            parent_id="VP-1",
+            now="2026-06-02T10:00:00Z",
+        )
+        link_service.add_link(workspace, "VP-2", "relates_to", "VP-1")
+        item_service.update_item(
+            workspace, "VP-1", status="done", now="2026-06-01T10:00:00Z"
+        )
+        assert archive_service.archive_items(
+            workspace, ["VP-1"], now="2026-06-16T10:00:00Z"
+        ) == ["VP-1"]
+
+        active_detail = client.get("/api/projects/voice-pilot/items/VP-2")
+        archived_detail = client.get("/api/projects/voice-pilot/items/VP-1")
+
+        assert active_detail.status_code == 200
+        assert active_detail.json()["relationships"]["parent"] == {
+            "id": "VP-1",
+            "title": "Archived feature",
+            "type": "feature",
+            "status": "done",
+            "priority": "normal",
+            "valid": True,
+        }
+        assert active_detail.json()["relationships"]["relates_to"] == [
+            {
+                "id": "VP-1",
+                "title": "Archived feature",
+                "type": "feature",
+                "status": "done",
+                "priority": "normal",
+                "valid": True,
+            }
+        ]
+        assert archived_detail.status_code == 200
+        assert archived_detail.json()["relationships"]["children"][0]["id"] == "VP-2"
+        assert archived_detail.json()["relationships"]["related_to"][0]["id"] == "VP-2"
 
     def test_detail_keeps_missing_relationship_ids_visible(
         self, client, tmp_path, workspace

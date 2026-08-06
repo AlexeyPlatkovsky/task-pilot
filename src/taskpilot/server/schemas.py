@@ -82,6 +82,7 @@ class ItemDetail(Item):
 
     comments: list[CommentOut] = []
     relationships: ItemRelationships = Field(default_factory=ItemRelationships)
+    archived: bool = False
     valid: bool = True
     findings: list[ValidationFindingOut] = []
 
@@ -101,3 +102,27 @@ class UIStatePatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     last_opened_project_id: str | None = None
+
+
+class ArchiveSettingsOut(BaseModel):
+    archive_threshold_days: int
+
+
+class ArchiveSettingsPatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    archive_threshold_days: int = Field(strict=True, ge=1, le=3650)
+
+
+class ArchiveRunOut(BaseModel):
+    archived: list[str]
+
+
+class ArchiveMigrateOut(BaseModel):
+    archived_count: int
+    archived_ids: list[str]
+
+
+class ArchiveStorageMigrateOut(BaseModel):
+    migrated_count: int
+    migrated_ids: list[str]

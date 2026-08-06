@@ -10,6 +10,7 @@ from pathlib import Path
 
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.validation import Severity, validate_workspace
+from taskpilot.services import archive_service, item_service, project_service
 
 VALID = """\
 schema_version: 1
@@ -136,6 +137,35 @@ def test_missing_parent_reference_is_error(tmp_path: Path):
     finding = next(f for f in report.findings if f.code == "missing_reference")
 
     assert finding.field == "parent_id"
+
+
+def test_archived_items_are_valid_reference_targets(tmp_path: Path):
+    """Storage location does not turn a canonical relationship into a dangling one."""
+    paths = WorkspacePaths.for_root(tmp_path)
+    project_service.create_project(
+        paths, key="TP", name="TaskPilot", now="2026-06-01T10:00:00Z"
+    )
+    _item(
+        paths,
+        "TP-1",
+        extra="parent_id: TP-2\nlinks:\n  relates_to:\n    - TP-2\n",
+    )
+    archived = item_service.create_item(
+        paths,
+        title="Archived parent",
+        type="task",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )
+    assert archived.id == "TP-2"
+    assert archive_service.archive_items(
+        paths, [archived.id], now="2026-06-16T10:00:00Z"
+    ) == [archived.id]
+
+    report = validate_workspace(paths)
+
+    assert report.ok is True
+    assert "missing_reference" not in _codes(report)
 
 
 def test_absolute_attachment_is_error(tmp_path: Path):

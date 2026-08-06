@@ -1,0 +1,40 @@
+schema_version: 1
+id: TP-126
+title: 'Archive: CLI/API for migrate and unarchive'
+priority: high
+type: task
+status: done
+created_at: '2026-08-05T00:00:00Z'
+updated_at: '2026-08-05T00:00:00Z'
+parent_id: TP-110
+description: 'Implement CLI and API commands for archive migration and unarchive (Slice 3).
+
+Required behavior:
+- CLI command group `taskpilot archive` with subcommands:
+  - `taskpilot archive run` — triggers archive check, JSON output: list of archived IDs.
+  - `taskpilot archive migrate` — one-time migration of all eligible items, JSON output:
+    summary with archived_count and archived_ids.
+  - `taskpilot archive unarchive <item-id>` — moves item from .taskpilot/archived/ back
+    to .taskpilot/items/, JSON output: restored item model.
+- API endpoints:
+  - POST /api/projects/{project_id}/archive/run — response: { "archived": [...] }.
+  - POST /api/projects/{project_id}/archive/migrate — response: { "archived_count": N,
+    "archived_ids": [...] }.
+  - POST /api/projects/{project_id}/items/{item_id}/unarchive — response: ItemDetail.
+- `archive_service.py` exports `migrate_all_eligible(paths, now)` and
+  `unarchive_item(paths, item_id, now)`.
+- `item_service.py` list_items gains `include_archived: bool = False` parameter.
+
+Acceptance:
+- CLI archive run archives eligible items and prints IDs in JSON mode.
+- CLI archive migrate archives all existing eligible items in one pass with summary.
+- CLI archive unarchive restores an item to items/ with original status.
+- All API endpoints return correct response shapes.
+- Error handling: 404 for unknown project/item, 400 for invalid input.
+- JSON output is deterministic.
+
+Depends on: TP-125 (archive service core must exist first).
+Blocks: TP-127 (UI needs API endpoints).
+
+Open Questions:
+- None for this slice.'

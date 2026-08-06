@@ -9,7 +9,12 @@ from pathlib import Path
 import pytest
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.services import item_service, link_service, project_service
+from taskpilot.services import (
+    archive_service,
+    item_service,
+    link_service,
+    project_service,
+)
 from taskpilot.services.errors import NotFound, ValidationFailed
 
 
@@ -90,6 +95,22 @@ def test_add_link_rejects_unknown_target(tmp_path: Path):
     a, _ = _two_items(paths)
     with pytest.raises(ValidationFailed):
         link_service.add_link(paths, a.id, "blocks", "VP-999")
+
+
+def test_add_link_accepts_archived_target(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    source, target = _two_items(paths)
+    item_service.update_item(
+        paths, target.id, status="done", now="2026-06-01T10:00:00Z"
+    )
+    assert archive_service.archive_items(
+        paths, [target.id], now="2026-06-16T10:00:00Z"
+    ) == [target.id]
+
+    updated = link_service.add_link(paths, source.id, "blocks", target.id)
+
+    assert updated.links is not None
+    assert updated.links.blocks == [target.id]
 
 
 def test_add_link_rejects_self_link(tmp_path: Path):

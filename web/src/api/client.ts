@@ -87,3 +87,19 @@ export async function patchUIState(
     body: JSON.stringify({ last_opened_project_id: lastOpenedProjectId }),
   });
 }
+
+export async function fetchArchivedItems(
+  projectId: string,
+): Promise<ItemSummary[]> {
+  return request<ItemSummary[]>(`/projects/${projectId}/archived`);
+}
+
+export async function unarchiveItem(
+  projectId: string,
+  itemId: string,
+): Promise<ItemDetail> {
+  return request<ItemDetail>(
+    `/projects/${projectId}/items/${itemId}/unarchive`,
+    { method: "POST" },
+  );
+}

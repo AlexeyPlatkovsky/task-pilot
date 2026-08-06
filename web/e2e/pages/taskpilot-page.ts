@@ -165,6 +165,39 @@ export class TaskPilotPage {
     );
   }
 
+  async expectArchivedTabVisible() {
+    await expect(this.byTestId("workspace-tab-archived")).toBeVisible();
+  }
+
+  async openArchivedView() {
+    await this.byTestId("workspace-tab-archived").click();
+  }
+
+  async expectArchivedListVisible() {
+    await expect(this.byTestId("archived-list")).toBeVisible();
+  }
+
+  async openArchivedItem(itemId: string) {
+    await this.byTestId(`archived-list-open-${itemId}`).click();
+  }
+
+  async expectArchivedItemDetail(itemId: string, title: string) {
+    await this.expectModalVisible(itemId, title);
+    await expect(this.byTestId("item-modal-edit")).toBeHidden();
+    await expect(this.byTestId("item-modal-delete")).toBeHidden();
+  }
+
+  async switchToBoard() {
+    await this.byTestId("workspace-tab-board").click();
+    await this.expectBoardTabSelected();
+  }
+
+  async unarchiveArchivedItem(itemId: string) {
+    await this.byTestId(`unarchive-button-${itemId}`).click();
+    await expect(this.byTestId("unarchive-confirm-dialog")).toBeVisible();
+    await this.byTestId("unarchive-confirm-submit").click();
+  }
+
   async expectListReady() {
     await expect(this.byTestId("item-list-table")).toBeVisible();
     await expect(this.byTestId("item-list-open-TP-2")).toBeVisible();

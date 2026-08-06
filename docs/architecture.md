@@ -17,7 +17,7 @@ The system does not integrate with hosted services, issue trackers, or authentic
 | Component | Responsibility | Notes |
 | --- | --- | --- |
 | File parser/validator | Reads and writes canonical YAML item files and Markdown comment files. Validates structure, required fields, and references. | Python core under `src/taskpilot/core/` |
-| Domain services | Business rules for projects, items, comments, links. All adapters call this layer. | Python core under `src/taskpilot/services/`, shared across all surfaces |
+| Domain services | Business rules for projects, items, comments, links, and archive operations. All adapters call this layer. | Python core under `src/taskpilot/services/`, shared across all surfaces |
 | CLI adapter | Translates command-line input to domain operations. Supports human-readable and JSON output. | `src/taskpilot/cli/`, uses Typer |
 | REST API server | Exposes domain operations over HTTP for the WebUI. FastAPI. | `src/taskpilot/server/`; see [F005](features/archive/F005_rest-api/) |
 | WebUI | React browser application. Calls REST API. Board/list/tree workspace views, validation panel, item modal, project selector. | `web/`, Vite + TypeScript |

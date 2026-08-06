@@ -1,0 +1,33 @@
+schema_version: 1
+id: TP-124
+title: 'Archive: project setting for archive_threshold_days'
+priority: high
+type: task
+status: done
+created_at: '2026-08-05T00:00:00Z'
+updated_at: '2026-08-05T00:00:00Z'
+parent_id: TP-110
+description: 'Implement the archive-threshold project setting (Slice 1).
+
+Required behavior:
+- Add `archive_threshold_days` field to `ProjectMeta` model (core/project.py).
+- Default value is 14 when absent from `project.yaml`.
+- CLI command `taskpilot project archive-threshold` prints the current value.
+- CLI command `taskpilot project archive-threshold --threshold N` sets it (validates 1-3650).
+- API GET `/api/projects/{project_id}/settings` returns `{ "archive_threshold_days": 14 }`.
+- API PATCH `/api/projects/{project_id}/settings` accepts `{ "archive_threshold_days": 30 }`.
+- `project_service.py` read_project/create_project handle the new field.
+
+Acceptance:
+- project.yaml without the field defaults to 14.
+- Setting to any integer 1-3650 persists correctly.
+- Values outside 1-3650 are rejected with a clear error.
+- CLI prints current value without --threshold, sets it with --threshold.
+- API returns and accepts the field.
+- JSON output includes the field.
+
+Depends on: nothing (first slice).
+Blocks: TP-125 (archive service needs the threshold to scan).
+
+Open Questions:
+- None for this slice.'

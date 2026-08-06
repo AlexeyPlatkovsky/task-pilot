@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-130
+title: 'Archive integrity: transactional locking and recovery'
+priority: high
+type: task
+status: done
+created_at: '2026-08-06T07:44:43Z'
+updated_at: '2026-08-06T09:53:41Z'
+parent_id: TP-110
+description: Implement the accepted .archived.lock coordination for archive and unarchive operations. Make file relocation and metadata publication crash-safe, deterministic, and idempotent; cover metadata-write failure and concurrent-operation paths.

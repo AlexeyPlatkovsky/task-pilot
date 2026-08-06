@@ -25,13 +25,17 @@ cpSync(seedWorkspaceRoot, workspaceRoot, { recursive: true });
 const itemsDir = join(workspaceRoot, ".taskpilot", "items");
 // Canonical UTC ISO 8601, no fractional seconds (src/taskpilot/core/models.py _check_timestamp).
 const nowIso = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
-for (const file of readdirSync(itemsDir)) {
+const eligibleIso = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+for (const directory of [itemsDir, join(workspaceRoot, ".taskpilot", "archived")]) {
+  if (!readdirSync(directory, { withFileTypes: true })) continue;
+  for (const file of readdirSync(directory)) {
   if (!file.endsWith(".yaml")) continue;
-  const path = join(itemsDir, file);
+  const path = join(directory, file);
   const restamped = readFileSync(path, "utf8")
-    .replace(/^created_at: '.*'$/m, `created_at: '${nowIso}'`)
-    .replace(/^updated_at: '.*'$/m, `updated_at: '${nowIso}'`);
+    .replace(/^created_at: '.*'$/m, `created_at: '${file === "TP-110.yaml" ? eligibleIso : nowIso}'`)
+    .replace(/^updated_at: '.*'$/m, `updated_at: '${file === "TP-110.yaml" ? eligibleIso : nowIso}'`);
   writeFileSync(path, restamped);
+  }
 }
 
 const init = spawnSync(
@@ -43,6 +47,19 @@ const init = spawnSync(
 if (init.status !== 0) {
   process.exit(init.status ?? 1);
 }
+
+const threshold = spawnSync(uv, ["run", "taskpilot", "project", "archive-threshold", "--threshold", "1"], {
+  cwd: workspaceRoot,
+  env,
+  stdio: "inherit",
+});
+if (threshold.status !== 0) process.exit(threshold.status ?? 1);
+const archive = spawnSync(uv, ["run", "taskpilot", "archive", "run"], {
+  cwd: workspaceRoot,
+  env,
+  stdio: "inherit",
+});
+if (archive.status !== 0) process.exit(archive.status ?? 1);
 
 const server = spawn(
   uv,

@@ -1,0 +1,39 @@
+schema_version: 1
+id: TP-128
+title: 'Archive: periodic scheduler and integration'
+priority: normal
+type: task
+status: done
+created_at: '2026-08-05T00:00:00Z'
+updated_at: '2026-08-05T00:00:00Z'
+parent_id: TP-110
+description: 'Implement the periodic archive scheduler and integration wiring (Slice 5).
+
+Required behavior:
+- Background task in server mode that scans for eligible items and archives them
+  roughly every 3 hours.
+- The scheduler is only active in long-running server mode (taskpilot serve).
+  CLI foreground mode has no scheduler; users must use `taskpilot archive run` manually.
+- Integration: item_service.list_items excludes archived items (those in metadata.json)
+  by default. A new parameter include_archived=True allows including them.
+- Integration: KanbanBoard and ItemListView exclude archived items from their data
+  fetch (existing behavior, no API change needed since archived items are not in
+  the items/ directory).
+- Integration tests: create items, set threshold, wait/trigger archive, verify
+  Archived board shows items, unarchive, verify items return to active views.
+- Browser-contract tests: archived board styling matches active board.
+
+Acceptance:
+- Periodic scheduler runs ~every 3 hours in server mode.
+- CLI archive run works independently of the scheduler.
+- Default listings exclude archived items.
+- Integration tests pass: create → archive → archived board → unarchive → active.
+- Browser-contract tests pass: archived board styling.
+- No regression in existing Board, List, or validation panel behavior.
+
+Depends on: TP-124, TP-125, TP-126, TP-127 (all previous slices).
+Blocks: none (final slice).
+
+Open Questions:
+- Should the scheduler be configurable (interval, enabled/disabled)? Not in scope;
+  fixed at ~3 hours, always enabled in server mode.'

@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-129
+title: 'Archive integrity: prevent ID reuse and unarchive collisions'
+priority: high
+type: task
+status: done
+created_at: '2026-08-06T07:44:39Z'
+updated_at: '2026-08-06T09:43:42Z'
+parent_id: TP-110
+description: Remediate TP-110 canonical-data loss risk. Reserve archived IDs during next_id allocation and reject an unarchive when items/<id>.yaml already exists; do not overwrite either canonical item. Add service and CLI/API regression tests for both cases.

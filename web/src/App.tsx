@@ -109,7 +109,10 @@ function App() {
             projects={projects}
           />
           {selectedProjectId && (
-            <ViewTabs activeView={activeView} onChange={setActiveView} />
+            <ViewTabs
+              activeView={activeView}
+              onChange={setActiveView}
+            />
           )}
         </div>
         <ValidationStatus projectId={selectedProjectId} />

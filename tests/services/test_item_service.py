@@ -9,8 +9,9 @@ from pathlib import Path
 import pytest
 
 from taskpilot.core.layout import WorkspacePaths
+from taskpilot.core.item_io import write_item
 from taskpilot.core.models import Item
-from taskpilot.services import item_service, project_service
+from taskpilot.services import archive_service, item_service, project_service
 from taskpilot.services.errors import NotFound, ValidationFailed
 
 
@@ -78,6 +79,75 @@ def test_next_id_skips_gaps_from_deleted_items(tmp_path: Path):
 
     third = item_service.create_item(paths, title="three", type="task")
     assert third.id == "VP-3"  # max+1, gap not reused
+
+
+def test_next_id_reserves_an_archived_id(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    archived = item_service.create_item(
+        paths,
+        title="finished",
+        type="task",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )
+    archive_service.archive_items(paths, [archived.id], now="2026-06-20T10:00:00Z")
+
+    created = item_service.create_item(paths, title="new work", type="task")
+
+    assert created.id == "VP-2"
+
+
+def test_next_id_is_greater_than_active_and_archived_ids(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    item_service.create_item(paths, title="active", type="task")  # VP-1
+    archived = item_service.create_item(
+        paths,
+        title="finished",
+        type="task",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )  # VP-2
+    archive_service.archive_items(paths, [archived.id], now="2026-06-20T10:00:00Z")
+    write_item(
+        paths,
+        Item(
+            schema_version=1,
+            id="VP-5",
+            title="later active item",
+            type="task",
+            priority="normal",
+            status="backlog",
+            created_at="2026-06-20T10:00:00Z",
+            updated_at="2026-06-20T10:00:00Z",
+        ),
+    )
+
+    assert item_service.next_id(paths, "VP") == "VP-6"
+
+
+def test_next_id_reserves_invalid_archived_item_id(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    write_item(
+        paths,
+        Item(
+            schema_version=1,
+            id="VP-5",
+            title="finished",
+            type="task",
+            priority="normal",
+            status="done",
+            created_at="2026-06-01T10:00:00Z",
+            updated_at="2026-06-01T10:00:00Z",
+        ),
+    )
+    archive_service.archive_items(paths, ["VP-5"], now="2026-06-20T10:00:00Z")
+    (paths.workspace_dir / "archived" / "VP-5.yaml").write_text(
+        "not: [valid", encoding="utf-8"
+    )
+
+    created = item_service.create_item(paths, title="new work", type="task")
+
+    assert created.id == "VP-6"
 
 
 def test_update_item_changes_status_and_refreshes_updated_at(tmp_path: Path):
@@ -193,6 +263,59 @@ def test_list_items_sorted_by_numeric_id(tmp_path: Path):
     ids = [i.id for i in item_service.list_items(paths)]
     assert ids[:3] == ["VP-1", "VP-2", "VP-3"]
     assert ids[-1] == "VP-11"  # numeric, not lexical
+
+
+def test_list_items_includes_archived_items_when_requested(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    active = item_service.create_item(paths, title="active", type="task")
+    archived = item_service.create_item(
+        paths,
+        title="archived",
+        type="task",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )
+    archive_service.archive_items(paths, [archived.id], now="2026-06-20T10:00:00Z")
+
+    assert [item.id for item in item_service.list_items(paths)] == [active.id]
+    assert [
+        item.id for item in item_service.list_items(paths, include_archived=True)
+    ] == [
+        active.id,
+        archived.id,
+    ]
+
+
+def test_list_items_filters_archived_items_and_skips_invalid_archived_yaml(
+    tmp_path: Path,
+):
+    paths = _workspace(tmp_path)
+    done = item_service.create_item(
+        paths,
+        title="done",
+        type="task",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )
+    invalid = item_service.create_item(
+        paths,
+        title="invalid",
+        type="bug",
+        status="done",
+        now="2026-06-01T10:00:00Z",
+    )
+    archive_service.archive_items(
+        paths, [done.id, invalid.id], now="2026-06-20T10:00:00Z"
+    )
+    (paths.workspace_dir / "archived" / f"{invalid.id}.yaml").write_text(
+        "not: [valid", encoding="utf-8"
+    )
+
+    listed = item_service.list_items(
+        paths, include_archived=True, status="done", type="task"
+    )
+
+    assert [item.id for item in listed] == [done.id]
 
 
 class TestListInvalidItemStubs:

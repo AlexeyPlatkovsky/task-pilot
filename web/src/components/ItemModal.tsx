@@ -51,9 +51,17 @@ interface Props {
   projectId: string;
   itemId: string | null;
   onClose: () => void;
+  readOnly?: boolean;
+  archivedItemIds?: readonly string[];
 }
 
-export function ItemModal({ projectId, itemId, onClose }: Props) {
+export function ItemModal({
+  projectId,
+  itemId,
+  onClose,
+  readOnly = false,
+  archivedItemIds = [],
+}: Props) {
   const [currentItemId, setCurrentItemId] = useState(itemId);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -96,6 +104,10 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
     setIsDeleting(false);
     handleClose();
   };
+  const isReadOnly =
+    readOnly ||
+    item?.archived === true ||
+    (currentItemId !== null && archivedItemIds.includes(currentItemId));
 
   return (
     <>
@@ -148,7 +160,7 @@ export function ItemModal({ projectId, itemId, onClose }: Props) {
             </Dialog.Description>
 
             <div className={styles.headerActions} data-test-id="item-modal-actions">
-              {item && !isEditing && (
+              {item && !isEditing && !isReadOnly && (
                 <>
                   <button
                     type="button"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from taskpilot.server.routes import projects
+from taskpilot.services import archive_scheduler
 from taskpilot.services.errors import NotFound, ValidationFailed
 
 #: Environment variable carrying the registry directory for :func:`create_app_from_env`.
@@ -17,11 +19,35 @@ REGISTRY_DIR_ENV = "TASKPILOT_REGISTRY_DIR"
 WEB_DIST_ENV = "TASKPILOT_WEB_DIST"
 
 
+async def _startup_logic(app: FastAPI) -> None:
+    """Start the archive scheduler when the server starts."""
+    from taskpilot.services import registry
+
+    entries = registry.list_projects(Path(app.state.registry_dir))
+    started_paths: set[str] = set()
+    for entry in entries:
+        workspace_path = str(Path(entry.path).resolve())
+        if entry.active and workspace_path not in started_paths:
+            archive_scheduler.start_archive_scheduler(entry.path)
+            started_paths.add(workspace_path)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: start scheduler on startup."""
+    await _startup_logic(app)
+    try:
+        yield
+    finally:
+        archive_scheduler.stop_archive_scheduler()
+
+
 def create_app(*, registry_dir: str) -> FastAPI:
     app = FastAPI(
         title="TaskPilot API",
         version="0.0.0",
         docs_url="/docs",
+        lifespan=lifespan,
     )
 
     app.state.registry_dir = registry_dir
