@@ -23,9 +23,19 @@ from taskpilot.services.hierarchy import validate_can_parent_children, validate_
 from taskpilot.services.operation_validation import build_validated_item
 from taskpilot.services.project_service import read_project
 
+
+# Lazy import to avoid circular imports
+def _is_archived(paths: WorkspacePaths, item_id: str) -> bool:
+    """Check if an item is archived (lazy import to avoid circular imports)."""
+    from taskpilot.services import archive_service
+
+    return archive_service.is_archived(paths, item_id)
+
+
 __all__ = [
     "create_item",
     "read_item",
+    "read_item_anywhere",
     "update_item",
     "delete_item",
     "list_items",
@@ -55,6 +65,12 @@ def next_id(paths: WorkspacePaths, key: str) -> str:
             suffix = _numeric_suffix(file.stem, key)
             if suffix is not None and suffix > highest:
                 highest = suffix
+    from taskpilot.services.archive_service import archived_item_ids
+
+    for item_id in archived_item_ids(paths):
+        suffix = _numeric_suffix(item_id, key)
+        if suffix is not None and suffix > highest:
+            highest = suffix
     return f"{key}-{highest + 1}"
 
 
@@ -116,6 +132,21 @@ def read_item(paths: WorkspacePaths, item_id: str) -> Item:
         return parse_item_file(target)
     except (ItemParseError, ValidationError, UnicodeDecodeError, OSError) as exc:
         raise ValidationFailed(f"Invalid item file for {item_id!r}: {exc}") from exc
+
+
+def read_item_anywhere(paths: WorkspacePaths, item_id: str) -> Item:
+    """Read an active item or a metadata-backed archived item by id.
+
+    Archived files are canonical task data in a different storage location, not
+    broken relationship targets. This resolver is read-only; writes remain
+    intentionally restricted to :func:`read_item`'s active-item path.
+    """
+    try:
+        return read_item(paths, item_id)
+    except NotFound:
+        from taskpilot.services.archive_service import read_archived_item
+
+        return read_archived_item(paths, item_id)
 
 
 def update_item(
@@ -202,7 +233,9 @@ def _validate_links(paths: WorkspacePaths, item: Item) -> None:
         for target in getattr(item.links, link_type):
             if target == item.id:
                 raise ValidationFailed(f"Item {item.id!r} cannot link to itself")
-            if not paths.item_file(target).is_file():
+            try:
+                read_item_anywhere(paths, target)
+            except NotFound:
                 raise ValidationFailed(
                     f"links.{link_type} references unknown item {target!r}"
                 )
@@ -233,11 +266,13 @@ def list_items(
     status: str | None = None,
     type: str | None = None,
     include_deleted: bool = False,
+    include_archived: bool = False,
 ) -> list[Item]:
     """List items, filtered and sorted by numeric id (F002-R2).
 
     Filters: ``project`` (item-id key prefix), ``status``, ``type``. ``deleted``
-    items are excluded unless ``include_deleted`` is true. Structurally invalid
+    items are excluded unless ``include_deleted`` is true. Archived items are
+    excluded unless ``include_archived`` is true. Structurally invalid
     files are skipped here; surfacing them is the validation layer's job (F001-T7).
     """
     items: list[Item] = []
@@ -250,6 +285,11 @@ def list_items(
             except (ItemParseError, ValidationError, UnicodeDecodeError, OSError):
                 continue
 
+    if include_archived:
+        from taskpilot.services.archive_service import list_archived_items
+
+        items.extend(list_archived_items(paths))
+
     if project is not None:
         prefix = f"{project}-"
         items = [i for i in items if i.id.startswith(prefix)]
@@ -259,6 +299,8 @@ def list_items(
         items = [i for i in items if i.type == type]
     if not include_deleted:
         items = [i for i in items if i.status != "deleted"]
+    if not include_archived:
+        items = [i for i in items if not _is_archived(paths, i.id)]
 
     items.sort(key=_numeric_id_key)
     return items

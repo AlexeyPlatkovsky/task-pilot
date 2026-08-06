@@ -1,0 +1,39 @@
+schema_version: 1
+id: TP-125
+title: 'Archive: service core (scan, archive, metadata.json)'
+priority: high
+type: task
+status: done
+created_at: '2026-08-05T00:00:00Z'
+updated_at: '2026-08-05T00:00:00Z'
+parent_id: TP-110
+description: 'Implement the archive service core (Slice 2).
+
+Required behavior:
+- New service module `services/archive_service.py` with:
+  - `get_archive_threshold(paths)` — reads from project.yaml, defaults to 14.
+  - `scan_eligible_items(paths, now)` — returns items with status done/cancelled/deleted
+    whose updated_at exceeds the threshold, excluding already-archived items.
+  - `archive_items(paths, item_ids, now)` — moves items to .taskpilot/archived/,
+    updates metadata.json, returns archived IDs. Idempotent.
+  - `list_archived_items(paths)` — reads metadata.json, loads archived item files.
+  - `is_archived(paths, item_id)` — checks metadata.json.
+- `.taskpilot/archived/` directory created on first archive.
+- `.taskpilot/archived/metadata.json` maps item IDs to {original_id, project_key,
+  archived_at, original_status}.
+- Source item files are moved (not rewritten) to preserve updated_at.
+- Invalid (unparseable) items are never archived.
+
+Acceptance:
+- scan_eligible_items returns correct items based on status and age.
+- archive_items moves files to .taskpilot/archived/ and updates metadata.json.
+- Running archive on an already-archived item is a no-op.
+- Invalid items are excluded from archive.
+- metadata.json is created/updated correctly.
+- Source file updated_at is not modified (file moved, not rewritten).
+
+Depends on: TP-124 (project setting must exist first).
+Blocks: TP-126 (migration/unarchive CLI uses archive service).
+
+Open Questions:
+- None for this slice.'

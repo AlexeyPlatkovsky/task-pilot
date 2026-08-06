@@ -21,6 +21,7 @@ function makeItem(overrides: Partial<ItemDetail> = {}): ItemDetail {
     priority: "normal",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
+    archived: false,
     valid: true,
     comments: [],
     ...overrides,

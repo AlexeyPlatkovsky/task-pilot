@@ -159,7 +159,7 @@ def _documented_commands() -> dict[str, set[str]]:
     body = _section(_doc_text(), "Commands")
     commands: dict[str, set[str]] = {}
     for line in body.splitlines():
-        match = re.match(r"^\| `taskpilot ([a-z ]+)` \|([^|]*)\|(.*)\|\s*$", line)
+        match = re.match(r"^\| `taskpilot ([a-z -]+)` \|([^|]*)\|(.*)\|\s*$", line)
         if not match:
             continue
         name = match.group(1).strip()

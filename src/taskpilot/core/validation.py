@@ -240,16 +240,21 @@ def _validate_comments(paths: WorkspacePaths) -> list[Finding]:
 
 
 def validate_workspace(paths: WorkspacePaths) -> ValidationReport:
-    """Validate every ``items/*.yaml`` and ``comments/**/*.md`` file in the workspace."""
+    """Validate active and archived item files plus ``comments/**/*.md`` files."""
     findings: list[Finding] = []
     valid_items: list[tuple[Item, str]] = []
     status_by_id: dict[str, str] = {}
     paths_by_id: dict[str, list[str]] = defaultdict(list)
 
-    if paths.items_dir.is_dir():
-        item_files = sorted(p for p in paths.items_dir.glob("*.yaml") if p.is_file())
-    else:
-        item_files = []
+    item_files = (
+        [p for p in paths.items_dir.glob("*.yaml") if p.is_file()]
+        if paths.items_dir.is_dir()
+        else []
+    )
+    archived_dir = paths.workspace_dir / "archived"
+    if archived_dir.is_dir():
+        item_files.extend(p for p in archived_dir.rglob("*.yaml") if p.is_file())
+    item_files.sort(key=paths.relative_posix)
 
     for file in item_files:
         rel = paths.relative_posix(file)

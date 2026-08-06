@@ -1,0 +1,38 @@
+schema_version: 1
+id: TP-127
+title: 'Archive: Archived board tab and unarchive UI'
+priority: normal
+type: task
+status: done
+created_at: '2026-08-05T00:00:00Z'
+updated_at: '2026-08-05T00:00:00Z'
+parent_id: TP-110
+description: 'Implement the Archived board tab in the WebUI (Slice 4).
+
+Required behavior:
+- New "Archived" tab in ProjectWorkspace, following Tree tab visibility pattern
+  (hidden by default, toggleable).
+- Archived tab renders a Kanban-style board showing only archived items grouped by
+  their original status (backlog, ready, in_progress, done, cancelled, deleted).
+- Archived items show the same status indicator, type, priority, and title as active items.
+- An "Unarchive" button/link on each archived item, opening a confirmation dialog
+  before calling POST /api/projects/{project_id}/items/{item_id}/unarchive.
+- Default Board and List views exclude archived items (item_service.list_items
+  include_archived=False by default).
+- The Archived tab is not exposed in release navigation by default (matching Tree).
+
+Acceptance:
+- Archived tab is hidden by default, toggleable to visible.
+- Archived board shows archived items grouped by status.
+- Status indicators render correctly for archived items.
+- Unarchive button calls the API and restores the item to active views.
+- Default Board and List views exclude archived items.
+- Component and functional E2E coverage for archived board rendering and unarchive flow.
+
+Depends on: TP-126 (API endpoints must exist first).
+Blocks: TP-128 (integration needs all slices complete).
+
+Open Questions:
+- Should the Archived tab be visible by default or hidden? Current design follows
+  Tree pattern (hidden by default). This is an open question (O3) but the spec
+  has decided: hidden by default.'

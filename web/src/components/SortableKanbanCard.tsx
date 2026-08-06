@@ -9,6 +9,7 @@ interface Props {
   onClick?: (itemId: string) => void;
   droppedItemId?: string | null;
   activeDraggedItemId?: string | null;
+  onUnarchive?: (itemId: string) => void;
 }
 
 export function SortableKanbanCard({
@@ -16,6 +17,7 @@ export function SortableKanbanCard({
   onClick,
   droppedItemId,
   activeDraggedItemId,
+  onUnarchive,
 }: Props) {
   const {
     attributes,
@@ -47,7 +49,7 @@ export function SortableKanbanCard({
       {...attributes}
       {...listeners}
     >
-      <KanbanCard item={item} onClick={onClick} />
+      <KanbanCard item={item} onClick={onClick} onUnarchive={onUnarchive} />
     </div>
   );
 }

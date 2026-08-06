@@ -7,7 +7,12 @@ forward links and never persisted.
 from pathlib import Path
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.services import item_service, link_service, project_service
+from taskpilot.services import (
+    archive_service,
+    item_service,
+    link_service,
+    project_service,
+)
 from taskpilot.services.reverse_links import derive_reverse_links, reverse_links_for
 
 
@@ -52,6 +57,20 @@ def test_related_to_is_derived_from_relates_to(tmp_path: Path):
     assert reverse_links_for(paths, v2.id)["related_to"] == [v1.id]
     # the source has no incoming relation
     assert reverse_links_for(paths, v1.id)["related_to"] == []
+
+
+def test_reverse_links_include_archived_source(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    source, target = _items(paths, 2)
+    link_service.add_link(paths, source.id, "blocks", target.id)
+    item_service.update_item(
+        paths, source.id, status="done", now="2026-06-01T10:00:00Z"
+    )
+    assert archive_service.archive_items(
+        paths, [source.id], now="2026-06-16T10:00:00Z"
+    ) == [source.id]
+
+    assert reverse_links_for(paths, target.id)["blocked_by"] == [source.id]
 
 
 def test_derive_reverse_links_full_map(tmp_path: Path):

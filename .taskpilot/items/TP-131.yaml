@@ -1,0 +1,10 @@
+schema_version: 1
+id: TP-131
+title: 'Archive scheduler: cover every active workspace'
+priority: high
+type: task
+status: done
+created_at: '2026-08-06T07:44:47Z'
+updated_at: '2026-08-06T09:58:46Z'
+parent_id: TP-110
+description: Replace the single global scheduler behavior so every active registered workspace receives the roughly three-hour archive check. Ensure shutdown cancels all scheduled work and add lifecycle tests for multiple active projects.

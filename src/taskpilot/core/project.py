@@ -12,7 +12,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 from typing_extensions import Annotated
 
 from taskpilot.core.layout import WorkspacePaths
@@ -33,19 +33,20 @@ SCHEMA_VERSION = 1
 
 
 class ProjectMeta(BaseModel):
-    """Canonical project identity, persisted as ``.taskpilot/project.yaml``.
+    """Canonical project identity, persisted as ``project.yaml``.
 
     Field declaration order is the canonical write order (see ``docs/specs/0002``
     "Project Metadata").
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
     schema_version: int = SCHEMA_VERSION
     id: Annotated[str, StringConstraints(min_length=1)]
     key: Annotated[str, StringConstraints(min_length=1)]
     name: Annotated[str, StringConstraints(min_length=1)]
     created_at: str
+    archive_threshold_days: int = Field(default=14, strict=True, ge=1, le=3650)
 
     @field_validator("created_at")
     @classmethod

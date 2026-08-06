@@ -11,7 +11,7 @@ from __future__ import annotations
 from taskpilot.core.layout import WorkspacePaths
 from taskpilot.core.models import Item
 from taskpilot.services import item_service
-from taskpilot.services.errors import ValidationFailed
+from taskpilot.services.errors import NotFound, ValidationFailed
 
 __all__ = ["LINK_TYPES", "add_link", "remove_link", "query_links"]
 
@@ -54,7 +54,9 @@ def add_link(
     source = item_service.read_item(paths, source_id)  # NotFound propagates
     if source_id == target_id:
         raise ValidationFailed(f"Item {source_id!r} cannot link to itself")
-    if not paths.item_file(target_id).is_file():
+    try:
+        item_service.read_item_anywhere(paths, target_id)
+    except NotFound:
         raise ValidationFailed(f"Link target references unknown item {target_id!r}")
 
     links = _links_as_dict(source)

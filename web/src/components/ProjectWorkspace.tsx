@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { fetchItems } from "../api";
+import { fetchArchivedItems, fetchItems } from "../api";
 import { ItemListView } from "./ItemListView";
 import { ItemModal } from "./ItemModal";
 import { ItemTreeView } from "./ItemTreeView";
 import { KanbanBoard } from "./KanbanBoard";
 import { ValidationPanel } from "./ValidationPanel";
+import { ArchivedBoard } from "./ArchivedBoard";
 import styles from "./ProjectWorkspace.module.css";
 
-export type ViewMode = "board" | "list" | "tree";
+export type ViewMode = "board" | "list" | "tree" | "archived";
 
 interface Props {
   projectId: string;
@@ -19,6 +20,7 @@ const VIEW_LABELS: Record<ViewMode, string> = {
   board: "Board",
   list: "List",
   tree: "Tree",
+  archived: "Archived",
 };
 
 export function ViewTabs({
@@ -28,9 +30,11 @@ export function ViewTabs({
   activeView: ViewMode;
   onChange: (view: ViewMode) => void;
 }) {
+  const allViews: ViewMode[] = ["board", "list", "archived"];
+
   return (
     <div className={styles.tabs} role="tablist" aria-label="Workspace views">
-      {(["board", "list"] as const).map((view) => (
+      {allViews.map((view) => (
         <button
           key={view}
           role="tab"
@@ -50,20 +54,44 @@ export function ViewTabs({
 export function ProjectWorkspace({ projectId, activeView }: Props) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const {
-    data: items,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const activeItemsQuery = useQuery({
     queryKey: ["items", projectId],
     queryFn: () => fetchItems(projectId),
-    enabled: activeView !== "board",
+    enabled: activeView !== "board" && activeView !== "archived",
   });
+  const archivedTreeItemsQuery = useQuery({
+    queryKey: ["tree-items", projectId],
+    queryFn: () => fetchArchivedItems(projectId),
+    enabled: activeView === "tree",
+  });
+  const items =
+    activeView === "tree"
+      ? [...(activeItemsQuery.data ?? []), ...(archivedTreeItemsQuery.data ?? [])]
+      : activeItemsQuery.data;
+  const isLoading =
+    activeItemsQuery.isLoading ||
+    (activeView === "tree" && archivedTreeItemsQuery.isLoading);
+  const error =
+    activeItemsQuery.error ??
+    (activeView === "tree" ? archivedTreeItemsQuery.error : null);
+  const refetch = () => {
+    void activeItemsQuery.refetch();
+    if (activeView === "tree") {
+      void archivedTreeItemsQuery.refetch();
+    }
+  };
 
   const renderActiveView = () => {
     if (activeView === "board") {
       return <KanbanBoard projectId={projectId} />;
+    }
+
+    if (activeView === "archived") {
+      return (
+        <ArchivedBoard
+          projectId={projectId}
+        />
+      );
     }
 
     if (isLoading) {
@@ -115,6 +143,7 @@ export function ProjectWorkspace({ projectId, activeView }: Props) {
       <ItemModal
         projectId={projectId}
         itemId={selectedItemId}
+        archivedItemIds={archivedTreeItemsQuery.data?.map((item) => item.id)}
         onClose={() => setSelectedItemId(null)}
       />
     </section>

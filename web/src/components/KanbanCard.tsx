@@ -6,6 +6,7 @@ import styles from "./KanbanCard.module.css";
 interface Props {
   item: ItemSummary;
   onClick?: (itemId: string) => void;
+  onUnarchive?: (itemId: string) => void;
 }
 
 const TYPE_ICON_COMPONENTS: Record<ItemType, LucideIcon> = {
@@ -15,7 +16,7 @@ const TYPE_ICON_COMPONENTS: Record<ItemType, LucideIcon> = {
   bug: Bug,
 };
 
-export function KanbanCard({ item, onClick }: Props) {
+export function KanbanCard({ item, onClick, onUnarchive }: Props) {
   const handleClick = () => {
     if (item.valid && onClick) {
       onClick(item.id);
@@ -63,6 +64,15 @@ export function KanbanCard({ item, onClick }: Props) {
           <span className={styles.invalidBadge} title="Invalid item">
             !
           </span>
+        )}
+        {onUnarchive && (
+          <button
+            type="button"
+            data-test-id={`unarchive-button-${item.id}`}
+            onClick={(event) => { event.stopPropagation(); onUnarchive(item.id); }}
+          >
+            Unarchive
+          </button>
         )}
       </div>
     </div>

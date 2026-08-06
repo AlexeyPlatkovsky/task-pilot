@@ -58,7 +58,14 @@ def test_project_yaml_has_canonical_field_order(tmp_path: Path):
         for line in text.splitlines()
         if line and not line.startswith(" ")
     ]
-    assert keys == ["schema_version", "id", "key", "name", "created_at"]
+    assert keys == [
+        "schema_version",
+        "id",
+        "key",
+        "name",
+        "created_at",
+        "archive_threshold_days",
+    ]
 
 
 def test_created_at_uses_provided_timestamp(tmp_path: Path):

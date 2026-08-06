@@ -43,7 +43,9 @@ def validate_parent(
     parent is the child itself, does not exist, is a type that cannot parent
     ``child_type``, or when the assignment would close an ancestor cycle.
     """
-    from taskpilot.services.item_service import read_item  # local import avoids a cycle
+    from taskpilot.services.item_service import (
+        read_item_anywhere,
+    )  # local import avoids a cycle
 
     if parent_id is None:
         return
@@ -51,7 +53,7 @@ def validate_parent(
         raise ValidationFailed(f"Item {child_id!r} cannot be its own parent")
 
     try:
-        parent = read_item(paths, parent_id)
+        parent = read_item_anywhere(paths, parent_id)
     except NotFound as exc:
         raise ValidationFailed(
             f"parent_id references unknown item {parent_id!r}"
@@ -76,7 +78,7 @@ def validate_parent(
             break  # pre-existing cycle elsewhere; stop rather than loop forever
         seen.add(cursor.parent_id)
         try:
-            cursor = read_item(paths, cursor.parent_id)
+            cursor = read_item_anywhere(paths, cursor.parent_id)
         except (NotFound, ValidationFailed):
             break
 
@@ -99,7 +101,7 @@ def validate_can_parent_children(
     )  # local import avoids a cycle
 
     allowed = ALLOWED_CHILD_TYPES.get(parent_type, set())
-    for child in list_items(paths, include_deleted=True):
+    for child in list_items(paths, include_deleted=True, include_archived=True):
         if child.parent_id == parent_id and child.type not in allowed:
             raise ValidationFailed(
                 f"Cannot change {parent_id!r} to type {parent_type!r}: it parents "

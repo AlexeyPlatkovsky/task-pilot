@@ -9,11 +9,15 @@ byte-identical (F003-R8).
 
 from __future__ import annotations
 
+from typing import Optional
+
 import typer
 
-from taskpilot.services import registry
 from taskpilot.cli.context import get_state
+from taskpilot.cli.errors import service_errors
 from taskpilot.cli.output import print_json, print_line, render_table
+from taskpilot.cli.workspace import find_workspace
+from taskpilot.services import archive_service, registry
 
 __all__ = ["register"]
 
@@ -43,6 +47,27 @@ def project_list(ctx: typer.Context) -> None:
 
     rows = [[e.id, e.key, e.name, "yes" if e.active else "no", e.path] for e in entries]
     print_line(render_table(["ID", "KEY", "NAME", "ACTIVE", "PATH"], rows))
+
+
+@project_app.command("archive-threshold")
+def project_archive_threshold(
+    ctx: typer.Context,
+    threshold: Optional[int] = typer.Option(
+        None, "--threshold", help="Set archive threshold in days (1-3650)."
+    ),
+) -> None:
+    """Get or set the archive threshold for the current workspace."""
+    with service_errors():
+        paths = find_workspace()
+        if threshold is None:
+            value = archive_service.get_archive_threshold(paths)
+        else:
+            value = archive_service.set_archive_threshold(paths, threshold)
+
+    if get_state(ctx).json:
+        print_json({"archive_threshold_days": value})
+        return
+    print_line(f"archive_threshold_days: {value}")
 
 
 def register(app: typer.Typer) -> None:

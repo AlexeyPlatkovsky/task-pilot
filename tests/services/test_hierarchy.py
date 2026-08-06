@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from taskpilot.core.layout import WorkspacePaths
-from taskpilot.services import item_service, project_service
+from taskpilot.services import archive_service, item_service, project_service
 from taskpilot.services.errors import ValidationFailed
 from taskpilot.services.hierarchy import ALLOWED_CHILD_TYPES, validate_parent
 
@@ -84,6 +84,25 @@ def test_parent_must_exist(tmp_path: Path):
     task = item_service.create_item(paths, title="task", type="task")
     with pytest.raises(ValidationFailed):
         item_service.update_item(paths, task.id, parent_id="VP-999")
+
+
+def test_setting_task_parent_to_archived_feature_succeeds(tmp_path: Path):
+    paths = _workspace(tmp_path)
+    feature = item_service.create_item(
+        paths, title="feature", type="feature", now="2026-06-01T10:00:00Z"
+    )
+    item_service.update_item(
+        paths, feature.id, status="done", now="2026-06-01T10:00:00Z"
+    )
+    assert archive_service.archive_items(
+        paths, [feature.id], now="2026-06-16T10:00:00Z"
+    ) == [feature.id]
+
+    task = item_service.create_item(
+        paths, title="task", type="task", parent_id=feature.id
+    )
+
+    assert task.parent_id == feature.id
 
 
 def test_self_parent_rejected(tmp_path: Path):

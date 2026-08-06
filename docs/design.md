@@ -25,6 +25,7 @@
 | Project selector | Choose which registered project to work on | empty (no projects), listing, error |
 | Kanban board | Primary workspace with columns by status | empty columns, populated, drag in progress |
 | List view | Tabular filterable/sortable item list | empty, populated, filtered empty |
+| Archived list | Always-visible plain list of archived items | loading, empty, populated, recoverable error |
 | Tree view | Expandable parent/child hierarchy — implemented but hidden from navigation in the current release | empty, populated, loading branch |
 | Item detail modal | View and edit a single item | view mode, edit mode, save error, delete confirm |
 | Validation panel | Show items/files with validation errors | empty (all valid), list of errors |
@@ -182,9 +183,26 @@ Clicking a row opens the item detail modal.
 Tables preserve their tabular structure in constrained desktop windows and use horizontal overflow
 when needed. They do not collapse into stacked mobile rows.
 
+## Archived List
+
+Archived is always available alongside Board and List. It is a plain, non-columnar list rather
+than a Kanban board. Archived rows are ordered by type—epic, feature, task, bug—and then numeric
+item ID. Each row shows its ID, type, title, status, and priority with text labels as well as
+tokenized status/type treatment.
+
+Clicking a row opens the existing item detail modal in read-only mode. Edit and Delete actions are
+not available for archived items; the separate Unarchive action uses the normal confirmation flow.
+The view provides loading, empty, and recoverable error states, and its error message is announced
+to screen readers.
+
+Parent, child, forward-link, and reverse-link rows resolve across active and archived storage. An
+archived relationship target remains read-only even when it is reached from an active item.
+
 ## Tree View
 
-Expandable hierarchy showing parent/child relationships through parent_id links.
+Expandable hierarchy showing parent/child relationships through parent_id links. It combines active
+and archived items when rendered, while Board and List remain active-only and Archived remains
+archive-only.
 
 Root items (epics) are top-level nodes. Expanding a node reveals its children. Items without a
 parent appear at the root level.

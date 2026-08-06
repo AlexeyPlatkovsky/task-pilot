@@ -105,6 +105,7 @@ export interface ItemDetail {
   external_refs?: string[];
   comments: Comment[];
   relationships?: ItemRelationships;
+  archived: boolean;
   valid: boolean;
   findings?: ValidationFinding[];
 }

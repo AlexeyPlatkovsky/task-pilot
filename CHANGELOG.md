@@ -3,6 +3,15 @@
 All notable changes to TaskPilot are documented in this file.
 
 
+
+## [2.0.0] - 2026-08-06
+
+### Added
+
+- Add automatic archival for inactive completed, cancelled, and deleted items (TP-110)
+- Add monthly archive storage, CLI and REST archive controls, and automatic scheduler support
+- Add the always-visible Archived workspace with read-only detail, restore flow, and retained cross-storage relationships
+
 ## [1.3.1] - 2026-07-31
 
 ### Changed
