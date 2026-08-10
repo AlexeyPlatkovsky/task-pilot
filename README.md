@@ -1,4 +1,5 @@
 # TaskPilot
+<img width="756" height="396" alt="image" src="https://github.com/user-attachments/assets/934b27c7-3560-41ac-a98d-9a31b1c017d1" />
 
 TaskPilot is local-first task management for software projects. It keeps project work in
 Git-friendly files inside your repository, so humans and coding agents can share the same durable,
