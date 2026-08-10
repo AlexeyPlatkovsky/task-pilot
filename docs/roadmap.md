@@ -153,6 +153,24 @@ Post-1.0 deferrals:
   remains unimplemented;
 - comment add/edit/delete remains deferred from 1.0.0.
 
+### 5a. Post-release Item Detail Interaction Backlog
+
+Planned follow-up work, tracked separately so it does not redefine the shipped 1.0 modal contract:
+
+- **TP-135 — Copy item IDs:** make the primary item ID in Board cards and item-detail headers a
+  copy-only control. It copies the canonical ID without opening, closing, or navigating an item,
+  and reports clipboard failures accessibly.
+- **TP-136 — Inline title autosave:** make the writable item-detail title an inline input that
+  persists a changed, valid value on blur or modal close. If saving fails, preserve the edited
+  value and offer a retry rather than silently discarding it.
+- **TP-137 — Inline Priority picker:** make the writable item-detail Priority value an accessible
+  below-field picker for low, normal, and high. Selecting a different value persists it
+  immediately; failures preserve the selected value and offer retry.
+
+These are planned enhancements. Archived items remain read-only, existing server-side validation
+remains authoritative, and the current explicit Edit mode remains the shipped behavior until the
+corresponding backlog work is implemented and validated.
+
 ### 6. Validation Success Contrast
 
 Lighten the `All items valid` success message so it reads as a success state instead of near-black

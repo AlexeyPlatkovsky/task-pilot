@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-135
+title: Copy item IDs from Board cards and item detail
+priority: normal
+type: task
+status: backlog
+created_at: '2026-08-10T07:51:30Z'
+updated_at: '2026-08-10T07:51:30Z'
+description: Make the primary item ID in Board cards and the item-detail header a dedicated copy control. Activating the control copies only the canonical item ID to the clipboard and must not open, close, or navigate the item. Provide accessible success feedback and a retryable/error state when clipboard access fails. Cover pointer and keyboard activation, propagation from the Board card, and both contexts with component and functional UI coverage.

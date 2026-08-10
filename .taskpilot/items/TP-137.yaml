@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-137
+title: Inline Priority picker in item detail
+priority: normal
+type: task
+status: backlog
+created_at: '2026-08-10T07:51:32Z'
+updated_at: '2026-08-10T07:51:32Z'
+description: Make the Priority value in a writable item-detail summary an accessible picker. Activating it opens a menu below the field that lists low, normal, and high, with the current value visibly selected. Selecting a different value saves immediately through the existing item update path, updates the rendered badge, and closes the menu. Keep the selected value visible with a retryable error on failure; do not silently discard it. Preserve archived read-only behavior and existing Edit mode support. Cover options, selected state, pointer and keyboard behavior, placement, save success, and failure/retry.
