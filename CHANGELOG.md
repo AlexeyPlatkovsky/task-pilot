@@ -4,7 +4,7 @@ All notable changes to TaskPilot are documented in this file.
 
 
 
-## [Unreleased]
+## [2.1.0] - 2026-10-02
 
 ### Added
 
