@@ -35,7 +35,8 @@
 The header appears on every screen. From left to right it displays the TaskPilot logo
 (`designs/taskpilot.svg`, also used as the favicon), the product name "TaskPilot",
 the project selector dropdown, and the view tabs; the validation status sits between the left and
-right groups, and the theme switcher is right-aligned. View tabs render only once a project is
+right groups, and the right group holds the Doctor and Unregister icon buttons (project selected
+only) followed by the three-option auto/light/dark theme toggle (spec `0010`). View tabs render only once a project is
 selected. The header is styled with `--surface-base` background, a `--border-subtle` bottom border,
 and rounded corners.
 

@@ -61,6 +61,36 @@ const archive = spawnSync(uv, ["run", "taskpilot", "archive", "run"], {
 });
 if (archive.status !== 0) process.exit(archive.status ?? 1);
 
+// Scratch project for spec 0010 header actions: one dangling link the Doctor can
+// repair, and safe to unregister without affecting the main fixture project.
+const scratchRoot = resolve(repoRoot, ".playwright/e2e-scratch");
+rmSync(scratchRoot, { recursive: true, force: true });
+mkdirSync(scratchRoot, { recursive: true });
+const scratchInit = spawnSync(
+  uv,
+  ["run", "taskpilot", "init", scratchRoot, "--key", "SC", "--name", "Scratch E2E", "--id", "scratch-e2e"],
+  { cwd: repoRoot, env, stdio: "inherit" },
+);
+if (scratchInit.status !== 0) process.exit(scratchInit.status ?? 1);
+mkdirSync(join(scratchRoot, ".taskpilot", "items"), { recursive: true });
+writeFileSync(
+  join(scratchRoot, ".taskpilot", "items", "SC-1.yaml"),
+  [
+    "schema_version: 1",
+    "id: SC-1",
+    "title: Scratch item with dangling link",
+    "priority: normal",
+    "type: task",
+    "status: backlog",
+    `created_at: '${nowIso}'`,
+    `updated_at: '${nowIso}'`,
+    "links:",
+    "  blocks:",
+    "  - SC-99",
+    "",
+  ].join("\n"),
+);
+
 const server = spawn(
   uv,
   [

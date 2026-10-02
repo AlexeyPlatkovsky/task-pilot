@@ -36,7 +36,8 @@ state styling, icons, menu placement, or keyboard behavior.
 
 ### Dropdown Selectors
 
-Project selection, theme selection, and list filters use the same dropdown selector contract:
+Project selection and list filters use the same dropdown selector contract (theme selection uses
+the segmented icon toggle below, spec `0010`):
 
 - trigger is a button with the visible selected value and an accessible name in the form
   `<Label>: <Selected value>`;
@@ -49,6 +50,52 @@ Project selection, theme selection, and list filters use the same dropdown selec
 
 Native `select` controls are acceptable only when browser/OS popup placement and option styling do
 not matter to the product behavior.
+
+### Segmented Icon Toggle (Theme)
+
+Spec `0010` R1. A `role="radiogroup"` labelled "Theme" holding three icon-only `role="radio"`
+buttons in order Auto (`Monitor`), Light (`Sun`), Dark (`Moon`), each with an accessible name
+("Auto theme", "Light theme", "Dark theme") and a `title` tooltip with the same text.
+
+- one shared border and `--radius-md` around the group; buttons are 28px square with 16px icons;
+- checked option: `--accent-subtle` background and `--accent` icon; unchecked:
+  `--text-muted` icon, `--surface-muted` on hover; `:focus-visible` uses the shared `thin solid var(--accent)` outline;
+- roving tabindex: only the checked option is tabbable; Left/Right (and Up/Down) move and select
+  with wrap-around; Space/Enter select the focused option;
+- selection applies immediately, persists to `localStorage` (`taskpilot.theme`), and never opens a
+  menu.
+
+### Header Icon Actions
+
+Spec `0010` R2.5/R3.7. While a project is selected, `header-right` shows, from left to right:
+Doctor (`Stethoscope`), Unregister (`Trash2`), then the theme toggle. Without a project only the
+theme toggle renders.
+
+- icon buttons are 28px square, ghost style (transparent background, `--text-muted` icon,
+  `--surface-muted` on hover, shared focus outline) with `aria-label` and `title` "Doctor" /
+  "Unregister project";
+- the Unregister icon uses `--feedback-error` on hover to signal a destructive effect;
+- each opens a modal; focus returns to its trigger when the modal closes.
+
+**Unregister dialog** reuses the `DeleteConfirmDialog` alert-dialog pattern: title
+"Unregister <project name>?", description stating that the project is removed from this machine's
+TaskPilot list and that its `.taskpilot/` files on disk are kept and can be re-registered with
+`taskpilot init`; Cancel / destructive "Unregister" ("Unregistering..." while pending); inline
+error on failure; dialog stays open on error.
+
+**Doctor dialog** is a modal dialog (title "Doctor", max width 560px, scrollable body):
+
+- loading: spinner; load error: inline error with the dialog still closable;
+- section "Safe fixes (N)": one row per fix with its description and file path; empty text
+  "No automatic fixes available.";
+- section "Needs manual attention (M)": one row per finding with severity text (not color alone),
+  path, and message, prefixed by the item id when known; empty text "Nothing else to fix.";
+- footer: Close and primary "Apply N fixes" ("Apply 1 fix" for one; disabled when N = 0,
+  "Applying..." while pending);
+- after apply: when any fix failed, an alert "Could not apply N fixes:" lists each description with
+  its reason; a request failure shows "Failed to apply fixes: <detail>";
+- after apply: success line "Applied N fixes." ("Applied 1 fix." for one) and both sections refresh from the server; the
+  header validation status refreshes too; apply error shows inline and keeps the list.
 
 ### Sorting Indicators
 

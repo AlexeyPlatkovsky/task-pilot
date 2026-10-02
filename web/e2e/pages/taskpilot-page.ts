@@ -35,18 +35,108 @@ export class TaskPilotPage {
     );
   }
 
-  async selectTheme(theme: "light" | "dark") {
-    await this.selectDropdownOption(
-      "theme-switcher",
-      theme === "light" ? "Light" : "Dark",
+  async selectTheme(theme: "auto" | "light" | "dark") {
+    const option = this.byTestId(`theme-option-${theme}`);
+    await expect(option).toHaveAccessibleName(`${capitalize(theme)} theme`);
+    await option.click();
+  }
+
+  async expectTheme(
+    theme: "auto" | "light" | "dark",
+    { firstVisit = false }: { firstVisit?: boolean } = {},
+  ) {
+    await expect(this.byTestId(`theme-option-${theme}`)).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    const stored = await this.page.evaluate(() =>
+      window.localStorage.getItem("taskpilot.theme"),
+    );
+    // A first visit stores nothing; "auto" is the documented fallback.
+    expect(stored).toBe(firstVisit ? null : theme);
+    if (theme === "auto") {
+      await expect(this.page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
+    } else {
+      await expect(this.page.locator("html")).toHaveAttribute("data-theme", theme);
+    }
+  }
+
+  async reload() {
+    await this.page.reload();
+    await expect(this.byTestId("app-title")).toBeVisible();
+  }
+
+  async openProject(name: string, key: string) {
+    await this.open();
+    await this.selectDropdownOption("project-selector", `${name} (${key})`);
+  }
+
+  async expectValidationIssues() {
+    await expect(this.byTestId("validation-issues-state")).toBeVisible();
+  }
+
+  async expectValidationClean() {
+    await expect(this.byTestId("validation-valid-state")).toContainText(
+      "All items valid",
     );
   }
 
-  async expectTheme(theme: "light" | "dark") {
-    await expect(this.page.locator("html")).toHaveAttribute(
-      "data-theme",
-      theme,
+  async openDoctor() {
+    const button = this.byTestId("header-doctor-button");
+    await expect(button).toHaveAccessibleName("Doctor");
+    await button.click();
+    await expect(this.doctorDialog()).toBeVisible();
+  }
+
+  async expectDoctorSafeFix(description: string) {
+    await expect(this.byTestId("doctor-safe-fixes")).toContainText(description);
+  }
+
+  async applyDoctorFixes(count: number) {
+    const label = `Apply ${count} ${count === 1 ? "fix" : "fixes"}`;
+    const apply = this.byTestId("doctor-apply");
+    await expect(apply).toHaveText(label);
+    await apply.click();
+    await expect(this.byTestId("doctor-apply-result")).toContainText(
+      `Applied ${count} ${count === 1 ? "fix" : "fixes"}.`,
     );
+    await expect(this.doctorDialog()).toContainText("No automatic fixes available.");
+  }
+
+  async closeDoctor() {
+    await this.byTestId("doctor-close").click();
+    await expect(this.doctorDialog()).toBeHidden();
+  }
+
+  async unregisterSelectedProject(name: string, { confirm }: { confirm: boolean }) {
+    const button = this.byTestId("header-unregister-button");
+    await expect(button).toHaveAccessibleName("Unregister project");
+    await button.click();
+    const dialog = this.byTestId("unregister-project-dialog");
+    await expect(dialog).toHaveAccessibleName(`Unregister ${name}?`);
+    await expect(dialog).toContainText(".taskpilot/");
+    await this.byTestId(
+      confirm ? "unregister-project-submit" : "unregister-project-cancel",
+    ).click();
+    await expect(dialog).toBeHidden();
+  }
+
+  async expectSelectedProject(name: string, key: string) {
+    await expect(this.byTestId("project-selector")).toHaveAccessibleName(
+      `Project: ${name} (${key})`,
+    );
+  }
+
+  async expectProjectOptions(present: string[], absent: string[]) {
+    await this.byTestId("project-selector").click();
+    const listbox = this.page.getByRole("listbox");
+    for (const option of present) {
+      await expect(listbox.getByRole("option", { name: option })).toBeVisible();
+    }
+    for (const option of absent) {
+      await expect(listbox.getByRole("option", { name: option })).toHaveCount(0);
+    }
+    await this.page.keyboard.press("Escape");
   }
 
   async expectBoardTabSelected() {
@@ -271,6 +361,10 @@ export class TaskPilotPage {
     return this.byTestId(`kanban-column-${status}`);
   }
 
+  private doctorDialog(): Locator {
+    return this.byTestId("doctor-dialog");
+  }
+
   private kanbanCard(itemId: string): Locator {
     return this.byTestId(`kanban-card-${itemId}`);
   }
@@ -288,4 +382,8 @@ function compactTypeLabel(type: string): string {
     Bug: "BUG",
   };
   return labels[type] ?? type;
+}
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

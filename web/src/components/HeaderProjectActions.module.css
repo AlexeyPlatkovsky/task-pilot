@@ -1,14 +1,4 @@
-.switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--surface-base);
-}
-
-.option {
+.iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22,16 +12,16 @@
   cursor: pointer;
 }
 
-.option:hover {
+.iconButton:hover {
   background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
-.option[aria-checked="true"] {
-  background: var(--accent-subtle);
-  color: var(--accent);
+.destructive:hover {
+  color: var(--feedback-error);
 }
 
-.option:focus-visible {
+.iconButton:focus-visible {
   outline: thin solid var(--accent);
   outline-offset: var(--space-1);
 }

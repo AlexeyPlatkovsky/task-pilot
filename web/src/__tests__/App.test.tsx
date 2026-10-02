@@ -9,6 +9,8 @@ const mockFetchItems = vi.fn();
 const mockFetchValidationReport = vi.fn();
 const mockFetchUIState = vi.fn();
 const mockPatchUIState = vi.fn();
+const mockUnregisterProject = vi.fn();
+const mockFetchDoctorPlan = vi.fn();
 
 vi.mock("../api", () => ({
   fetchProjects: (...args: unknown[]) => mockFetchProjects(...args),
@@ -17,6 +19,9 @@ vi.mock("../api", () => ({
     mockFetchValidationReport(...args),
   fetchUIState: (...args: unknown[]) => mockFetchUIState(...args),
   patchUIState: (...args: unknown[]) => mockPatchUIState(...args),
+  unregisterProject: (...args: unknown[]) => mockUnregisterProject(...args),
+  fetchDoctorPlan: (...args: unknown[]) => mockFetchDoctorPlan(...args),
+  applyDoctorFixes: vi.fn(),
 }));
 
 vi.mock("../components/KanbanBoard", () => ({
@@ -108,6 +113,119 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(mockFetchProjects).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe("header project actions", () => {
+    const second = { id: "alpha", key: "AL", name: "Alpha", active: true };
+
+    it("shows only the theme toggle while no project is selected", async () => {
+      renderApp();
+
+      await screen.findByRole("button", { name: "Project: Select a project..." });
+      expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Doctor" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Unregister project" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("orders Doctor, Unregister, then the theme toggle once a project is selected", async () => {
+      mockFetchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
+      renderApp();
+
+      const doctor = await screen.findByRole("button", { name: "Doctor" });
+      const unregister = screen.getByRole("button", { name: "Unregister project" });
+      expect(doctor).toHaveAttribute("data-test-id", "header-doctor-button");
+      expect(unregister).toHaveAttribute("data-test-id", "header-unregister-button");
+      const theme = screen.getByRole("radiogroup", { name: "Theme" });
+      expect(
+        doctor.compareDocumentPosition(unregister) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(
+        unregister.compareDocumentPosition(theme) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it("opens the Doctor dialog for the selected project", async () => {
+      const user = userEvent.setup();
+      mockFetchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
+      mockFetchDoctorPlan.mockResolvedValue({ fixes: [], manual: [] });
+      renderApp();
+
+      await user.click(await screen.findByRole("button", { name: "Doctor" }));
+
+      expect(await screen.findByRole("dialog", { name: "Doctor" })).toBeInTheDocument();
+      expect(mockFetchDoctorPlan).toHaveBeenCalledWith("voice-pilot");
+    });
+
+    it("after unregistering selects the first remaining project", async () => {
+      const user = userEvent.setup();
+      mockFetchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
+      const zeta = { id: "zeta", key: "ZE", name: "Zeta", active: true };
+      mockFetchProjects
+        .mockResolvedValueOnce([
+          second,
+          { id: "voice-pilot", key: "VP", name: "Voice Pilot", active: true },
+          zeta,
+        ])
+        .mockResolvedValue([second, zeta]);
+      mockUnregisterProject.mockResolvedValue({ id: "voice-pilot" });
+      renderApp();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Unregister project" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Unregister" }));
+
+      expect(
+        await screen.findByRole("button", { name: "Project: Alpha (AL)" }),
+      ).toBeInTheDocument();
+      expect(mockUnregisterProject).toHaveBeenCalledWith("voice-pilot");
+      expect(mockPatchUIState).toHaveBeenCalledWith("alpha");
+    });
+
+    it("after unregistering the last project shows the unselected state", async () => {
+      const user = userEvent.setup();
+      mockFetchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
+      mockFetchProjects
+        .mockResolvedValueOnce([{ id: "voice-pilot", key: "VP", name: "Voice Pilot", active: true }])
+        .mockResolvedValue([]);
+      mockUnregisterProject.mockResolvedValue({ id: "voice-pilot" });
+      renderApp();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Unregister project" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Unregister" }));
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("button", { name: "Unregister project" }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(await screen.findByText(/No projects registered/)).toBeInTheDocument();
+    });
+    it("keeps known projects when the refresh after unregister fails", async () => {
+      const user = userEvent.setup();
+      mockFetchUIState.mockResolvedValue({ last_opened_project_id: "voice-pilot" });
+      mockFetchProjects
+        .mockResolvedValueOnce([
+          second,
+          { id: "voice-pilot", key: "VP", name: "Voice Pilot", active: true },
+        ])
+        .mockRejectedValue(new Error("offline"));
+      mockUnregisterProject.mockResolvedValue({ id: "voice-pilot" });
+      renderApp();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Unregister project" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Unregister" }));
+
+      expect(
+        await screen.findByRole("button", { name: "Project: Alpha (AL)" }),
+      ).toBeInTheDocument();
     });
   });
 });

@@ -17,6 +17,8 @@ from taskpilot.server.schemas import (
     ArchiveRunOut,
     ArchiveSettingsOut,
     ArchiveSettingsPatch,
+    DoctorPlanOut,
+    DoctorResultOut,
     ItemDetail,
     ItemRelationshipSummary,
     ItemSummary,
@@ -29,6 +31,8 @@ from taskpilot.server.schemas import (
 )
 from taskpilot.core.validation import validate_workspace
 from taskpilot.services import archive_service
+from taskpilot.services import doctor_service
+from taskpilot.services import project_service
 from taskpilot.services import comment_service as comment_svc
 from taskpilot.services import item_service as item_svc
 from taskpilot.services import reverse_links as reverse_link_svc
@@ -277,6 +281,33 @@ def list_all_projects(request: Request) -> list[ProjectSummary]:
         )
         for e in entries
     ]
+
+
+@router.delete("/projects/{project_id}", response_model=ProjectSummary)
+def unregister_project(request: Request, project_id: str) -> ProjectSummary:
+    """Remove a project from this machine's registry; its files are kept (spec 0010 R2.4)."""
+    registry_dir: str = request.app.state.registry_dir
+    try:
+        removed = project_service.unregister_project(Path(registry_dir), project_id)
+    except NotFound:
+        raise HTTPException(status_code=404, detail=f"Project not found: {project_id}")
+    return ProjectSummary(
+        id=removed.id, key=removed.key, name=removed.name, active=removed.active
+    )
+
+
+@router.get("/projects/{project_id}/doctor", response_model=DoctorPlanOut)
+def get_doctor_plan(request: Request, project_id: str) -> dict:
+    """Preview safe repairs and the findings that need manual attention (spec 0010 R3.6)."""
+    entry = _registry_entry(request, project_id)
+    return doctor_service.plan_fixes(_paths(entry)).to_dict()
+
+
+@router.post("/projects/{project_id}/doctor/apply", response_model=DoctorResultOut)
+def apply_doctor_fixes(request: Request, project_id: str) -> dict:
+    """Apply the current safe repairs; per-fix failures are reported, not raised (spec 0010 R3.6)."""
+    entry = _registry_entry(request, project_id)
+    return doctor_service.apply_fixes(_paths(entry)).to_dict()
 
 
 @router.get(

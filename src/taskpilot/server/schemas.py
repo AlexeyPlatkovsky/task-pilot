@@ -3,6 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from taskpilot.core.models import Item
+from taskpilot.services.doctor_service import FixKind
 
 
 class ProjectSummary(BaseModel):
@@ -126,3 +127,28 @@ class ArchiveMigrateOut(BaseModel):
 class ArchiveStorageMigrateOut(BaseModel):
     migrated_count: int
     migrated_ids: list[str]
+
+
+class DoctorFixOut(BaseModel):
+    kind: FixKind
+    item_id: str | None
+    path: str
+    field: str | None
+    target: str | None
+    description: str
+
+
+class DoctorPlanOut(BaseModel):
+    fixes: list[DoctorFixOut]
+    manual: list[ValidationFindingOut]
+
+
+class DoctorFailureOut(BaseModel):
+    fix: DoctorFixOut
+    error: str
+
+
+class DoctorResultOut(BaseModel):
+    applied: list[DoctorFixOut]
+    failed: list[DoctorFailureOut]
+    report: ValidationReportOut

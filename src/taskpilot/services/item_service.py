@@ -37,6 +37,7 @@ __all__ = [
     "read_item",
     "read_item_anywhere",
     "update_item",
+    "prepare_update",
     "delete_item",
     "list_items",
     "list_invalid_item_stubs",
@@ -163,12 +164,28 @@ def update_item(
     item is absent and :class:`ValidationFailed` for invalid values (the file is
     left unchanged in that case).
     """
-    current = read_item(paths, item_id)
-
     if not fields:
         # No-op update: do not rewrite the file or bump updated_at (avoids a
         # spurious Git diff on an empty change).
-        return current
+        return read_item(paths, item_id)
+    updated = prepare_update(paths, item_id, now=now, **fields)
+    write_item(paths, updated)
+    return updated
+
+
+def prepare_update(
+    paths: WorkspacePaths,
+    item_id: str,
+    *,
+    now: str | None = None,
+    **fields: object,
+) -> Item:
+    """Build and fully validate the item :func:`update_item` would write, without writing.
+
+    Raises the same :class:`NotFound`/:class:`ValidationFailed` errors, so callers
+    can check that an update will be accepted before offering it.
+    """
+    current = read_item(paths, item_id)
 
     for immutable in ("id", "created_at"):
         if immutable in fields:
@@ -187,7 +204,6 @@ def update_item(
             paths, parent_id=updated.id, parent_type=updated.type
         )
     _validate_links(paths, updated)
-    write_item(paths, updated)
     return updated
 
 

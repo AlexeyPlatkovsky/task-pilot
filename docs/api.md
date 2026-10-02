@@ -43,7 +43,7 @@ Exit codes are fixed so scripts and AI agents can branch on them reliably.
 | Command | Positional | Options |
 | --- | --- | --- |
 | `taskpilot init` | — | `--id`, `--key`, `--name` |
-| `taskpilot validate` | — | — |
+| `taskpilot validate` | — | `--fix` |
 | `taskpilot serve` | — | `--host`, `--port`, `--workspace` |
 | `taskpilot start` | — | `--host`, `--port`, `--workspace` |
 | `taskpilot stop` | — | — |
@@ -51,6 +51,7 @@ Exit codes are fixed so scripts and AI agents can branch on them reliably.
 | `taskpilot status` | — | — |
 | `taskpilot logs` | — | `--lines`, `--follow` |
 | `taskpilot project list` | — | — |
+| `taskpilot project unregister` | `<project-id>` | — |
 | `taskpilot item list` | — | `--status`, `--type`, `--project`, `--include-deleted` |
 | `taskpilot item show` | `<item-id>` | — |
 | `taskpilot item create` | — | `--title`\*, `--type`\*, `--priority`, `--status`, `--description`, `--parent`, `--tag`, `--created-by` |
@@ -79,7 +80,13 @@ Notes:
 - Link operations use explicit verb pairs rather than a generic `link`/`unlink`. All are idempotent.
 - There is no `item delete` command. Soft deletion is reachable by setting `--status deleted`.
 - `taskpilot doctor --rebuild-runtime` is provided by the npm wrapper, not the Python CLI; it
-  repairs the managed runtime rather than the workspace.
+  repairs the managed runtime rather than the workspace. Workspace repair is `validate --fix`.
+- `validate --fix` applies only the safe repairs of spec `0010` (dangling links on active items, a
+  missing `parent_id`, legacy archive storage), prints one line per applied fix to stdout and one
+  `Could not apply: ...` line per failed fix to stderr, then reports the repaired workspace; the exit code follows that report. Without `--fix`, human mode
+  adds a stderr hint when such repairs exist; JSON output and exit codes are unchanged.
+- `project unregister` removes only the machine-registry entry and clears a matching remembered
+  WebUI project; the project's files are untouched. An unknown id exits `1`.
 - `start`/`stop`/`restart`/`status`/`logs` manage the server as a background daemon (one per
   machine), as opposed to `serve`, which runs it in the foreground. `start` re-invokes `serve` as a
   detached child process rather than duplicating its bootstrap. The daemon's PID file
@@ -108,6 +115,9 @@ All routes are mounted under the `/api` prefix.
 | --- | --- | --- |
 | `GET` | `/api/health` | — |
 | `GET` | `/api/projects` | `list[ProjectSummary]` |
+| `DELETE` | `/api/projects/{project_id}` | `ProjectSummary` |
+| `GET` | `/api/projects/{project_id}/doctor` | `DoctorPlanOut` |
+| `POST` | `/api/projects/{project_id}/doctor/apply` | `DoctorResultOut` |
 | `GET` | `/api/projects/{project_id}/items` | `list[ItemSummary]` |
 | `GET` | `/api/projects/{project_id}/items/{item_id}` | `ItemDetail` |
 | `PATCH` | `/api/projects/{project_id}/items/{item_id}` | `ItemDetail` |
@@ -138,6 +148,13 @@ Behavior notes:
 - FastAPI docs are served at `/docs`.
 - When built WebUI assets are missing, the server serves a packaging-error page with `503` and keeps
   the API available rather than failing at startup.
+- `DELETE /api/projects/{project_id}` unregisters the project from this machine (files kept) and
+  returns `404` for an unknown id.
+- `GET .../doctor` is read-only and returns safe `fixes` plus `manual` findings in deterministic
+  order; `POST .../doctor/apply` recomputes the plan from disk, applies it, and returns `200` with
+  `applied`, `failed` (`{fix, error}` per fix a service rejected, e.g. a conflicting legacy archive),
+  and a fresh `report`. A failed fix never stops the others; a legacy-archive migration that fails
+  part-way keeps the entries migrated before the conflict.
 - `ui-state` is per-machine WebUI state stored outside any repository; it is never canonical task
   data.
 
@@ -148,6 +165,10 @@ Behavior notes:
 | `ProjectSummary` | `id`, `key`, `name`, `active` |
 | `CommentOut` | `schema_version`, `created_at`, `created_by`, `body` |
 | `ValidationFindingOut` | `severity`, `code`, `path`, `field`, `item_id`, `message` |
+| `DoctorFixOut` | `kind`, `item_id`, `path`, `field`, `target`, `description` |
+| `DoctorPlanOut` | `fixes`, `manual` |
+| `DoctorFailureOut` | `fix`, `error` |
+| `DoctorResultOut` | `applied`, `failed`, `report` |
 | `ValidationSummaryOut` | `errors`, `warnings` |
 | `ValidationReportOut` | `ok`, `summary`, `findings` |
 | `ItemCoreSummary` | `id`, `title`, `type`, `status`, `priority`, `valid` — base for the two summary shapes below |

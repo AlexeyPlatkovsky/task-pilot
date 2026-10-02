@@ -32,3 +32,5 @@ normative gate sitting in `docs/` would be editable through documentation-only r
 | [0006: CLI Version Flag](0006-cli-version-flag.md) | ✅ implemented | Adds a `--version`/`-v` eager option to the root Typer callback so the raw Python CLI reports its version like the npm wrapper already does. |
 | [0007: Linked To Status Indicator](0007-linked-to-status-indicator.md) | ✅ implemented | Amends 0004 F6: adds a status badge ahead of the ID/title link in each valid Linked to row; missing/invalid targets keep their existing state text instead. |
 | [0008: Default Updated Filter](0008-default-updated-filter.md) | ✅ implemented | Changes the Board and List Updated filter's default from `Any time` to `Last 7 days`, always reapplied on load with no persistence. |
+| [0009: Auto Archive](0009-auto-archive.md) | 🚧 in progress | Archives done, cancelled, and deleted items after an inactivity window into monthly archive storage. |
+| [0010: Header Project Actions](0010-header-project-actions.md) | ✅ implemented | Adds the persisted auto/light/dark theme toggle, project unregister (CLI/REST/WebUI), and the workspace Doctor safe-fix capability (`validate --fix`, REST, WebUI). |

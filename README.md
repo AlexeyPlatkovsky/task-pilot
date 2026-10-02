@@ -108,8 +108,14 @@ taskpilot item blocks BLOCKER-1 TARGET-1
 taskpilot item relates ITEM-1 ITEM-2
 taskpilot item comment MP-1 "Context for the next pass."
 taskpilot validate
+taskpilot validate --fix
+taskpilot project unregister my-project
 taskpilot serve
 ```
+
+`validate --fix` applies only safe repairs (dangling links, a missing parent, legacy archive
+storage); everything else is reported for manual attention. `project unregister` removes a project
+from this machine's list without touching its files.
 
 Run `taskpilot --help` or any subcommand with `--help` for the complete option list.
 

@@ -17,7 +17,7 @@ from taskpilot.cli.context import get_state
 from taskpilot.cli.errors import service_errors
 from taskpilot.cli.output import print_json, print_line, render_table
 from taskpilot.cli.workspace import find_workspace
-from taskpilot.services import archive_service, registry
+from taskpilot.services import archive_service, project_service, registry
 
 __all__ = ["register"]
 
@@ -68,6 +68,23 @@ def project_archive_threshold(
         print_json({"archive_threshold_days": value})
         return
     print_line(f"archive_threshold_days: {value}")
+
+
+@project_app.command("unregister")
+def project_unregister(
+    ctx: typer.Context,
+    project_id: str = typer.Argument(..., help="Registry id of the project to remove."),
+) -> None:
+    """Remove a project from this machine's registry; its files are kept (spec 0010)."""
+    with service_errors():
+        removed = project_service.unregister_project(
+            registry.default_registry_dir(), project_id
+        )
+
+    if get_state(ctx).json:
+        print_json(removed.model_dump())
+        return
+    print_line(f"Unregistered {removed.id}")
 
 
 def register(app: typer.Typer) -> None:

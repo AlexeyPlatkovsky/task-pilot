@@ -1,6 +1,6 @@
 schema_version: 1
-id: testpilot
+id: taskpilot
 key: TP
-name: TestPilot
+name: TaskPilot
 created_at: '2026-06-25T16:24:19Z'
 archive_threshold_days: 30

@@ -6,7 +6,8 @@ import {
 } from "./components/ProjectWorkspace";
 import { ValidationStatus } from "./components/ValidationStatus";
 import { ThemeSwitcher } from "./components/ThemeSwitcher";
-import { useState, useEffect, useCallback } from "react";
+import { HeaderProjectActions } from "./components/HeaderProjectActions";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { fetchUIState, fetchProjects, patchUIState } from "./api";
 import type { ProjectSummary } from "./types";
 
@@ -17,6 +18,8 @@ function App() {
   const [activeView, setActiveView] = useState<ViewMode>("board");
   const [startupDone, setStartupDone] = useState(false);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const projectsRef = useRef(projects);
+  projectsRef.current = projects;
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +65,25 @@ function App() {
     },
     [],
   );
+
+  const handleProjectUnregistered = useCallback(async (removedId: string) => {
+    // If the refresh fails, fall back to the known list rather than implying none remain.
+    const refreshed = await fetchProjects().catch(() => null);
+    const remaining = (refreshed ?? projectsRef.current).filter(
+      (p) => p.id !== removedId,
+    );
+    setProjects(remaining);
+    const next = remaining.find((p) => p.active) ?? null;
+    setSelectedProjectId(next?.id ?? null);
+    if (next) {
+      patchUIState(next.id).catch(() => {
+        // keep current session usable even if save fails
+      });
+    }
+  }, []);
+
+  const selectedProject =
+    projects.find((p) => p.id === selectedProjectId) ?? null;
 
   if (!startupDone) {
     return (
@@ -117,6 +139,12 @@ function App() {
         </div>
         <ValidationStatus projectId={selectedProjectId} />
         <div className="header-right">
+          {selectedProject && (
+            <HeaderProjectActions
+              project={selectedProject}
+              onUnregistered={handleProjectUnregistered}
+            />
+          )}
           <ThemeSwitcher />
         </div>
       </header>

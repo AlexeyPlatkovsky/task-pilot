@@ -18,6 +18,7 @@ from taskpilot.services import project_service
 
 runner = CliRunner()
 NOW = "2026-08-01T00:00:00Z"
+pytestmark = pytest.mark.usefixtures("frozen_archive_clock")
 
 
 def _make_workspace(tmp_path: Path) -> WorkspacePaths:

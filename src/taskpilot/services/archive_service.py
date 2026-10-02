@@ -34,6 +34,7 @@ from taskpilot.services.item_service import list_items, read_item
 from taskpilot.services.project_service import read_project
 
 __all__ = [
+    "legacy_archive_ids",
     "get_archive_threshold",
     "set_archive_threshold",
     "scan_eligible_items",
@@ -489,6 +490,11 @@ def migrate_all_eligible(paths: WorkspacePaths, now: str | None = None) -> list[
     eligible = scan_eligible_items(paths, now)
     item_ids = [item.id for item in eligible]
     return archive_items(paths, item_ids, now)
+
+
+def legacy_archive_ids(paths: WorkspacePaths) -> list[str]:
+    """Return item ids still recorded in root-level (legacy) archive metadata, sorted."""
+    return sorted(_load_metadata_file(_metadata_file(paths)))
 
 
 def migrate_legacy_archives(paths: WorkspacePaths) -> list[str]:

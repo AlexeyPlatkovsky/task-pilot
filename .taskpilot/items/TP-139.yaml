@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-139
+title: 'Workspace doctor: safe auto-fixes from WebUI and CLI'
+priority: high
+type: task
+status: done
+created_at: '2026-10-02T09:57:28Z'
+updated_at: '2026-10-02T10:29:44Z'
+description: 'Shared doctor service previews and, after confirmation, applies deterministic fixes only: remove dangling links (missing_reference, link_to_deleted) and migrate legacy archive storage, then re-validate. Unfixable findings (e.g. invalid_yaml) are listed with path and item link. Exposed as taskpilot validate --fix (preview without --fix), REST POST /api/projects/{id}/doctor and /doctor/apply, and a WebUI header doctor icon. Evidence: src/taskpilot/core/validation.py (finding codes), src/taskpilot/services/archive_service.py (migrate_legacy_archives). Spec: docs/specs/0010.'
