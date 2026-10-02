@@ -111,11 +111,15 @@ taskpilot validate
 taskpilot validate --fix
 taskpilot project unregister my-project
 taskpilot serve
+taskpilot update --check
+taskpilot update
 ```
 
 `validate --fix` applies only safe repairs (dangling links, a missing parent, legacy archive
 storage); everything else is reported for manual attention. `project unregister` removes a project
 from this machine's list without touching its files.
+`update` upgrades an npm install to the latest npmjs release (`--check` only reports); it is the
+only command that contacts the network.
 
 Run `taskpilot --help` or any subcommand with `--help` for the complete option list.
 

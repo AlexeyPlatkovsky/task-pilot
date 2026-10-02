@@ -81,6 +81,7 @@ def _register_commands() -> None:
     from taskpilot.cli.commands import item as item_cmd
     from taskpilot.cli.commands import project as project_cmd
     from taskpilot.cli.commands import serve as serve_cmd
+    from taskpilot.cli.commands import update as update_cmd
     from taskpilot.cli.commands import validate as validate_cmd
 
     init_cmd.register(app)
@@ -90,6 +91,7 @@ def _register_commands() -> None:
     serve_cmd.register(app)
     daemon_cmd.register(app)
     archive_cmd.register(app)
+    update_cmd.register(app)
 
 
 _register_commands()

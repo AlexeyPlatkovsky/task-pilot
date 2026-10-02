@@ -11,6 +11,7 @@ All notable changes to TaskPilot are documented in this file.
 - Replace the theme dropdown with an auto/light/dark icon toggle and persist the choice across reloads (TP-102)
 - Unregister a project from this machine via the WebUI header, `taskpilot project unregister`, or `DELETE /api/projects/{id}`; project files are kept (TP-138)
 - Add the workspace Doctor: preview and apply safe repairs from the WebUI header, `taskpilot validate --fix`, or the REST doctor routes (TP-139)
+- Add `taskpilot update [--check]` to upgrade the npm install to the latest npmjs release (TP-140)
 
 ## [2.0.0] - 2026-08-06
 

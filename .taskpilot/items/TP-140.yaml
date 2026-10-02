@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-140
+title: 'taskpilot update: self-update from npmjs'
+priority: normal
+type: task
+status: done
+created_at: '2026-10-02T13:20:53Z'
+updated_at: '2026-10-02T13:24:49Z'
+description: 'Add `taskpilot update [--check]` to the npm wrapper (bin/taskpilot, alongside --version and doctor --rebuild-runtime): query the npm registry for the latest @alexey_platkovsky/taskpilot version, and if newer run npm install -g <pkg>@<latest>; --check only reports. Registry/npm failures exit 1 with a manual command hint. The Python CLI gets an `update` command that explains the npm update path for non-npm installs. Evidence: bin/taskpilot main() handles only --version and doctor --rebuild-runtime inline; no update command exists in bin/taskpilot or src/taskpilot/cli. Spec: docs/specs/0011.'

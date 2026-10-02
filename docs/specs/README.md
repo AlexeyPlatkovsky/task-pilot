@@ -34,3 +34,4 @@ normative gate sitting in `docs/` would be editable through documentation-only r
 | [0008: Default Updated Filter](0008-default-updated-filter.md) | ✅ implemented | Changes the Board and List Updated filter's default from `Any time` to `Last 7 days`, always reapplied on load with no persistence. |
 | [0009: Auto Archive](0009-auto-archive.md) | 🚧 in progress | Archives done, cancelled, and deleted items after an inactivity window into monthly archive storage. |
 | [0010: Header Project Actions](0010-header-project-actions.md) | ✅ implemented | Adds the persisted auto/light/dark theme toggle, project unregister (CLI/REST/WebUI), and the workspace Doctor safe-fix capability (`validate --fix`, REST, WebUI). |
+| [0011: CLI Update Command](0011-cli-update-command.md) | ✅ implemented | Adds `taskpilot update [--check]` to the npm wrapper to upgrade from npmjs, plus a Python `update` that explains the npm path. |

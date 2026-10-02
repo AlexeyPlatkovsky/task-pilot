@@ -44,6 +44,7 @@ Exit codes are fixed so scripts and AI agents can branch on them reliably.
 | --- | --- | --- |
 | `taskpilot init` | — | `--id`, `--key`, `--name` |
 | `taskpilot validate` | — | `--fix` |
+| `taskpilot update` | — | — |
 | `taskpilot serve` | — | `--host`, `--port`, `--workspace` |
 | `taskpilot start` | — | `--host`, `--port`, `--workspace` |
 | `taskpilot stop` | — | — |
@@ -81,6 +82,12 @@ Notes:
 - There is no `item delete` command. Soft deletion is reachable by setting `--status deleted`.
 - `taskpilot doctor --rebuild-runtime` is provided by the npm wrapper, not the Python CLI; it
   repairs the managed runtime rather than the workspace. Workspace repair is `validate --fix`.
+- `taskpilot update [--check]` is handled by the npm wrapper before Python starts (spec `0011`), so
+  `--check` appears here rather than in the table above, which lists the Python CLI options: it
+  asks `npm view` for the latest `@alexey_platkovsky/taskpilot` version and, when newer, runs
+  `npm install -g` for it; `--check` only reports. It is the only command that contacts the network.
+  Registry or install failures exit `1` with a manual `npm install -g …@latest` hint. The Python CLI
+  `update` (reached only without the wrapper) prints that npm command and exits `1`.
 - `validate --fix` applies only the safe repairs of spec `0010` (dangling links on active items, a
   missing `parent_id`, legacy archive storage), prints one line per applied fix to stdout and one
   `Could not apply: ...` line per failed fix to stderr, then reports the repaired workspace; the exit code follows that report. Without `--fix`, human mode
