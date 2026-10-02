@@ -15,6 +15,7 @@ so :func:`list_projects` returns the single registered project or an empty list.
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import yaml
 from pydantic import ValidationError
@@ -25,9 +26,16 @@ from taskpilot.core.project import (
     init_workspace,
     read_project as _read_project_file,
 )
+from taskpilot.services import registry, ui_state
 from taskpilot.services.errors import ConflictError, NotFound, ValidationFailed
 
-__all__ = ["create_project", "read_project", "list_projects", "slugify"]
+__all__ = [
+    "create_project",
+    "read_project",
+    "list_projects",
+    "slugify",
+    "unregister_project",
+]
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -109,3 +117,19 @@ def list_projects(paths: WorkspacePaths) -> list[ProjectMeta]:
     if not paths.project_file.exists():
         return []
     return [read_project(paths)]
+
+
+def unregister_project(registry_dir: Path, project_id: str) -> registry.RegistryEntry:
+    """Remove ``project_id`` from this machine's registry (spec ``0010`` R2.1/R2.2).
+
+    The project's files are left untouched. A remembered WebUI selection that
+    points at the removed project is cleared so the next start does not try to
+    restore it. Raises :class:`NotFound` for an unknown id.
+    """
+    removed = registry.unregister_project(registry_dir, project_id)
+    state = ui_state.load_ui_state()
+    if state.last_opened_project_id == project_id:
+        ui_state.save_ui_state(
+            state.model_copy(update={"last_opened_project_id": None})
+        )
+    return removed

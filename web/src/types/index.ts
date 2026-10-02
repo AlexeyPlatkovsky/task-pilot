@@ -142,3 +142,33 @@ export interface ApiError {
 export interface UIState {
   last_opened_project_id: string | null;
 }
+
+export type DoctorFixKind =
+  | "remove_link"
+  | "clear_parent"
+  | "migrate_archive_storage";
+
+export interface DoctorFix {
+  kind: DoctorFixKind;
+  item_id: string | null;
+  path: string;
+  field: string | null;
+  target: string | null;
+  description: string;
+}
+
+export interface DoctorPlan {
+  fixes: DoctorFix[];
+  manual: ValidationFinding[];
+}
+
+export interface DoctorFailure {
+  fix: DoctorFix;
+  error: string;
+}
+
+export interface DoctorResult {
+  applied: DoctorFix[];
+  failed: DoctorFailure[];
+  report: ValidationReport;
+}

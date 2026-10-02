@@ -27,7 +27,7 @@ no dark-mode support. Item-type icons are Unicode glyphs embedded as string lite
 inaccessible and visually inconsistent.
 
 This spec covers only the Alpha UI visual layer. It does not add a theme-toggle control or
-introduce new screens. The later desktop-layout amendment defines supported workspace sizing
+introduce new screens [superseded: 0010 adds the three-option theme toggle and its persistence]. The later desktop-layout amendment defines supported workspace sizing
 tokens without changing domain behavior.
 
 ## Scope

@@ -10,11 +10,12 @@
  * Handled inline (no delegation):
  *   taskpilot --version
  *   taskpilot doctor --rebuild-runtime
+ *   taskpilot update [--check]
  *
  * All other commands are forwarded to Python with TASKPILOT_WEB_DIST set.
  */
 
-const { execSync, spawn } = require("child_process");
+const { execSync, spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -359,8 +360,135 @@ function fail(message) {
   process.exit(1);
 }
 
+// ---------------------------------------------------------------------------
+// Self-update from npmjs (spec 0011)
+// ---------------------------------------------------------------------------
+
+const NPM_COMMAND = process.platform === "win32" ? "npm.cmd" : "npm";
+const MANUAL_UPDATE_HINT =
+  `taskpilot: update manually with: npm install -g ${packageJson.name}@latest\n`;
+
+/**
+ * Parse "major.minor.patch" into numbers; null for anything else.
+ * @param {string} version
+ * @returns {number[] | null}
+ */
+function parseVersion(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version.trim());
+  return match ? match.slice(1, 4).map(Number) : null;
+}
+
+/** @returns {boolean} true when `candidate` is strictly newer than `current`. */
+function isNewer(candidate, current) {
+  for (let i = 0; i < 3; i += 1) {
+    if (candidate[i] !== current[i]) return candidate[i] > current[i];
+  }
+  return false;
+}
+
+/**
+ * Run npm synchronously. On Windows npm is a .cmd shim that needs a shell; every
+ * argument here is a constant or a validated version, so one prebuilt command
+ * string is safe and avoids Node's DEP0190 warning for args arrays with a shell.
+ */
+function runNpm(args, options) {
+  if (process.platform === "win32") {
+    return spawnSync([NPM_COMMAND, ...args].join(" "), { ...options, shell: true });
+  }
+  return spawnSync(NPM_COMMAND, args, options);
+}
+
+/** Pick the most informative line from npm's error output. */
+function npmErrorReason(stderr) {
+  const lines = (stderr || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/complete log of this run/i.test(line));
+  const codeLine = lines.find((line) => /^npm (error|ERR!) code /.test(line));
+  const errorLine = lines.find((line) => /^npm (error|ERR!) /.test(line) && line !== codeLine);
+  const strip = (line) => line.replace(/^npm (error|ERR!) /, "");
+  if (codeLine && errorLine) return `${strip(codeLine)}: ${strip(errorLine)}`;
+  if (codeLine || errorLine) return strip(codeLine || errorLine);
+  return lines[0] || "";
+}
+
+/** Ask the user's npm configuration for the latest published version. */
+function fetchLatestVersion() {
+  const result = runNpm(["view", packageJson.name, "version"], {
+    encoding: "utf8",
+    timeout: 60_000,
+  });
+  if (result.error) {
+    throw new Error(result.error.code === "ENOENT" ? "npm not found on PATH" : result.error.message);
+  }
+  if (result.status !== 0) {
+    throw new Error(npmErrorReason(result.stderr) || `npm view exited with ${result.status}`);
+  }
+  const latest = (result.stdout || "").trim();
+  if (!parseVersion(latest)) {
+    throw new Error(`unexpected version from npm: ${JSON.stringify(latest)}`);
+  }
+  return latest;
+}
+
+function runUpdate(updateArgs) {
+  const checkOnly = updateArgs.length === 1 && updateArgs[0] === "--check";
+  if (updateArgs.length > 0 && !checkOnly) {
+    process.stderr.write("taskpilot: usage: taskpilot update [--check]\n");
+    process.exit(1);
+  }
+
+  const installed = packageJson.version;
+  if (!parseVersion(installed)) {
+    process.stderr.write(`taskpilot: cannot compare installed version ${installed}\n`);
+    process.stderr.write(MANUAL_UPDATE_HINT);
+    process.exit(1);
+  }
+  let latest;
+  try {
+    latest = fetchLatestVersion();
+  } catch (err) {
+    process.stderr.write(`taskpilot: could not check for updates: ${err.message}\n`);
+    process.stderr.write(MANUAL_UPDATE_HINT);
+    process.exit(1);
+  }
+
+  if (!isNewer(parseVersion(latest), parseVersion(installed))) {
+    process.stdout.write(`taskpilot is up to date (${installed})\n`);
+    process.exit(0);
+  }
+
+  if (checkOnly) {
+    process.stdout.write(`Update available: ${installed} -> ${latest}. Run: taskpilot update\n`);
+    process.exit(0);
+  }
+
+  process.stderr.write(`taskpilot: updating ${installed} -> ${latest}...\n`);
+  const install = runNpm(["install", "-g", `${packageJson.name}@${latest}`], {
+    stdio: "inherit",
+  });
+  if (install.error || install.status !== 0) {
+    const reason = install.error
+      ? install.error.message
+      : install.status !== null
+        ? `exit ${install.status}`
+        : `signal ${install.signal}`;
+    process.stderr.write(`taskpilot: npm install failed (${reason})\n`);
+    process.stderr.write(MANUAL_UPDATE_HINT);
+    process.exit(1);
+  }
+  process.stderr.write(`taskpilot: updated to ${latest}\n`);
+  process.exit(0);
+}
+
 function main() {
   const args = process.argv.slice(2);
+
+  // Global options such as --json may precede the subcommand; update ignores them.
+  const updateIndex = args.findIndex((arg) => !arg.startsWith("--") || arg === "--");
+  if (updateIndex >= 0 && args[updateIndex] === "update" && args.slice(0, updateIndex).every((a) => a === "--json")) {
+    runUpdate(args.slice(updateIndex + 1));
+  }
 
   if (args.length === 1 && args[0] === "--version") {
     process.stdout.write(`${packageJson.version}\n`);

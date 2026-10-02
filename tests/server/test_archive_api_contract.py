@@ -9,6 +9,8 @@ from taskpilot.server.app import create_app
 from taskpilot.services import project_service, registry
 from taskpilot.core.layout import WorkspacePaths
 
+pytestmark = pytest.mark.usefixtures("frozen_archive_clock")
+
 
 def _make_project(tmp_path: Path):
     """Create a project workspace with registry entry."""

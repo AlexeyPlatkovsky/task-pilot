@@ -26,10 +26,11 @@ test.describe("Archived List Browser Contract", () => {
     await expect(row).toContainText("Normal");
     await expect(list).toHaveCSS("background-color", "rgb(255, 255, 255)");
     await expect(rowWithDivider).toHaveCSS("border-bottom-color", "rgb(229, 234, 240)");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
+    // Header tab stops before the list: Doctor and Unregister (spec 0010) precede the
+    // theme radiogroup, which is a single stop (roving tabindex).
+    for (let i = 0; i < 6; i += 1) {
+      await page.keyboard.press("Tab");
+    }
     await expect(openItem).toBeFocused();
     await expect(openItem).toHaveCSS("outline-color", "rgb(169, 74, 34)");
   });

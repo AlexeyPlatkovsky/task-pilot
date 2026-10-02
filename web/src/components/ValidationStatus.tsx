@@ -26,7 +26,7 @@ export function ValidationStatus({ projectId }: Props) {
   }
 
   return (
-    <div className={styles.status}>
+    <div className={styles.status} data-test-id="validation-issues-state">
       <span className={styles.issues}>
         {data.summary.errors} err{data.summary.errors !== 1 ? "s" : ""},{" "}
         {data.summary.warnings} warn{data.summary.warnings !== 1 ? "s" : ""}

@@ -1,0 +1,9 @@
+schema_version: 1
+id: TP-138
+title: Unregister project from WebUI
+priority: high
+type: task
+status: done
+created_at: '2026-10-02T09:57:27Z'
+updated_at: '2026-10-02T10:29:43Z'
+description: 'Remove a project entry from the machine registry without touching its .taskpilot files. Shared service registry.unregister_project exposed via CLI (taskpilot project unregister <id>), REST (DELETE /api/projects/{id}) and a WebUI header delete icon with confirmation modal. Clears last_opened_project_id when it points at the removed project. Evidence: src/taskpilot/services/registry.py (register_project, list_projects); no unregister exists today. Spec: docs/specs/0010.'

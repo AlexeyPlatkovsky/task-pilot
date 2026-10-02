@@ -1,5 +1,7 @@
 import type {
   ApiError,
+  DoctorPlan,
+  DoctorResult,
   ItemDetail,
   ItemSummary,
   ItemUpdateInput,
@@ -102,4 +104,22 @@ export async function unarchiveItem(
     `/projects/${projectId}/items/${itemId}/unarchive`,
     { method: "POST" },
   );
+}
+
+export async function unregisterProject(
+  projectId: string,
+): Promise<ProjectSummary> {
+  return request<ProjectSummary>(`/projects/${projectId}`, { method: "DELETE" });
+}
+
+export async function fetchDoctorPlan(projectId: string): Promise<DoctorPlan> {
+  return request<DoctorPlan>(`/projects/${projectId}/doctor`);
+}
+
+export async function applyDoctorFixes(
+  projectId: string,
+): Promise<DoctorResult> {
+  return request<DoctorResult>(`/projects/${projectId}/doctor/apply`, {
+    method: "POST",
+  });
 }

@@ -25,6 +25,7 @@ from typing_extensions import Annotated
 
 from taskpilot.core.timestamps import is_canonical_iso, utc_now_iso
 from taskpilot.core.yaml_io import dump_yaml, load_yaml
+from taskpilot.services.errors import NotFound
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -37,6 +38,7 @@ __all__ = [
     "save_registry",
     "register_project",
     "list_projects",
+    "unregister_project",
 ]
 
 #: Current registry schema version.
@@ -225,3 +227,20 @@ def list_projects(registry_dir: Path) -> list[RegistryEntry]:
     even when two projects share a display name.
     """
     return sorted(load_registry(registry_dir).projects, key=lambda e: (e.name, e.id))
+
+
+def unregister_project(registry_dir: Path, project_id: str) -> RegistryEntry:
+    """Remove the entry with ``project_id`` from the registry and return it (spec ``0010`` R2.1).
+
+    Only the machine registry changes; the project's files are never touched, so
+    re-running ``taskpilot init`` restores the entry. Raises :class:`NotFound`
+    when no entry has that id.
+    """
+    with _registry_lock(registry_dir):
+        registry = load_registry(registry_dir)
+        for index, existing in enumerate(registry.projects):
+            if existing.id == project_id:
+                del registry.projects[index]
+                _save_registry_unlocked(registry_dir, registry)
+                return existing
+    raise NotFound(f"Project not found: {project_id}")

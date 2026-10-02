@@ -8,4 +8,7 @@ export {
   patchUIState,
   fetchArchivedItems,
   unarchiveItem,
+  unregisterProject,
+  fetchDoctorPlan,
+  applyDoctorFixes,
 } from "./client";

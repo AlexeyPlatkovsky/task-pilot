@@ -1,0 +1,27 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.destructive:hover {
+  color: var(--feedback-error);
+}
+
+.iconButton:focus-visible {
+  outline: thin solid var(--accent);
+  outline-offset: var(--space-1);
+}

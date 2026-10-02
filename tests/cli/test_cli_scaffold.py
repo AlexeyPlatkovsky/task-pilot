@@ -184,3 +184,18 @@ def test_no_args_still_shows_help_unaffected_by_version_option():
     # This test is a regression check that --version does not change it.
     assert result.exit_code == 2
     assert "Usage:" in ANSI_ESCAPE_RE.sub("", result.output)
+
+
+# --- update (spec 0011 R7) ---------------------------------------------------
+
+
+def test_python_update_explains_npm_path_and_exits_1():
+    from typer.testing import CliRunner
+
+    from taskpilot.cli.app import app as cli_app
+
+    result = CliRunner().invoke(cli_app, ["update"])
+
+    assert result.exit_code == 1
+    assert "npm install -g @alexey_platkovsky/taskpilot@latest" in result.stderr
+    assert result.stdout == ""
